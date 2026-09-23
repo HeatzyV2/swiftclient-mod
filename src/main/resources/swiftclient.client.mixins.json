@@ -1,0 +1,40 @@
+{
+  "required": false,
+  "package": "dev.swiftclient.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "ClientBrandRetrieverMixin",
+    "ButtonWidgetAccessor",
+    "SimpleOptionAccessor",
+    "TitleScreenMixin",
+    "GuiRendererMixin",
+    "FreelookEntityMixin",
+    "FreelookCameraMixin",
+    "HudCrosshairMixin",
+    "GameRendererBlurMixin",
+    "TitleScreenSkinMixin",
+    "PlayerSkinWidgetAccessor",
+    "ClientWorldCacheMixin",
+    "MinecraftClientMixin",
+    "MinecraftClientAccessor",
+    "GameMenuScreenMixin",
+    "ServerSelectionListMixin",
+    "JoinMultiplayerScreenMixin",
+    "OnlineServerEntryMixin",
+    "OnlineServerEntryInvoker",
+    "MouseHandlerZoomMixin",
+    "CapeLayerMixin",
+    "WingsLayerMixin",
+    "PlayerTabOverlayMixin",
+    "NameTagBadgeMixin",
+    "AvatarNameSelfMixin",
+    "AbstractClientPlayerEntityMixin",
+    "WorldRendererMixin",
+    "CrashReportPreloadMixin",
+    "BlockOutlineColorMixin",
+    "ScoreboardHudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,123 @@
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+version = project.findProperty('mod_version') ?: '1.0.0'
+group = project.findProperty('maven_group') ?: 'dev.swiftclient'
+
+base {
+    archivesName = project.findProperty('archives_base_name') ?: 'swiftclient-mod'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    maven {
+        name = 'SpongePowered'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    // Embedded mod JARs (Jar-in-Jar)
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // Fabric Loader & MixinExtras
+    compileOnly 'net.fabricmc:fabric-loader:0.19.5'
+    compileOnly 'net.fabricmc.fabric-api:fabric-api:0.161.0+26.2'
+    compileOnly 'net.fabricmc:sponge-mixin:0.15.4+mixin.0.8.7'
+    compileOnly 'io.github.llamalad7:mixinextras-fabric:0.4.1'
+
+    // Load exact Minecraft 26.2 libraries from the client runtime.
+    // Prefer ~/.swiftclient; fall back to ~/.lightclient while the launcher migrates.
+    def userHome = System.getProperty('user.home')
+    def runtimeRoot = file("${userHome}/.swiftclient")
+    if (!runtimeRoot.exists()) {
+        runtimeRoot = file("${userHome}/.lightclient")
+    }
+    def versionJsonFile = file("${runtimeRoot}/versions/26.2/26.2.json")
+    def librariesDir = file("${runtimeRoot}/libraries")
+    def mcJarFile = file("${runtimeRoot}/versions/26.2/26.2.jar")
+
+    if (mcJarFile.exists()) {
+        compileOnly files(mcJarFile)
+    }
+
+    if (versionJsonFile.exists()) {
+        def json = new JsonSlurper().parse(versionJsonFile)
+        json.libraries.each { lib ->
+            if (lib.downloads?.artifact?.path) {
+                def jarFile = new File(librariesDir, lib.downloads.artifact.path)
+                if (jarFile.exists()) {
+                    compileOnly files(jarFile)
+                }
+            }
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from("src/main/resources")
+    from("libs") {
+        into("META-INF/jars")
+    }
+}
+
+// Push build into launcher mods folders. Otherwise the game keeps loading the
+// stale ~/.lightclient/.../mods/lightclient-mod.jar and nothing appears to change.
+tasks.register('deployLocal') {
+    dependsOn jar
+    doLast {
+        def built = tasks.jar.archiveFile.get().asFile
+        def roots = [
+            file("${System.getProperty('user.home')}/.lightclient/instances"),
+            file("${System.getProperty('user.home')}/.swiftclient/instances"),
+            file("${System.getenv('APPDATA')}/SwiftClient/instances")
+        ]
+        roots.findAll { it != null && it.directory }.each { root ->
+            root.eachDir { inst ->
+                // SwiftClient launcher: mods live under minecraft/mods
+                def modsCandidates = [
+                    new File(inst, 'minecraft/mods'),
+                    new File(inst, 'mods')
+                ]
+                def mods = modsCandidates.find { it.directory }
+                if (mods == null) return
+                mods.listFiles()?.findAll { it.name ==~ /(?i).*(light|swift)client.*\.jar/ }?.each { it.delete() }
+                def fabric = new File(mods.parentFile, '.fabric')
+                if (!fabric.exists()) fabric = new File(inst, '.fabric')
+                if (fabric.exists()) fabric.deleteDir()
+                java.nio.file.Files.copy(
+                    built.toPath(),
+                    new File(mods, 'swiftclient-mod.jar').toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                )
+                println "deployed ${built.name} -> ${mods}/swiftclient-mod.jar"
+            }
+        }
+    }
+}
+
+tasks.named('jar').configure { finalizedBy('deployLocal') }

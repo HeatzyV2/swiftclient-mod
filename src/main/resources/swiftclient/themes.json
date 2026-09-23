@@ -1,0 +1,6 @@
+{
+  "_comment": "Swift Client — panorama Bloomy (faces only). panorama = prefix path_0..5.png.",
+  "themes": [
+    { "id": "bloomy", "name": "Bloomy", "panorama": "swiftclient:textures/panorama/bloomy/panorama", "top": "0xFF2A4A6A", "bottom": "0xFF0A1828" }
+  ]
+}

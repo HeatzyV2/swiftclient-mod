@@ -1,0 +1,8 @@
+{
+  "_comment": "Serveurs partenaires affiches dans la liste multijoueur. Edite cette liste puis rebuild le mod (build-all.ps1). Un seul fichier -> les 3 versions.",
+  "servers": [
+    { "name": "GlowSMP",   "ip": "glowsmp.fun",            "port": 25565, "description": "" },
+    { "name": "PurpleSMP", "ip": "play.purple-network.fr", "port": 25565, "description": "" },
+    { "name": "LuxSMP",    "ip": "LuxSMP.org",             "port": 25565, "description": "" }
+  ]
+}

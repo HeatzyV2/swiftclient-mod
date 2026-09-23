@@ -1,0 +1,6 @@
+{
+  "providers": [
+    { "type": "bitmap", "file": "swiftclient:font/sc_badge_color.png", "ascent": 7, "height": 8, "chars": [""] },
+    { "type": "bitmap", "file": "swiftclient:font/sc_badge.png", "ascent": 7, "height": 8, "chars": [""] }
+  ]
+}
