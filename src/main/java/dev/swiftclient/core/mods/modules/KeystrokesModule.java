@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager"})
 public final class KeystrokesModule extends Module {
    public KeystrokesModule() {
       super("hud_keystrokes", "Keystrokes", "Movement keys and mouse buttons. Move it in the HUD Editor.", "HUD", "keyboard", false);

@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager"})
 public final class MemoryModule extends Module {
    public MemoryModule() {
       super("hud_memory", "Memory", "Used memory. Move it in the HUD Editor.", "HUD", "chip", false);

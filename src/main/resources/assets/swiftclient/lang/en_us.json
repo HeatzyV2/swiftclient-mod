@@ -1,5 +1,5 @@
 {
-  "key.swiftclient.modsmenu": "Open Mods Menu",
+  "key.swiftclient.modsmenu": "Open the mods menu",
   "swift.menu.mods": "Mods",
   "swift.menu.cosmetics": "Cosmetics",
   "swift.menu.language": "Language",
@@ -56,5 +56,8 @@
   "swift.hud.center_h": "Center horizontally",
   "swift.hud.center_v": "Center vertically",
   "swift.hud.reset_one": "Reset position & size",
-  "swift.hud.anchor": "Anchor"
+  "swift.hud.anchor": "Anchor",
+  "key.category.swiftclient.main": "Swift Client",
+  "key.swiftclient.zoom": "Zoom",
+  "key.swiftclient.freelook": "Freelook"
 }

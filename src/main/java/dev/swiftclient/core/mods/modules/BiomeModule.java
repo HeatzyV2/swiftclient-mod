@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager"})
 public final class BiomeModule extends Module {
    public BiomeModule() {
       super("hud_biome", "Biome", "Current biome. Move it in the HUD Editor.", "HUD", "leaf", false);

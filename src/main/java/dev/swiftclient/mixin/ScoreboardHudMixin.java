@@ -3,6 +3,7 @@ package dev.swiftclient.mixin;
 import dev.swiftclient.core.hud.HudData;
 import dev.swiftclient.core.hud.HudManager;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.mods.modules.ScoreboardModule;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
@@ -19,7 +20,7 @@ public class ScoreboardHudMixin {
       cancellable = true
    )
    private void swiftclient$ownScoreboard(GuiGraphicsExtractor ctx, DeltaTracker delta, CallbackInfo ci) {
-      if (ModuleManager.active("hud_scoreboard")) {
+      if (ModuleManager.get(ScoreboardModule.class).isEnabled()) {
          HudData d = HudManager.lastData();
          if (d != null && d.sidebar() != null) {
             ci.cancel();

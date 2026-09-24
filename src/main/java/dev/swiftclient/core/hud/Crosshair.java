@@ -1,8 +1,8 @@
 package dev.swiftclient.core.hud;
 
 import dev.swiftclient.core.gfx.Canvas;
-import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.mods.modules.CrosshairModule;
 import dev.swiftclient.core.mods.ModuleSetting;
 
 public final class Crosshair {
@@ -16,24 +16,22 @@ public final class Crosshair {
    }
 
    public static void draw(Canvas c, int cx, int cy) {
-      Module m = ModuleManager.byId("crosshair");
-      if (m != null) {
-         int style = idx(m, "style", 0);
-         int col = color(m, "color", -1);
-         int len = val(m, "size", 4);
-         int thick = Math.max(1, val(m, "thick", 1));
-         int gap = val(m, "gap", 2);
-         boolean dot = bool(m, "dot", false);
-         boolean outline = bool(m, "outline", true);
-         if (style == 4) {
-            drawPixels(c, cx, cy, col, outline, Math.max(1, val(m, "pixsize", 2)));
-         } else {
-            if (outline) {
-               shape(c, cx, cy, style, -1073741824, thick + 2, gap, len + 1, dot);
-            }
-
-            shape(c, cx, cy, style, col, thick, gap, len, dot);
+      CrosshairModule m = ModuleManager.get(CrosshairModule.class);
+      int style = m.style.cycleIndex();
+      int col = m.color.colorValue();
+      int len = px(m.length);
+      int thick = Math.max(1, px(m.thickness));
+      int gap = px(m.gap);
+      boolean dot = m.dot.boolValue();
+      boolean outline = m.outline.boolValue();
+      if (style == CrosshairModule.STYLE_CUSTOM) {
+         drawPixels(c, cx, cy, col, outline, Math.max(1, px(m.pixelSize)));
+      } else {
+         if (outline) {
+            shape(c, cx, cy, style, -1073741824, thick + 2, gap, len + 1, dot);
          }
+
+         shape(c, cx, cy, style, col, thick, gap, len, dot);
       }
    }
 
@@ -96,23 +94,7 @@ public final class Crosshair {
       c.fill(x, y, x + w, y + h, col);
    }
 
-   private static int idx(Module m, String id, int def) {
-      ModuleSetting s = m.setting(id);
-      return s == null ? def : s.cycleIndex();
-   }
-
-   private static int color(Module m, String id, int def) {
-      ModuleSetting s = m.setting(id);
-      return s == null ? def : s.colorValue();
-   }
-
-   private static int val(Module m, String id, int def) {
-      ModuleSetting s = m.setting(id);
-      return s == null ? def : (int)Math.round(s.value());
-   }
-
-   private static boolean bool(Module m, String id, boolean def) {
-      ModuleSetting s = m.setting(id);
-      return s == null ? def : s.boolValue();
+   private static int px(ModuleSetting s) {
+      return (int)Math.round(s.value());
    }
 }

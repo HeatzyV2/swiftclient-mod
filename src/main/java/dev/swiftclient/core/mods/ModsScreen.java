@@ -214,7 +214,7 @@ public final class ModsScreen extends UiScreen {
       List<Module> out = new ArrayList<>();
 
       for (Module m : ModuleManager.modules()) {
-         if (m.implemented() && (this.category == null || this.category.equals(m.category)) && (q.isEmpty() || m.name.toLowerCase(Locale.ROOT).contains(q))) {
+         if ((this.category == null || this.category.equals(m.category)) && (q.isEmpty() || m.name.toLowerCase(Locale.ROOT).contains(q))) {
             out.add(m);
          }
       }
@@ -226,7 +226,7 @@ public final class ModsScreen extends UiScreen {
       List<String> out = new ArrayList<>();
 
       for (Module m : ModuleManager.modules()) {
-         if (m.implemented() && !out.contains(m.category)) {
+         if (!out.contains(m.category)) {
             out.add(m.category);
          }
       }

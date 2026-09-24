@@ -1,36 +1,30 @@
 package dev.swiftclient.core.mods;
 
+import dev.swiftclient.core.mods.modules.BlockOverlayModule;
+
 public final class BlockOverlayState {
    private BlockOverlayState() {
    }
 
-   private static ModuleSetting s(String id) {
-      Module m = ModuleManager.byId("blockoverlay");
-      return m == null ? null : m.setting(id);
+   private static BlockOverlayModule module() {
+      return ModuleManager.get(BlockOverlayModule.class);
    }
 
    public static boolean enabled() {
-      return ModuleManager.active("blockoverlay");
+      return module().isEnabled();
    }
 
    public static boolean hidden() {
-      ModuleSetting m = s("mode");
-      return m != null && m.cycleIndex() == 1;
+      return module().mode.cycleIndex() == BlockOverlayModule.MODE_HIDDEN;
    }
 
    public static int argb() {
       if (hidden()) {
          return 0;
       } else {
-         ModuleSetting c = s("color");
-         int argb = c == null ? -872415232 : c.colorValue();
-         ModuleSetting o = s("opacity");
-         if (o != null) {
-            int a = (int)Math.round(Math.max(0.0, Math.min(100.0, o.value())) * 2.55);
-            argb = argb & 16777215 | a << 24;
-         }
-
-         return argb;
+         BlockOverlayModule m = module();
+         int a = (int)Math.round(Math.max(0.0, Math.min(100.0, m.opacity.value())) * 2.55);
+         return m.color.colorValue() & 0xFFFFFF | a << 24;
       }
    }
 

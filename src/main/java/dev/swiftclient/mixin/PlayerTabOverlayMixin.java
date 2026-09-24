@@ -3,6 +3,7 @@ package dev.swiftclient.mixin;
 import dev.swiftclient.core.badges.BadgeState;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.TabAnimState;
+import dev.swiftclient.core.mods.modules.TabAnimModule;
 import dev.swiftclient.core.mods.modules.WiderTabModule;
 import dev.swiftclient.render.SwiftBadge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -38,7 +39,7 @@ public abstract class PlayerTabOverlayMixin {
       at = {@At("HEAD")}
    )
    private void swiftclient$tabAnimStart(GuiGraphicsExtractor ctx, int scaledWindowWidth, Scoreboard scoreboard, Objective objective, CallbackInfo ci) {
-      if (ModuleManager.active("tabanim")) {
+      if (ModuleManager.get(TabAnimModule.class).isEnabled()) {
          ctx.pose().pushMatrix();
          ctx.pose().translate(0.0F, TabAnimState.slideY());
       }
@@ -49,7 +50,7 @@ public abstract class PlayerTabOverlayMixin {
       at = {@At("TAIL")}
    )
    private void swiftclient$tabAnimEnd(GuiGraphicsExtractor ctx, int scaledWindowWidth, Scoreboard scoreboard, Objective objective, CallbackInfo ci) {
-      if (ModuleManager.active("tabanim")) {
+      if (ModuleManager.get(TabAnimModule.class).isEnabled()) {
          ctx.pose().popMatrix();
       }
    }
@@ -63,6 +64,7 @@ public abstract class PlayerTabOverlayMixin {
       )
    )
    private long swiftclient$widerTab(long original) {
-      return ModuleManager.active("widertab") ? WiderTabModule.limite() : original;
+      WiderTabModule wider = ModuleManager.get(WiderTabModule.class);
+      return wider.isEnabled() ? wider.limit() : original;
    }
 }

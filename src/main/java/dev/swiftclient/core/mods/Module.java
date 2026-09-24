@@ -5,7 +5,17 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
+/**
+ * A toggleable feature. Behaviour lives in the lifecycle hooks ({@link #onEnable}, {@link #onDisable},
+ * {@link #onTick}, {@link #onRender}); a module whose behaviour is read elsewhere (mixin, HUD renderer)
+ * declares it with {@link ConsumedBy}. {@link ModuleManager#register} refuses a module that has neither,
+ * so a module cannot be shown in the menu without doing anything.
+ *
+ * <p>Settings are declared as fields through the factories below ({@code toggle}, {@code slider}...),
+ * and read through those fields instead of looking them up by id.
+ */
 public abstract class Module {
    public final String id;
    public final String name;
@@ -15,7 +25,6 @@ public abstract class Module {
    public final boolean swiftPlus;
    private boolean enabled;
    private final boolean defEnabled;
-   private boolean implemented = true;
    protected final List<ModuleSetting> settings = new ArrayList<>();
 
    protected Module(String id, String name, String description, String category, String icon, boolean defEnabled) {
@@ -33,28 +42,65 @@ public abstract class Module {
       this.enabled = defEnabled;
    }
 
-   /** Stays false for a module without behaviour, whatever its saved state says. */
-   public boolean isEnabled() {
-      return this.implemented && this.enabled;
+   // --- Lifecycle, driven by ModuleManager. Only called once the manager has started. ---
+
+   /** The module was switched on, or was already on when the game started. */
+   protected void onEnable() {
    }
 
    /**
-    * False for modules declared ahead of their implementation. They stay registered so their
-    * saved values survive in swiftclient.properties and in profiles, but they are hidden from
-    * the UI and never report themselves as enabled.
+    * The module was switched off, or starts off. Must undo whatever onEnable/onTick changed, and be safe to
+    * call when there is nothing to undo.
     */
-   public boolean implemented() {
-      return this.implemented;
+   protected void onDisable() {
    }
 
-   protected final void notImplemented() {
-      this.implemented = false;
+   /** Every client tick while enabled. */
+   protected void onTick() {
+   }
+
+   /** Every rendered frame while enabled, before the HUD is drawn. */
+   protected void onRender(float partialTick) {
+   }
+
+   // --- Settings factories: the module id is filled in, the setting is registered in declaration order. ---
+
+   protected final ModuleSetting toggle(String settingId, String label, boolean def) {
+      return this.add(ModuleSetting.toggle(this.id, settingId, label, def));
+   }
+
+   protected final ModuleSetting slider(String settingId, String label, double def, double min, double max, double step, String unit) {
+      return this.add(ModuleSetting.slider(this.id, settingId, label, def, min, max, step, unit));
+   }
+
+   protected final ModuleSetting color(String settingId, String label, int defArgb) {
+      return this.add(ModuleSetting.color(this.id, settingId, label, defArgb));
+   }
+
+   protected final ModuleSetting cycle(String settingId, String label, String[] options, int def) {
+      return this.add(ModuleSetting.cycle(this.id, settingId, label, options, def));
+   }
+
+   protected final ModuleSetting action(String settingId, String label, Supplier<String> buttonLabel, Runnable onClick) {
+      return this.add(ModuleSetting.action(this.id, settingId, label, buttonLabel, onClick));
+   }
+
+   private ModuleSetting add(ModuleSetting s) {
+      this.settings.add(s);
+      return s;
+   }
+
+   // --- State ---
+
+   public boolean isEnabled() {
+      return this.enabled;
    }
 
    public void setEnabled(boolean e) {
       if (this.enabled != e) {
          this.enabled = e;
          this.save();
+         ModuleManager.onToggled(this);
       }
    }
 
@@ -70,6 +116,7 @@ public abstract class Module {
       return !this.settings.isEmpty();
    }
 
+   /** Lookup by id, for generic code (menu, profiles, HUD elements). Modules use their fields. */
    public ModuleSetting setting(String settingId) {
       for (ModuleSetting s : this.settings) {
          if (s.id.equals(settingId)) {
@@ -119,5 +166,23 @@ public abstract class Module {
          Platform.game().setConfig("mod." + this.id + ".enabled", this.enabled ? "1" : "0");
       } catch (Throwable ignored) {
       }
+   }
+
+   // Package-private entry points so only ModuleManager drives the lifecycle.
+
+   final void fireEnable() {
+      this.onEnable();
+   }
+
+   final void fireDisable() {
+      this.onDisable();
+   }
+
+   final void fireTick() {
+      this.onTick();
+   }
+
+   final void fireRender(float partialTick) {
+      this.onRender(partialTick);
    }
 }

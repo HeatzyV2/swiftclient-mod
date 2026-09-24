@@ -7,16 +7,22 @@ public final class RealisticCapeState {
    private RealisticCapeState() {
    }
 
+   /** Set by RealisticCapeModule every tick; read by the cape renderer. */
+   private static volatile double speedPercent = 50.0;
+   private static volatile double amplitude = 8.0;
+
+   public static void configure(boolean enabled, double speedSetting, double amplitudeSetting) {
+      active = enabled;
+      speedPercent = speedSetting;
+      amplitude = amplitudeSetting;
+   }
+
    private static double speed() {
-      Module m = ModuleManager.byId("realisticcape");
-      ModuleSetting s = m != null ? m.setting("speed") : null;
-      return s != null ? s.value() / 100.0 : 0.5;
+      return speedPercent / 100.0;
    }
 
    private static double amplitudeDeg() {
-      Module m = ModuleManager.byId("realisticcape");
-      ModuleSetting s = m != null ? m.setting("amplitude") : null;
-      return s != null ? s.value() : 8.0;
+      return amplitude;
    }
 
    private static double wave(float phase) {

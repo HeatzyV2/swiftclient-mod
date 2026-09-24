@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager"})
 public final class SpeedModule extends Module {
    public SpeedModule() {
       super("hud_speed", "Speed", "Movement speed. Move it in the HUD Editor.", "HUD", "gauge", false);

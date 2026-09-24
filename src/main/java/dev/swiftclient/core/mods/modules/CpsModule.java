@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager"})
 public final class CpsModule extends Module {
    public CpsModule() {
       super("hud_cps", "CPS", "Clicks per second. Move it in the HUD Editor.", "HUD", "click", false);

@@ -1,22 +1,21 @@
 package dev.swiftclient.freelook;
 
-import dev.swiftclient.core.mods.Module;
-import dev.swiftclient.core.mods.ModuleManager;
-import dev.swiftclient.core.mods.ModuleSetting;
+import dev.swiftclient.input.SwiftKeys;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.glfw.GLFW;
 
+/** Freelook camera state, driven by FreelookModule and read by the Freelook mixins. */
 public final class Freelook {
    public static volatile boolean active = false;
+   private static volatile float maxYaw = 360.0F;
    private static CameraType saved;
 
    private Freelook() {
    }
 
-   public static void tick(Minecraft mc) {
-      boolean enabled = ModuleManager.active("freelook") && mc.player != null && mc.gui.screen() == null;
-      boolean held = enabled && GLFW.glfwGetKey(mc.getWindow().handle(), key()) == 1;
+   public static void tick(Minecraft mc, float maxYawDegrees) {
+      maxYaw = maxYawDegrees;
+      boolean held = mc.player != null && mc.gui.screen() == null && SwiftKeys.FREELOOK.isDown();
       if (held && !active) {
          start(mc);
       } else if (!held && active) {
@@ -33,7 +32,7 @@ public final class Freelook {
       active = true;
    }
 
-   private static void stop(Minecraft mc) {
+   public static void stop(Minecraft mc) {
       active = false;
       if (saved != null) {
          mc.options.setCameraType(saved);
@@ -42,22 +41,6 @@ public final class Freelook {
    }
 
    public static float maxYaw() {
-      Module m = ModuleManager.byId("freelook");
-      if (m == null) {
-         return 360.0F;
-      } else {
-         ModuleSetting s = m.setting("maxyaw");
-         return s == null ? 360.0F : (float)s.value();
-      }
-   }
-
-   private static int key() {
-      Module m = ModuleManager.byId("freelook");
-      if (m == null) {
-         return 342;
-      } else {
-         ModuleSetting s = m.setting("key");
-         return s == null ? 342 : s.keyCode();
-      }
+      return maxYaw;
    }
 }

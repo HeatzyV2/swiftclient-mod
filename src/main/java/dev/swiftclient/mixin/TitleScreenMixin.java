@@ -7,6 +7,7 @@ import com.mojang.realmsclient.gui.screens.RealmsNotificationsScreen;
 import dev.swiftclient.core.ModCompat;
 import dev.swiftclient.core.mods.ModsScreen;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.mods.modules.VanillaUiModule;
 import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.core.screen.AccountScreen;
 import dev.swiftclient.core.screen.LanguageScreen;
@@ -98,7 +99,7 @@ public abstract class TitleScreenMixin extends Screen {
       )}
    )
    private GuiEventListener swiftclient$skipAllVanillaWidgets(TitleScreen self, GuiEventListener element, Operation<GuiEventListener> original) {
-      return ModuleManager.active("vanillaui") ? (GuiEventListener)original.call(new Object[]{self, element}) : element;
+      return ModuleManager.get(VanillaUiModule.class).isEnabled() ? (GuiEventListener)original.call(new Object[]{self, element}) : element;
    }
 
    @Unique
@@ -176,7 +177,7 @@ public abstract class TitleScreenMixin extends Screen {
    )
    private void swiftclient$addCustomUi(CallbackInfo ci) {
       SwiftPanorama.ensurePersistedApplied();
-      if (ModuleManager.active("vanillaui")) {
+      if (ModuleManager.get(VanillaUiModule.class).isEnabled()) {
          return;
       }
 
@@ -302,7 +303,7 @@ public abstract class TitleScreenMixin extends Screen {
    private void swiftclient$drawSkinPanel(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
       CanvasImpl c = new CanvasImpl(ctx);
       SwiftIntro.tickSounds();
-      if (!ModuleManager.active("vanillaui")) {
+      if (!ModuleManager.get(VanillaUiModule.class).isEnabled()) {
          int railX = this.swiftclient$railX;
          int railW = this.swiftclient$railW;
          int logo = this.swiftclient$logoSize;

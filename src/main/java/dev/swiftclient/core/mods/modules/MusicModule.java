@@ -3,6 +3,7 @@ package dev.swiftclient.core.mods.modules;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.music.SpotifyManager;
+import dev.swiftclient.core.music.WindowsSmtc;
 
 public final class MusicModule extends Module {
    public MusicModule() {
@@ -58,5 +59,22 @@ public final class MusicModule extends Module {
       this.settings
          .add(ModuleSetting.color("hud_music", "col_prog", "Progress color", -12868259).desc("Colour of the filled part of the progress bar.").group("Colors"));
       this.settings.add(ModuleSetting.color("hud_music", "col_bg", "Background color", -15987700).desc("Colour of the panel background.").group("Colors"));
+   }
+
+   // The Windows media reader (one PowerShell process) only runs while the module is on.
+   @Override
+   protected void onEnable() {
+      WindowsSmtc.setActive(true);
+   }
+
+   @Override
+   protected void onTick() {
+      // Restarts the reader (with backoff) if the process died.
+      WindowsSmtc.setActive(true);
+   }
+
+   @Override
+   protected void onDisable() {
+      WindowsSmtc.setActive(false);
    }
 }

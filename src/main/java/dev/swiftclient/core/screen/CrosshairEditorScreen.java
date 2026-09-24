@@ -3,9 +3,8 @@ package dev.swiftclient.core.screen;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.hud.Crosshair;
 import dev.swiftclient.core.hud.CrosshairPixels;
-import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
-import dev.swiftclient.core.mods.ModuleSetting;
+import dev.swiftclient.core.mods.modules.CrosshairModule;
 import dev.swiftclient.core.ui.UiScreen;
 
 public final class CrosshairEditorScreen extends UiScreen {
@@ -43,13 +42,7 @@ public final class CrosshairEditorScreen extends UiScreen {
    }
 
    private int color() {
-      Module m = ModuleManager.byId("crosshair");
-      if (m == null) {
-         return -1;
-      } else {
-         ModuleSetting s = m.setting("color");
-         return s == null ? -1 : s.colorValue();
-      }
+      return ModuleManager.get(CrosshairModule.class).color.colorValue();
    }
 
    @Override

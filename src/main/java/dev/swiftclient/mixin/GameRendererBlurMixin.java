@@ -1,8 +1,7 @@
 package dev.swiftclient.mixin;
 
-import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
-import dev.swiftclient.core.mods.ModuleSetting;
+import dev.swiftclient.core.mods.modules.GuiBlurModule;
 import dev.swiftclient.renderer.blur.ScreenBlur;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -20,12 +19,10 @@ public class GameRendererBlurMixin {
    )
    private void swiftclient$guiBlur(DeltaTracker deltaTracker, CallbackInfo ci) {
       Minecraft mc = Minecraft.getInstance();
-      if (mc.gui.screen() != null && ModuleManager.active("gui_blur")) {
-         Module m = ModuleManager.byId("gui_blur");
-         ModuleSetting sStr = m.setting("strength");
-         ModuleSetting sDim = m.setting("darkness");
-         float blur = (float)((sStr == null ? 60.0 : sStr.value()) / 100.0 * 28.0);
-         int dimA = (int)Math.round((sDim == null ? 25.0 : sDim.value()) / 100.0 * 180.0);
+      GuiBlurModule m = ModuleManager.get(GuiBlurModule.class);
+      if (mc.gui.screen() != null && m.isEnabled()) {
+         float blur = (float)(m.strength.value() / 100.0 * 28.0);
+         int dimA = (int)Math.round(m.darkness.value() / 100.0 * 180.0);
          int tint = Math.max(0, Math.min(255, dimA)) << 24;
          ScreenBlur.draw(blur, tint);
       }

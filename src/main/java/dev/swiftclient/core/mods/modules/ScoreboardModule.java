@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager", "ScoreboardHudMixin"})
 public final class ScoreboardModule extends Module {
    public ScoreboardModule() {
       super("hud_scoreboard", "Scoreboard", "Move, resize and restyle the server scoreboard. Move it in the HUD Editor.", "HUD", "list", false);

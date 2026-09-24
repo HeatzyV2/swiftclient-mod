@@ -2,6 +2,7 @@ package dev.swiftclient.mixin;
 
 import dev.swiftclient.core.hud.Crosshair;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.mods.modules.CrosshairModule;
 import dev.swiftclient.platform.CanvasImpl;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -20,7 +21,7 @@ public class HudCrosshairMixin {
       cancellable = true
    )
    private void swiftclient$customCrosshair(GuiGraphicsExtractor ctx, DeltaTracker deltaTracker, CallbackInfo ci) {
-      if (ModuleManager.active("crosshair")) {
+      if (ModuleManager.get(CrosshairModule.class).isEnabled()) {
          Minecraft mc = Minecraft.getInstance();
          int cx = mc.getWindow().getGuiScaledWidth() / 2;
          int cy = mc.getWindow().getGuiScaledHeight() / 2;

@@ -56,5 +56,8 @@
   "swift.hud.center_h": "Centrer horizontalement",
   "swift.hud.center_v": "Centrer verticalement",
   "swift.hud.reset_one": "Reset position & taille",
-  "swift.hud.anchor": "Ancre"
+  "swift.hud.anchor": "Ancre",
+  "key.category.swiftclient.main": "Swift Client",
+  "key.swiftclient.zoom": "Zoom",
+  "key.swiftclient.freelook": "Vue libre"
 }

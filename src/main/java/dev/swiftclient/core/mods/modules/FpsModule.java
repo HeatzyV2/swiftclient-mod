@@ -1,8 +1,10 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 
+@ConsumedBy({"HudManager"})
 public final class FpsModule extends Module {
    public FpsModule() {
       super("hud_fps", "FPS", "Frames per second. Move it in the HUD Editor.", "HUD", "activity", false);

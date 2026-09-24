@@ -2,6 +2,7 @@ package dev.swiftclient.mixin;
 
 import dev.swiftclient.core.mods.ModsScreen;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.mods.modules.VanillaUiModule;
 import dev.swiftclient.core.mods.VanillaPauseKeys;
 import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.core.screen.HostWorldScreen;
@@ -45,7 +46,7 @@ public abstract class GameMenuScreenMixin extends Screen {
       at = {@At("TAIL")}
    )
    private void swiftclient$customUI(CallbackInfo ci) {
-      if (!ModuleManager.active("vanillaui")) {
+      if (!ModuleManager.get(VanillaUiModule.class).isEnabled()) {
          PauseScreen self = (PauseScreen)(Object)this;
          Minecraft mc = Minecraft.getInstance();
          List<Button> candidates = new ArrayList<>();

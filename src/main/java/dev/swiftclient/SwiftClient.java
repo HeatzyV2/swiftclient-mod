@@ -8,9 +8,7 @@ import dev.swiftclient.core.cosmetics.PetState;
 import dev.swiftclient.core.mods.CapeSimManager;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.log.Log;
-import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.music.MusicState;
-import dev.swiftclient.core.music.WindowsSmtc;
 import dev.swiftclient.core.pet.DynamicPets;
 import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.hud.HudClient;
@@ -68,6 +66,7 @@ public class SwiftClient implements ClientModInitializer {
          FabricLoader.getInstance().getModContainer("minecraft").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?")
       );
       Platform.install(new GameImpl());
+      HudClient.installModules();
       RpcManager.init();
       AccountManager.get().load();
       PetManager.INSTANCE.init();
@@ -82,7 +81,6 @@ public class SwiftClient implements ClientModInitializer {
          }
 
          DisplayModeFix.tick();
-         WindowsSmtc.setActive(ModuleManager.active("hud_music"));
          if (client.player != null) {
             PlayerCache.set(client.player);
          } else if (client.level == null) {

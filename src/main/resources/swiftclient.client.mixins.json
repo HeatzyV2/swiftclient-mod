@@ -30,7 +30,8 @@
     "WorldRendererMixin",
     "CrashReportPreloadMixin",
     "BlockOutlineColorMixin",
-    "ScoreboardHudMixin"
+    "ScoreboardHudMixin",
+    "OptionsSaveMixin"
   ],
   "injectors": {
     "defaultRequire": 1
