@@ -1,6 +1,7 @@
 package dev.swiftclient.core.mods;
 
 import dev.swiftclient.core.platform.Platform;
+import dev.swiftclient.core.platform.Tr;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,6 +89,25 @@ public abstract class Module {
    private ModuleSetting add(ModuleSetting s) {
       this.settings.add(s);
       return s;
+   }
+
+   // --- Display (translated; the fields above stay the identity used in config and code) ---
+
+   /** Name shown in menus: {@code swift.module.<id>.name}, or the declared name. */
+   public String displayName() {
+      return Tr.orDefault("swift.module." + this.id + ".name", this.name);
+   }
+
+   public String displayDescription() {
+      return Tr.orDefault("swift.module." + this.id + ".desc", this.description);
+   }
+
+   public String displayCategory() {
+      return categoryLabel(this.category);
+   }
+
+   public static String categoryLabel(String category) {
+      return Tr.orDefault("swift.category." + ModuleSetting.optionKey(category), category);
    }
 
    // --- State ---

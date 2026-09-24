@@ -83,6 +83,11 @@ public final class GameImpl implements Game {
    }
 
    @Override
+   public String translate(String key, Object... args) {
+      return I18n.get(key, args == null ? new Object[0] : args);
+   }
+
+   @Override
    public String translate(String key) {
       return I18n.get(key, new Object[0]);
    }

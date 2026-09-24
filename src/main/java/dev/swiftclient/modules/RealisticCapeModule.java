@@ -17,7 +17,7 @@ public final class RealisticCapeModule extends Module {
    public final ModuleSetting speed;
 
    public RealisticCapeModule() {
-      super("realisticcape", "Realistic Cape", "Effet de vague continu sur la cape.", "Render", "cape", false);
+      super("realisticcape", "Realistic Cape", "Continuous wave effect on the cape.", "Render", "cape", false);
       this.amplitude = this.slider("amplitude", "Amplitude", 8.0, 2.0, 20.0, 1.0, "°").desc("How far the cape swings away from your back.");
       this.speed = this.slider("speed", "Speed", 50.0, 10.0, 100.0, 5.0, "%").desc("How fast the wave travels down the cape.");
    }

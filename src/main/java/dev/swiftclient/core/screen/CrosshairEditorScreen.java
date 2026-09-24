@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.hud.Crosshair;
 import dev.swiftclient.core.hud.CrosshairPixels;
@@ -14,7 +15,7 @@ public final class CrosshairEditorScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Crosshair";
+      return Tr.of("swift.crosshair.title");
    }
 
    private int cell() {
@@ -48,8 +49,8 @@ public final class CrosshairEditorScreen extends UiScreen {
    @Override
    public void draw(Canvas c, int mouseX, int mouseY, float delta) {
       c.fill(0, 0, this.width, this.height, -267711214);
-      c.centeredText("CROSSHAIR EDITOR", this.width / 2, 16, -1, true);
-      c.centeredText("Left click to draw · right click to erase · drag to paint", this.width / 2, 32, -6642766, false);
+      c.centeredText(Tr.of("swift.crosshair.editor"), this.width / 2, 16, -1, true);
+      c.centeredText(Tr.of("swift.crosshair.help"), this.width / 2, 32, -6642766, false);
       int gx = this.gridX();
       int gy = this.gridY();
       int cs = this.cell();
@@ -73,8 +74,8 @@ public final class CrosshairEditorScreen extends UiScreen {
       c.fill(gx, gy + mid * cs, gx + this.gridW(), gy + mid * cs + 1, 587202559);
       c.centeredText("preview", gx + this.gridW() + 34, gy + 2, -10394518, false);
       Crosshair.draw(c, gx + this.gridW() + 34, gy + 24);
-      this.button(c, this.clearRect(), "Clear", mouseX, mouseY);
-      this.button(c, this.doneRect(), "Done", mouseX, mouseY);
+      this.button(c, this.clearRect(), Tr.of("swift.crosshair.clear"), mouseX, mouseY);
+      this.button(c, this.doneRect(), Tr.of("swift.common.done"), mouseX, mouseY);
    }
 
    private void button(Canvas c, int[] r, String label, int mx, int my) {

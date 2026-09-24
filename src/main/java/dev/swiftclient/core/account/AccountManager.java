@@ -1,5 +1,6 @@
 package dev.swiftclient.core.account;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.net.Net;
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public final class AccountManager {
             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
             Platform.game().runOnGameThread(() -> {
                LOG.warn("Connexion Microsoft echouee : {}", cause.getMessage());
-               onStatus.accept("Erreur : " + cause.getMessage());
+               onStatus.accept(Tr.of("swift.auth.error", cause.getMessage()));
                onDone.accept(null);
             });
             return null;

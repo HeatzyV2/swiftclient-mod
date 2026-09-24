@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 /** Real toggle: while enabled, the vanilla Sprint key switches sprinting on and off (vanilla "Sprint: Toggle"). */
 public final class ToggleSprintModule extends Module {
    public ToggleSprintModule() {
-      super("togglesprint", "Toggle Sprint", "Appuie une fois sur la touche Sprint pour sprinter, une seconde fois pour arreter.", "Movement", "togglesprint", false);
+      super("togglesprint", "Toggle Sprint", "Press the Sprint key once to sprint, once more to stop.", "Movement", "togglesprint", false);
    }
 
    @Override

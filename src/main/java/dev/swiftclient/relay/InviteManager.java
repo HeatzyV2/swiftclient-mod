@@ -1,5 +1,6 @@
 package dev.swiftclient.relay;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.net.Endpoints;
 import org.slf4j.Logger;
@@ -22,10 +23,10 @@ public class InviteManager {
       CompletableFuture<String> result = new CompletableFuture<>();
       IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
       if (server == null) {
-         result.completeExceptionally(new IllegalStateException("No singleplayer world is open"));
+         result.completeExceptionally(new IllegalStateException(Tr.of("swift.host.err.no_world")));
          return result;
       } else if (Endpoints.relay() == null) {
-         result.completeExceptionally(new IllegalStateException("No hosting relay configured (-Dswiftclient.relay=host:port)"));
+         result.completeExceptionally(new IllegalStateException(Tr.of("swift.host.err.no_relay")));
          return result;
       } else if (activeRelay != null && activeRelay.isAlive() && activePublicPort > 0) {
          result.complete(adresse(activePublicPort));
@@ -35,7 +36,7 @@ public class InviteManager {
          try (ServerSocket ss = new ServerSocket(0)) {
             freePort = ss.getLocalPort();
          } catch (IOException var13) {
-            result.completeExceptionally(new RuntimeException("No free local port"));
+            result.completeExceptionally(new RuntimeException(Tr.of("swift.host.err.no_port")));
             return result;
          }
          GameType mode = switch (modeJeu) {
@@ -46,7 +47,7 @@ public class InviteManager {
          };
          boolean ok = server.publishServer(net.minecraft.server.MinecraftServer.MultiplayerScope.LAN, mode, triche, freePort);
          if (!ok) {
-            result.completeExceptionally(new RuntimeException("Minecraft refused to open the world (port " + freePort + " busy?)"));
+            result.completeExceptionally(new RuntimeException(Tr.of("swift.host.err.refused", freePort)));
             return result;
          } else {
             activeLanPort = freePort;
@@ -65,7 +66,7 @@ public class InviteManager {
             }, err -> {
                LOG.warn("Relais : {}", err);
                if (!result.isDone()) {
-                  result.completeExceptionally(new RuntimeException("the Swift Client relay can't be reached right now"));
+                  result.completeExceptionally(new RuntimeException(Tr.of("swift.host.err.relay_down")));
                }
             });
             activeRelay.start();

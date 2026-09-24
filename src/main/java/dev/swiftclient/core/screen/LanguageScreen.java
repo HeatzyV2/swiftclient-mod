@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Lang;
 import dev.swiftclient.core.platform.Platform;
@@ -43,7 +44,7 @@ public class LanguageScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Language";
+      return Tr.of("swift.language.title");
    }
 
    @Override
@@ -127,10 +128,10 @@ public class LanguageScreen extends UiScreen {
 
       c.popScissor();
       if (this.rows.isEmpty()) {
-         c.centeredText("No language matches \"" + this.query + "\"", this.width / 2, this.listTop + 20, -9735552, true);
+         c.centeredText(Tr.of("swift.language.no_match", this.query), this.width / 2, this.listTop + 20, -9735552, true);
       }
 
-      String count = this.rows.size() + " / " + this.all.size() + " languages";
+      String count = Tr.of("swift.language.count", this.rows.size(), this.all.size());
       c.centeredText(count, this.width / 2, this.height - 20, -9735552, true);
    }
 
@@ -144,7 +145,7 @@ public class LanguageScreen extends UiScreen {
       int tx = sx + 8;
       int ty = sy + (22 - c.lineHeight()) / 2 + 1;
       if (this.query.isEmpty() && !this.searchFocused) {
-         c.text("Search a language...", tx, ty, -9735552, false);
+         c.text(Tr.of("swift.language.search"), tx, ty, -9735552, false);
       } else {
          String shown = this.query;
          if (this.searchFocused && this.caretBlink % 60L < 30L) {

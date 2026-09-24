@@ -16,7 +16,7 @@ public final class FullBrightModule extends Module {
       super(
          "fullbright",
          "FullBright",
-         "Voir dans le noir comme en plein jour. Sous shaders, la luminosite est bridee : au-dela, l'ecran vire au rouge.",
+         "See in the dark as in broad daylight. Capped under shaders: beyond that the screen turns red.",
          "Render",
          "fullbright",
          false

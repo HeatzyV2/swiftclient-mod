@@ -22,6 +22,27 @@ public final class TestGame {
    private TestGame() {
    }
 
+   /** English strings, as the game would show them. Missing key: the key itself, like vanilla I18n. */
+   private static final Map<String, String> EN = loadEnglish();
+
+   private static Map<String, String> loadEnglish() {
+      try (var in = TestGame.class.getResourceAsStream("/assets/swiftclient/lang/en_us.json")) {
+         Map<String, String> out = new HashMap<>();
+         com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8))
+            .getAsJsonObject()
+            .entrySet()
+            .forEach(e -> out.put(e.getKey(), e.getValue().getAsString()));
+         return out;
+      } catch (IOException e) {
+         throw new UncheckedIOException(e);
+      }
+   }
+
+   public static String translate(String key, Object... args) {
+      String v = EN.get(key);
+      return v == null ? key : String.format(v, args);
+   }
+
    public static void install() {
       CONFIG.clear();
 
@@ -44,6 +65,7 @@ public final class TestGame {
          }
          case "configDir" -> Path.of("build", "test-config");
          case "config" -> store;
+         case "translate" -> translate((String)args[0], args.length > 1 ? (Object[])args[1] : new Object[0]);
          case "readClipboard" -> CLIPBOARD[0];
          case "copyToClipboard" -> {
             CLIPBOARD[0] = (String)args[0];

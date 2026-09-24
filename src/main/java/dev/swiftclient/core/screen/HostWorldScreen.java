@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.core.social.SocialApi;
@@ -12,9 +13,33 @@ import java.util.Set;
 
 public class HostWorldScreen extends UiScreen {
    private static final String[] MODES = new String[]{"survival", "creative", "adventure", "spectator"};
-   private static final String[] MODES_LIB = new String[]{"Survival", "Creative", "Adventure", "Spectator"};
    private static final String[] DIFFS = new String[]{"peaceful", "easy", "normal", "hard"};
-   private static final String[] DIFFS_LIB = new String[]{"Peaceful", "Easy", "Normal", "Hard"};
+
+   private static String modeLabel(int i) {
+      return Tr.of("swift.host.mode." + MODES[i]);
+   }
+
+   private static String diffLabel(int i) {
+      return Tr.of("swift.host.diff." + DIFFS[i]);
+   }
+
+   private static String[] modeLabels() {
+      String[] out = new String[MODES.length];
+      for (int i = 0; i < out.length; i++) {
+         out[i] = modeLabel(i);
+      }
+
+      return out;
+   }
+
+   private static String[] diffLabels() {
+      String[] out = new String[DIFFS.length];
+      for (int i = 0; i < out.length; i++) {
+         out[i] = diffLabel(i);
+      }
+
+      return out;
+   }
    private static final int W = 300;
    private static final int PAD = 14;
    private static final int LIGNE = 26;
@@ -39,7 +64,7 @@ public class HostWorldScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Host World";
+      return Tr.of("swift.host.title");
    }
 
    @Override
@@ -63,8 +88,8 @@ public class HostWorldScreen extends UiScreen {
          this.amisCharges = true;
          SocialApi.listFriends().thenAccept(res -> {
             if (!res.ok()) {
-               this.pose("Friends unavailable: " + res.error());
-               Platform.game().notify("Amis Swift", res.error());
+               this.pose(Tr.of("swift.host.friends_unavailable", res.error()));
+               Platform.game().notify(Tr.of("swift.host.friends_toast"), res.error());
             }
 
             List<SocialApi.Friend> ok = new ArrayList<>();
@@ -83,7 +108,7 @@ public class HostWorldScreen extends UiScreen {
 
    private String monde() {
       String n = Platform.game().worldName();
-      return n != null && !n.isBlank() ? n : "your world";
+      return n != null && !n.isBlank() ? n : Tr.of("swift.host.your_world");
    }
 
    private boolean horsSolo() {
@@ -152,18 +177,18 @@ public class HostWorldScreen extends UiScreen {
       int h = this.hauteur();
       c.card(x, y, 300, h, -233564904, 520093695, 1, 9.0F);
       if (this.horsSolo()) {
-         c.text("Host World", x + 14, y + 14, -1, false);
-         c.text("Open a singleplayer world first, then come", x + 14, y + 14 + 18, -6644317, false);
-         c.text("back here to host it for your friends.", x + 14, y + 14 + 30, -6644317, false);
+         c.text(Tr.of("swift.host.title"), x + 14, y + 14, -1, false);
+         c.text(Tr.of("swift.host.no_world.1"), x + 14, y + 14 + 18, -6644317, false);
+         c.text(Tr.of("swift.host.no_world.2"), x + 14, y + 14 + 30, -6644317, false);
          int[] r = new int[]{x + 14, y + h - 14 - 20, 272, 20};
-         boutonCreux(c, r, "Back", "back", Kit.dedans(mouseX, mouseY, r));
+         boutonCreux(c, r, Tr.of("swift.host.back"), "back", Kit.dedans(mouseX, mouseY, r));
       } else if (this.etat == HostWorldScreen.Etat.HEBERGE) {
          this.dessinerEnLigne(c, mouseX, mouseY);
       } else {
-         c.text("Configure world settings", x + 14, y + 14, -1, false);
-         c.text(Kit.tronque(c, "Choose how " + this.monde() + " will be hosted for your friends.", 272), x + 14, y + 14 + 16, -10394518, false);
+         c.text(Tr.of("swift.host.configure"), x + 14, y + 14, -1, false);
+         c.text(Kit.tronque(c, Tr.of("swift.host.choose_how", this.monde()), 272), x + 14, y + 14 + 16, -10394518, false);
          boolean fige = this.etat == HostWorldScreen.Etat.DEMARRAGE;
-         String[] libelles = new String[]{"Game Mode", "Difficulty", "Cheats"};
+         String[] libelles = new String[]{Tr.of("swift.host.game_mode"), Tr.of("swift.host.difficulty"), Tr.of("swift.host.cheats")};
 
          for (int i = 0; i < 3; i++) {
             int yl = this.yContenu() + i * 26;
@@ -171,9 +196,9 @@ public class HostWorldScreen extends UiScreen {
             int[] r = this.rectCtrl(i);
             boolean survol = !fige && this.deroule < 0 && Kit.dedans(mouseX, mouseY, r);
             if (i < 2) {
-               selecteur(c, r, i == 0 ? "Mode" : "Difficulty", i == 0 ? MODES_LIB[this.mode] : DIFFS_LIB[this.diff], this.deroule == i, survol);
+               selecteur(c, r, i == 0 ? Tr.of("swift.host.mode") : Tr.of("swift.host.difficulty"), i == 0 ? modeLabel(this.mode) : diffLabel(this.diff), this.deroule == i, survol);
             } else {
-               caseACocher(c, r, "Allow Cheats", this.triche, survol);
+               caseACocher(c, r, Tr.of("swift.host.allow_cheats"), this.triche, survol);
             }
          }
 
@@ -183,10 +208,10 @@ public class HostWorldScreen extends UiScreen {
 
          int[] g = this.rectGauche();
          int[] d = this.rectDroite();
-         boutonCreux(c, g, "Back", "chevron_right", this.deroule < 0 && Kit.dedans(mouseX, mouseY, g));
-         boutonPlein(c, d, fige ? "Starting..." : (this.erreur.isBlank() ? "Next" : "Retry"), !fige && this.deroule < 0 && Kit.dedans(mouseX, mouseY, d));
+         boutonCreux(c, g, Tr.of("swift.host.back"), "chevron_right", this.deroule < 0 && Kit.dedans(mouseX, mouseY, g));
+         boutonPlein(c, d, fige ? Tr.of("swift.host.starting") : (this.erreur.isBlank() ? Tr.of("swift.host.next") : Tr.of("swift.host.retry")), !fige && this.deroule < 0 && Kit.dedans(mouseX, mouseY, d));
          if (this.deroule >= 0) {
-            String[] opts = this.deroule == 0 ? MODES_LIB : DIFFS_LIB;
+            String[] opts = this.deroule == 0 ? modeLabels() : diffLabels();
             int choisi = this.deroule == 0 ? this.mode : this.diff;
             int[] r0 = this.rectOption(this.deroule, 0);
             c.card(r0[0] - 2, r0[1] - 2, r0[2] + 4, opts.length * 16 + 4, -14934751, 872415231, 1, 6.0F);
@@ -210,22 +235,22 @@ public class HostWorldScreen extends UiScreen {
    private void dessinerEnLigne(Canvas c, int mouseX, int mouseY) {
       int x = this.fx();
       int y = this.fy();
-      c.text("Your world is live", x + 14, y + 14, -1, false);
-      c.roundRect(x + 14 + c.textWidth("Your world is live") + 6, y + 14 + 2, 5, 5, 2.5F, -12868259);
-      c.text(Kit.tronque(c, "Friends can join " + this.monde() + " with this address.", 272), x + 14, y + 14 + 16, -10394518, false);
+      c.text(Tr.of("swift.host.live"), x + 14, y + 14, -1, false);
+      c.roundRect(x + 14 + c.textWidth(Tr.of("swift.host.live")) + 6, y + 14 + 2, 5, 5, 2.5F, -12868259);
+      c.text(Kit.tronque(c, Tr.of("swift.host.join_with", this.monde()), 272), x + 14, y + 14 + 16, -10394518, false);
       int ya = this.yContenu();
       c.card(x + 14, ya, 272, 30, -15461097, 520093695, 1, 6.0F);
-      c.text("Address", x + 14 + 9, ya + 5, -10394518, false);
+      c.text(Tr.of("swift.host.address"), x + 14 + 9, ya + 5, -10394518, false);
       c.text(Kit.tronque(c, this.adresse, 192), x + 14 + 9, ya + 17, -1, false);
       int[] rc = this.rectCopier();
-      boolean copie = !this.statut.isBlank() && this.statut.startsWith("Copied") && System.currentTimeMillis() - this.statutMs < 2000L;
-      Kit.bouton(c, rc, copie ? "Copied" : "Copy", Kit.dedans(mouseX, mouseY, rc));
-      c.text(Kit.tronque(c, "Works from Multiplayer > Direct Connect, even without Swift Client.", 272), x + 14, ya + 35, -10394518, false);
+      boolean copie = !this.statut.isBlank() && this.statut.equals(Tr.of("swift.host.copied")) && System.currentTimeMillis() - this.statutMs < 2000L;
+      Kit.bouton(c, rc, copie ? Tr.of("swift.host.copied") : Tr.of("swift.host.copy"), Kit.dedans(mouseX, mouseY, rc));
+      c.text(Kit.tronque(c, Tr.of("swift.host.direct_connect"), 272), x + 14, ya + 35, -10394518, false);
       int yA = this.yAmis();
-      Kit.section(c, x + 14, yA - 11, "Invite friends");
+      Kit.section(c, x + 14, yA - 11, Tr.of("swift.host.invite_friends"));
       List<SocialApi.Friend> liste = this.amis;
       if (liste.isEmpty()) {
-         c.text(this.amisCharges ? "No friends yet. Add some in the launcher." : "Loading...", x + 14, yA + 8, -10394518, false);
+         c.text(this.amisCharges ? Tr.of("swift.host.no_friends") : Tr.of("swift.common.loading"), x + 14, yA + 8, -10394518, false);
       }
 
       int yl = yA;
@@ -239,9 +264,9 @@ public class HostWorldScreen extends UiScreen {
          c.roundRect(x + 14 + 24 + c.textWidth(Kit.tronque(c, f.username(), 162)) + 5, yl + 12 - 2, 4, 4, 2.0F, f.online() ? -12868259 : -12960962);
          int[] ri = this.rectInviter(yl);
          if (this.invites.contains(f.uuid())) {
-            c.centeredText("Invited", ri[0] + ri[2] / 2, ri[1] + 4, -10394518, false);
+            c.centeredText(Tr.of("swift.host.invited"), ri[0] + ri[2] / 2, ri[1] + 4, -10394518, false);
          } else {
-            Kit.bouton(c, ri, "Invite", Kit.dedans(mouseX, mouseY, ri));
+            Kit.bouton(c, ri, Tr.of("swift.host.invite"), Kit.dedans(mouseX, mouseY, ri));
          }
 
          yl += 27;
@@ -251,9 +276,9 @@ public class HostWorldScreen extends UiScreen {
       int[] d = this.rectDroite();
       boolean sg = Kit.dedans(mouseX, mouseY, g);
       c.card(g[0], g[1], g[2], g[3], sg ? 585134959 : 0, sg ? -2067601 : 872415231, 1, 6.0F);
-      c.centeredText("Stop hosting", g[0] + g[2] / 2, g[1] + (g[3] - 8) / 2, -2067601, false);
-      boutonPlein(c, d, "Done", Kit.dedans(mouseX, mouseY, d));
-      if (!this.statut.isBlank() && !this.statut.startsWith("Copied") && System.currentTimeMillis() - this.statutMs < 3000L) {
+      c.centeredText(Tr.of("swift.host.stop"), g[0] + g[2] / 2, g[1] + (g[3] - 8) / 2, -2067601, false);
+      boutonPlein(c, d, Tr.of("swift.common.done"), Kit.dedans(mouseX, mouseY, d));
+      if (!this.statut.isBlank() && !this.statut.equals(Tr.of("swift.host.copied")) && System.currentTimeMillis() - this.statutMs < 3000L) {
          c.centeredText(this.statut, x + 150, this.fy() + this.hauteur() + 6, -6644317, false);
       }
    }
@@ -340,7 +365,7 @@ public class HostWorldScreen extends UiScreen {
             }
          }
       } else {
-         String[] opts = this.deroule == 0 ? MODES_LIB : DIFFS_LIB;
+         String[] opts = this.deroule == 0 ? modeLabels() : diffLabels();
 
          for (int ix = 0; ix < opts.length; ix++) {
             if (Kit.dedans(mx, my, this.rectOption(this.deroule, ix))) {
@@ -364,7 +389,7 @@ public class HostWorldScreen extends UiScreen {
       if (Kit.dedans(mx, my, this.rectCopier())) {
          Platform.game().copyToClipboard(this.adresse);
          Platform.game().playClick();
-         this.pose("Copied");
+         this.pose(Tr.of("swift.host.copied"));
          return true;
       } else {
          int y = this.yAmis();
@@ -411,8 +436,8 @@ public class HostWorldScreen extends UiScreen {
       Platform.game().hostWorld(MODES[this.mode], DIFFS[this.diff], this.triche).whenComplete((a, err) -> {
          if (err != null) {
             Throwable cause = err.getCause() != null ? err.getCause() : err;
-            this.erreur = "Couldn't host: " + (cause.getMessage() != null ? cause.getMessage() : cause);
-            Platform.game().notify("Hebergement impossible", cause.getMessage() != null ? cause.getMessage() : String.valueOf(cause));
+            this.erreur = Tr.of("swift.host.failed", cause.getMessage() != null ? cause.getMessage() : String.valueOf(cause));
+            Platform.game().notify(Tr.of("swift.host.failed_toast"), cause.getMessage() != null ? cause.getMessage() : String.valueOf(cause));
             this.etat = HostWorldScreen.Etat.REGLAGES;
          } else {
             this.adresse = a;
@@ -427,18 +452,18 @@ public class HostWorldScreen extends UiScreen {
       this.etat = HostWorldScreen.Etat.REGLAGES;
       this.adresse = null;
       this.invites.clear();
-      this.pose("Hosting stopped");
+      this.pose(Tr.of("swift.host.stopped"));
    }
 
    private void inviter(SocialApi.Friend f) {
       this.invites.add(f.uuid());
       SocialApi.sendDM(f.uuid(), "swift-invite://" + this.adresse).thenAccept(res -> {
          if (res.ok()) {
-            this.pose("Invite sent to " + f.username());
+            this.pose(Tr.of("swift.host.invite_sent", f.username()));
          } else {
             this.invites.remove(f.uuid());
-            this.pose("Couldn't send the invite: " + res.error());
-            Platform.game().notify("Invitation non envoyee", res.error());
+            this.pose(Tr.of("swift.host.invite_failed", res.error()));
+            Platform.game().notify(Tr.of("swift.host.invite_failed_toast"), res.error());
          }
       });
    }

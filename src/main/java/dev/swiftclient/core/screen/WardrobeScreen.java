@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.net.Backend;
 import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonArray;
@@ -62,7 +63,7 @@ public class WardrobeScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Cosmetics";
+      return Tr.of("swift.wardrobe.title");
    }
 
    @Override
@@ -112,14 +113,14 @@ public class WardrobeScreen extends UiScreen {
          return true;
       } else {
          this.pose(r.message(), true);
-         Platform.game().notify("Garde-robe", r.message());
+         Platform.game().notify(Tr.of("swift.wardrobe.toast"), r.message());
          return false;
       }
    }
 
    private void loadData() {
       List<WardrobeScreen.Item> out = new ArrayList<>();
-      out.add(new WardrobeScreen.Item("__none__", "None", "", null));
+      out.add(new WardrobeScreen.Item("__none__", Tr.of("swift.wardrobe.none"), "", null));
       Backend.Response ownedResponse = CosmeticHttp.ownedSelfResponse();
       JsonObject own = ownedResponse.ok() && ownedResponse.json() != null && ownedResponse.json().isJsonObject() ? ownedResponse.json().getAsJsonObject() : null;
       if (!ownedResponse.ok()) {
@@ -140,7 +141,7 @@ public class WardrobeScreen extends UiScreen {
                JsonObject o = el.getAsJsonObject();
                String id = o.has("id") ? o.get("id").getAsString() : null;
                if (id != null && ownedIds.contains(id)) {
-                  customs.add(new WardrobeScreen.Item(id, o.has("name") ? o.get("name").getAsString() : id, "Swift Client capes", null));
+                  customs.add(new WardrobeScreen.Item(id, o.has("name") ? o.get("name").getAsString() : id, Tr.of("swift.wardrobe.section.swift"), null));
                }
             }
          }
@@ -161,7 +162,7 @@ public class WardrobeScreen extends UiScreen {
                      activeMojangUrl = url;
                   }
 
-                  out.add(new WardrobeScreen.Item("mojang:" + url, alias, "Minecraft capes", id));
+                  out.add(new WardrobeScreen.Item("mojang:" + url, alias, Tr.of("swift.wardrobe.section.minecraft"), id));
                }
             }
          }
@@ -171,7 +172,7 @@ public class WardrobeScreen extends UiScreen {
       boolean customOn = eq != null && !eq.equals("none") && customs.stream().anyMatch(i -> eq.equals(i.value));
       this.selected = customOn ? eq : (activeMojangUrl != null ? "mojang:" + activeMojangUrl : null);
       if (own == null && mojang == null) {
-         this.pose("Can't reach the server, try again later", true);
+         this.pose(Tr.of("swift.wardrobe.unreachable"), true);
       }
 
       this.items = out;
@@ -267,11 +268,11 @@ public class WardrobeScreen extends UiScreen {
       WardrobeScreen.Onglet o = ONGLETS[this.onglet];
       Kit.titre(c, this.z, this.title());
       String sous = "pets".equals(o.id())
-         ? (this.coins < 0 ? "" : this.coins + " coins")
+         ? (this.coins < 0 ? "" : Tr.of("swift.wardrobe.coins", this.coins))
          : (this.loaded ? String.valueOf(Math.max(0, this.items.size() - 1)) : "");
       Kit.sousTitre(c, this.z, this.title(), sous);
       if ("capes".equals(o.id())) {
-         Kit.recherche(c, Kit.rectRecherche(this.width, this.z), this.query, this.searchFocused, this.curseur, "Search capes...", mouseX, mouseY);
+         Kit.recherche(c, Kit.rectRecherche(this.width, this.z), this.query, this.searchFocused, this.curseur, Tr.of("swift.wardrobe.search"), mouseX, mouseY);
       }
 
       this.dessinerOnglets(c, mouseX, mouseY);
@@ -286,9 +287,9 @@ public class WardrobeScreen extends UiScreen {
       int haut = this.corpsHaut();
       int bas = this.corpsBas();
       if (!o.pret()) {
-         c.centeredText("Coming soon", cx, (haut + bas) / 2 - 6, -6644317, false);
+         c.centeredText(Tr.of("swift.wardrobe.soon"), cx, (haut + bas) / 2 - 6, -6644317, false);
       } else if (!this.loaded) {
-         c.centeredText("Loading...", cx, (haut + bas) / 2 - 4, -10394518, false);
+         c.centeredText(Tr.of("swift.common.loading"), cx, (haut + bas) / 2 - 4, -10394518, false);
       } else if ("pets".equals(o.id())) {
          this.dessinerPets(c, mouseX, mouseY);
       } else {
@@ -318,7 +319,7 @@ public class WardrobeScreen extends UiScreen {
    private void dessinerOnglets(Canvas c, int mouseX, int mouseY) {
       // Single Capes section — no grey Capes/Skins chip row
       if (ONGLETS.length <= 1) {
-         c.text("Capes", this.z.x(), Kit.chipY() + 4, -1, false);
+         c.text(Tr.of("swift.wardrobe.capes"), this.z.x(), Kit.chipY() + 4, -1, false);
          c.fill(this.z.x(), Kit.chipY() + 16, this.z.x() + 40, Kit.chipY() + 17, -12877066);
          return;
       }
@@ -326,7 +327,7 @@ public class WardrobeScreen extends UiScreen {
       int x = this.z.x();
       for (int i = 0; i < ONGLETS.length; i++) {
          WardrobeScreen.Onglet o = ONGLETS[i];
-         String lib = o.pret() ? o.libelle() : o.libelle() + " (soon)";
+         String lib = o.pret() ? o.libelle() : Tr.of("swift.wardrobe.tab_soon", o.libelle());
          int w = Kit.chip(c, x, lib, i == this.onglet, !o.pret(), mouseX, mouseY);
          this.largeurs.put(o.id(), w);
          x += w + 6;
@@ -353,10 +354,10 @@ public class WardrobeScreen extends UiScreen {
       c.playerModel(x + 4, y + 4, w - 8, h - basInfos - 8, mouseX, mouseY, delta);
       int iy = y + h - basInfos;
       c.fill(x + 10, iy, x + w - 10, iy + 1, 419430399);
-      String porte = this.selected == null ? "No cape" : this.libelleDe(this.selected);
+      String porte = this.selected == null ? Tr.of("swift.wardrobe.no_cape") : this.libelleDe(this.selected);
       c.text(Kit.tronque(c, porte, w - 20), x + 10, iy + 8, -6644317, false);
       boolean anim = CosmeticState.selfAnimated();
-      c.text("Animated", x + 10, iy + 26, -10394518, false);
+      c.text(Tr.of("swift.wardrobe.animated"), x + 10, iy + 26, -10394518, false);
       int sx = x + w - 10 - 30;
       int sy = iy + 23;
       Kit.interrupteur(c, sx, sy, anim);
@@ -401,25 +402,25 @@ public class WardrobeScreen extends UiScreen {
    }
 
    private void dessinerPets(Canvas c, int mouseX, int mouseY) {
-      this.dessinerPet(c, 0, "None", this.equippedPet == null ? "Equipped" : "Remove", this.equippedPet == null, mouseX, mouseY);
+      this.dessinerPet(c, 0, Tr.of("swift.wardrobe.none"), this.equippedPet == null ? Tr.of("swift.wardrobe.equipped") : Tr.of("swift.wardrobe.remove"), this.equippedPet == null, mouseX, mouseY);
 
       for (int i = 0; i < this.petItems.size(); i++) {
          WardrobeScreen.PetItem p = this.petItems.get(i);
          boolean eq = p.id.equals(this.equippedPet);
          String action;
          if (p.owned) {
-            action = eq ? "Equipped" : "Equip";
+            action = eq ? Tr.of("swift.wardrobe.equipped") : Tr.of("swift.wardrobe.equip");
          } else if (p.id.equals(this.pendingBuy)) {
-            action = "Confirm - " + p.price;
+            action = Tr.of("swift.wardrobe.confirm", p.price);
          } else {
-            action = p.price + " coins";
+            action = Tr.of("swift.wardrobe.coins", p.price);
          }
 
          this.dessinerPet(c, i + 1, p.name, action, eq, mouseX, mouseY);
       }
 
       if (this.petItems.isEmpty()) {
-         c.text("No pet in the catalog yet.", this.grilleX(), this.petY(1) + 6, -10394518, false);
+         c.text(Tr.of("swift.wardrobe.no_pet"), this.grilleX(), this.petY(1) + 6, -10394518, false);
       }
    }
 
@@ -533,7 +534,7 @@ public class WardrobeScreen extends UiScreen {
             } else {
                this.pendingBuy = p.id;
                Platform.game().playClick();
-               this.pose("Click again to buy for " + p.price + " coins", false);
+               this.pose(Tr.of("swift.wardrobe.click_again", p.price), false);
             }
 
             return true;
@@ -593,24 +594,24 @@ public class WardrobeScreen extends UiScreen {
       Platform.game().playClick();
       boolean none = it.value.equals("__none__") || it.value.equals(this.selected);
       this.selected = none ? null : it.value;
-      this.pose("Applying...", false);
+      this.pose(Tr.of("swift.wardrobe.applying"), false);
       CosmeticState.applySelf(none ? "" : it.value);
       IO.execute(() -> {
          if (none) {
             Backend.Response r = CosmeticHttp.equipCosmetic("none");
             CosmeticHttp.disableMojangCape();
             CosmeticHttp.declareMojangCape(null);
-            this.report(r, "Applied");
+            this.report(r, Tr.of("swift.wardrobe.applied"));
          } else if (it.extra != null) {
             CosmeticHttp.equipCosmetic("none");
             if (CosmeticHttp.setMojangCapeActive(it.extra)) {
-               this.report(CosmeticHttp.declareMojangCape(it.value.substring("mojang:".length())), "Applied");
+               this.report(CosmeticHttp.declareMojangCape(it.value.substring("mojang:".length())), Tr.of("swift.wardrobe.applied"));
             } else {
-               this.pose("Mojang refused the cape change", true);
-               Platform.game().notify("Garde-robe", "Mojang a refuse le changement de cape");
+               this.pose(Tr.of("swift.wardrobe.mojang_refused"), true);
+               Platform.game().notify(Tr.of("swift.wardrobe.toast"), Tr.of("swift.wardrobe.mojang_refused"));
             }
          } else {
-            this.report(CosmeticHttp.equipCosmetic(it.value), "Applied");
+            this.report(CosmeticHttp.equipCosmetic(it.value), Tr.of("swift.wardrobe.applied"));
          }
       });
    }
@@ -618,9 +619,9 @@ public class WardrobeScreen extends UiScreen {
    private void buyPet(WardrobeScreen.PetItem p) {
       Platform.game().playClick();
       this.pendingBuy = null;
-      this.pose("Buying...", false);
+      this.pose(Tr.of("swift.wardrobe.buying"), false);
       IO.execute(() -> {
-         if (this.report(CosmeticHttp.buyCosmetic(p.id), "Bought - click to equip")) {
+         if (this.report(CosmeticHttp.buyCosmetic(p.id), Tr.of("swift.wardrobe.bought"))) {
             p.owned = true;
             this.coins = CosmeticHttp.balance();
          }
@@ -632,10 +633,10 @@ public class WardrobeScreen extends UiScreen {
       boolean none = id == null || id.equals(this.equippedPet);
       this.equippedPet = none ? null : id;
       PetState.applySelf(none ? "" : id);
-      this.pose("Applying...", false);
+      this.pose(Tr.of("swift.wardrobe.applying"), false);
       String target = none ? "none" : id;
       IO.execute(() -> {
-         this.report(CosmeticHttp.equipPet(target), "Applied");
+         this.report(CosmeticHttp.equipPet(target), Tr.of("swift.wardrobe.applied"));
       });
    }
 

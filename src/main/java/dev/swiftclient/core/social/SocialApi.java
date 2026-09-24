@@ -1,5 +1,6 @@
 package dev.swiftclient.core.social;
 
+import dev.swiftclient.core.platform.Tr;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -34,7 +35,7 @@ public final class SocialApi {
                JsonElement j = r.json();
                return new Result<>(j == null ? fallback : read.apply(j), null);
             } catch (RuntimeException e) {
-               return new Result<>(fallback, "Reponse illisible du serveur Swift");
+               return new Result<>(fallback, Tr.of("swift.net.bad_reply"));
             }
          }
       }
@@ -66,7 +67,7 @@ public final class SocialApi {
 
    public static CompletableFuture<Result<List<Friend>>> listFriends() {
       String me = myUuid();
-      return me == null ? CompletableFuture.completedFuture(new Result<>(List.of(), "Aucun compte connecte")) : get("/api/friends/" + me, SocialApi::friends, List.of());
+      return me == null ? CompletableFuture.completedFuture(new Result<>(List.of(), Tr.of("swift.social.no_account"))) : get("/api/friends/" + me, SocialApi::friends, List.of());
    }
 
    public static CompletableFuture<Result<Boolean>> requestFriendByName(String username) {
@@ -168,7 +169,7 @@ public final class SocialApi {
       int id = (int)num(o, "id");
       String name = str(o, "name");
       String code = str(o, "invite_code");
-      return id <= 0 ? null : new Group(id, name != null ? name : "Groupe", code != null ? code : "");
+      return id <= 0 ? null : new Group(id, name != null ? name : Tr.of("swift.social.group"), code != null ? code : "");
    }
 
    private static List<Group> groups(JsonElement j) {

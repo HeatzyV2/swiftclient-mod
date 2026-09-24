@@ -68,15 +68,15 @@ class BackendTest {
       Backend.Response third = Backend.get("/x", false);
       assertEquals(2, afterTwo);
       assertEquals(2, this.hits.get(), "breaker open: no request sent");
-      assertEquals("Le serveur Swift est injoignable pour le moment", third.message());
+      assertEquals("The Swift server can't be reached right now", third.message());
    }
 
    @Test
    void httpErrorsBecomeReadableMessages() {
       this.status = 403;
-      assertEquals("Acces refuse par le serveur Swift (HTTP 403)", Backend.get("/x", false).message());
+      assertEquals("Access refused by the Swift server (HTTP 403)", Backend.get("/x", false).message());
       this.status = 404;
-      assertEquals("Service introuvable sur le serveur Swift", Backend.get("/x", false).message());
+      assertEquals("Service not found on the Swift server", Backend.get("/x", false).message());
       this.status = 200;
       assertNull(Backend.get("/x", false).message());
    }
@@ -93,7 +93,7 @@ class BackendTest {
    void disabledBackendNeverCallsOut() {
       Endpoints.overrideForTests(null, null);
       Backend.Response r = Backend.get("/x", false);
-      assertEquals("Le serveur Swift est desactive", r.message());
+      assertEquals("The Swift server is disabled", r.message());
       assertEquals(0, this.hits.get());
    }
 }

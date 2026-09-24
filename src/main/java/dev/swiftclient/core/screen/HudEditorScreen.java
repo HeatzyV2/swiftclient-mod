@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.hud.HudData;
 import dev.swiftclient.core.hud.HudElement;
@@ -171,7 +172,7 @@ public final class HudEditorScreen extends UiScreen {
          }
 
          if (hover || e == this.selected) {
-            String tag = e.label + (on ? "" : "  ·  off");
+            String tag = on ? e.label : Tr.of("swift.hud.off_tag", e.label);
             int tagW = c.textWidth(tag);
             int tagX = Math.max(2, Math.min(b[0], this.width - tagW - 2));
             c.text(tag, tagX, Math.max(2, b[1] - 10), e == this.selected ? SELECT : DIM, true);

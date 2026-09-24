@@ -4,6 +4,7 @@ import dev.swiftclient.core.account.AccountEntry;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Platform;
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.screen.AccountScreen;
 import dev.swiftclient.core.screen.HostWorldScreen;
 import dev.swiftclient.core.screen.HudEditorScreen;
@@ -99,7 +100,7 @@ public final class ModsScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Mods";
+      return Tr.of("swift.menu.mods");
    }
 
    private int embX() {
@@ -214,7 +215,7 @@ public final class ModsScreen extends UiScreen {
       List<Module> out = new ArrayList<>();
 
       for (Module m : ModuleManager.modules()) {
-         if ((this.category == null || this.category.equals(m.category)) && (q.isEmpty() || m.name.toLowerCase(Locale.ROOT).contains(q))) {
+         if ((this.category == null || this.category.equals(m.category)) && (q.isEmpty() || m.displayName().toLowerCase(Locale.ROOT).contains(q))) {
             out.add(m);
          }
       }
@@ -309,7 +310,7 @@ public final class ModsScreen extends UiScreen {
 
             c.popScissor();
             if (mods.isEmpty()) {
-               c.centeredText("No module", this.contentX() + this.contentW() / 2, this.gridTop() + 40, FAINT, false);
+               c.centeredText(Tr.of("swift.mods.none"), this.contentX() + this.contentW() / 2, this.gridTop() + 40, FAINT, false);
             }
 
             this.drawScrollbar(c, this.grille, this.gridTop(), this.gridBottom());
@@ -347,7 +348,7 @@ public final class ModsScreen extends UiScreen {
          tx = b[0] + b[2] + 6;
       }
 
-      String titre = this.settingsFor != null ? this.settingsFor.name : "Mods";
+      String titre = this.settingsFor != null ? this.settingsFor.displayName() : Tr.of("swift.menu.mods");
       c.text(titre, tx, this.panelY() + 14, TEXT, false);
       c.fill(tx, this.panelY() + 28, tx + Math.min(72, c.textWidth(titre)), this.panelY() + 29, ACCENT);
       this.drawSearch(c, mouseX, mouseY);
@@ -373,7 +374,7 @@ public final class ModsScreen extends UiScreen {
       c.fill(r[0], r[1] + r[3] - 1, r[0] + r[2], r[1] + r[3], line);
       int tx = r[0] + 2;
       int maxW = r[2] - 4;
-      String shown = this.query.isEmpty() && !this.searchFocused ? "Search…" : this.query;
+      String shown = this.query.isEmpty() && !this.searchFocused ? Tr.of("swift.mods.search") : this.query;
       int col = this.query.isEmpty() && !this.searchFocused ? FAINT : TEXT;
       c.text(trunc(c, shown, maxW), tx, r[1] + (r[3] - c.lineHeight()) / 2, col, false);
       if (this.searchFocused && this.caret / 20L % 2L == 0L) {
@@ -483,7 +484,7 @@ public final class ModsScreen extends UiScreen {
          try {
             return Platform.game().translate("swift.not_signed_in");
          } catch (Throwable t) {
-            return "Not signed in";
+            return Tr.of("swift.mods.not_signed_in");
          }
       });
       String uuid = acc.<String>map(a -> a.getUuid().toString()).orElse("");
@@ -522,10 +523,10 @@ public final class ModsScreen extends UiScreen {
       this.tabHits.clear();
       int x = this.gridLeft();
       int y = this.chipsY();
-      x = this.chip(c, "All", null, x, y, mouseX, mouseY, this.category == null);
+      x = this.chip(c, Tr.of("swift.mods.all"), null, x, y, mouseX, mouseY, this.category == null);
 
       for (String cat : this.categories()) {
-         x = this.chip(c, cat, cat, x, y, mouseX, mouseY, cat.equals(this.category));
+         x = this.chip(c, Module.categoryLabel(cat), cat, x, y, mouseX, mouseY, cat.equals(this.category));
       }
    }
 
@@ -562,10 +563,10 @@ public final class ModsScreen extends UiScreen {
 
       int tx = x + 12;
       int nameCol = on || hover ? -1 : -6644317;
-      String name = trunc(c, m.name, w - 80);
+      String name = trunc(c, m.displayName(), w - 80);
       c.text(name, tx, y + 7, nameCol, false);
 
-      String etat = on ? "ON" : "OFF";
+      String etat = on ? Tr.of("swift.mods.on") : Tr.of("swift.mods.off");
       int etatCol = on ? ACCENT : -10394518;
       int etatW = c.textWidth(etat);
       int gearW = m.hasSettings() ? 28 : 0;
@@ -616,7 +617,7 @@ public final class ModsScreen extends UiScreen {
 
       for (ModuleSetting s : settings) {
          int dispo = this.gridW() - 24 - this.ctrlW(s);
-         List<String> desc = wrap(c, s.description(), dispo, 2);
+         List<String> desc = wrap(c, s.displayDescription(), dispo, 2);
          int h = this.rowH(desc) + 5;
          this.setRows.add(new ModsScreen.SetRow(s, y, h, desc));
          y += h;
@@ -648,7 +649,7 @@ public final class ModsScreen extends UiScreen {
          int y = this.chipsY();
 
          for (String g : groups) {
-            x = this.chip(c, g, g, x, y, mouseX, mouseY, g.equals(this.settingsGroup));
+            x = this.chip(c, ModuleSetting.groupLabel(g), g, x, y, mouseX, mouseY, g.equals(this.settingsGroup));
          }
       }
 
@@ -664,7 +665,7 @@ public final class ModsScreen extends UiScreen {
             ModuleSetting s = r.s();
             int rh = r.h() - 5;
             c.card(sx, r.y(), sw, rh, -15461097, 520093695, 1, 8.0F);
-            c.text(trunc(c, s.name, sw - 24 - this.ctrlW(s)), sx + 12, r.y() + 9, -1446929, false);
+            c.text(trunc(c, s.displayName(), sw - 24 - this.ctrlW(s)), sx + 12, r.y() + 9, -1446929, false);
 
             for (int i = 0; i < r.desc().size(); i++) {
                c.text(r.desc().get(i), sx + 12, r.y() + 9 + 10 + i * 9, -10394518, false);
@@ -676,7 +677,7 @@ public final class ModsScreen extends UiScreen {
 
       c.popScissor();
       if (this.setRows.isEmpty()) {
-         c.centeredText("No setting", this.contentX() + this.contentW() / 2, top + 40, -10394518, false);
+         c.centeredText(Tr.of("swift.mods.no_setting"), this.contentX() + this.contentW() / 2, top + 40, -10394518, false);
       }
 
       this.drawScrollbar(c, this.reglages, top, bottom);
@@ -718,7 +719,7 @@ public final class ModsScreen extends UiScreen {
             boolean listening = this.listeningKey == s;
             boolean over = in(mouseX, mouseY, b);
             c.card(b[0], b[1], b[2], b[3], listening ? -12868259 : (over ? -13882063 : -14671580), 872415231, 1, 5.0F);
-            String lbl = listening ? "Press a key..." : s.keyName();
+            String lbl = listening ? Tr.of("swift.mods.press_key") : s.keyName();
             c.centeredText(trunc(c, lbl, b[2] - 8), b[0] + b[2] / 2, b[1] + (b[3] - 8) / 2, -1, false);
             break;
          }
@@ -811,7 +812,7 @@ public final class ModsScreen extends UiScreen {
       int[] p = this.pickerRect();
       c.fill(0, 0, this.width, this.height, 1711276032);
       c.card(p[0], p[1], p[2], p[3], -15461354, 872415231, 1, 8.0F);
-      c.text(this.pickerFor.name, p[0] + 12, p[1] + 9, -1, false);
+      c.text(this.pickerFor.displayName(), p[0] + 12, p[1] + 9, -1, false);
       c.text("Esc", p[0] + p[2] - 8 - c.textWidth("Esc"), p[1] + 9, -10394518, false);
       int hue = hsv(this.pkH, 1.0F, 1.0F, 255);
       int[] sv = this.svRect();

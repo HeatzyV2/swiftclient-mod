@@ -1,5 +1,6 @@
 package dev.swiftclient.core.mods.modules;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.music.SpotifyManager;
@@ -28,7 +29,7 @@ public final class MusicModule extends Module {
       this.settings
          .add(
             ModuleSetting.action(
-                  "hud_music", "spotify", "Spotify account", () -> SpotifyManager.authorized() ? "Connected" : "Connect", SpotifyManager::connect
+                  "hud_music", "spotify", "Spotify account", () -> SpotifyManager.authorized() ? Tr.of("swift.music.connected") : Tr.of("swift.music.connect"), SpotifyManager::connect
                )
                .desc("Link a Spotify account to read the queue and control playback.")
                .group("Account")

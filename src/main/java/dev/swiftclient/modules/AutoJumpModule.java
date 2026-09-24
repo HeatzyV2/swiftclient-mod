@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 
 public final class AutoJumpModule extends Module {
    public AutoJumpModule() {
-      super("autojump", "Auto Jump", "Saute automatiquement les blocs d'un cran.", "Movement", "autojump", false);
+      super("autojump", "Auto Jump", "Automatically jumps up one-block steps.", "Movement", "autojump", false);
    }
 
    @Override

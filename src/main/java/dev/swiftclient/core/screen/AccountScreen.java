@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Platform;
@@ -19,7 +20,7 @@ public class AccountScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Accounts";
+      return Tr.of("swift.accounts.title");
    }
 
    @Override
@@ -60,7 +61,7 @@ public class AccountScreen extends UiScreen {
       }
 
       int[] a = this.rectAjout();
-      Kit.bouton(c, a, "+  Add a Microsoft account", Kit.dedans(mouseX, mouseY, a));
+      Kit.bouton(c, a, Tr.of("swift.accounts.add"), Kit.dedans(mouseX, mouseY, a));
       if (!this.statut.isBlank()) {
          c.text(Kit.tronque(c, this.statut, this.z.w()), this.z.x(), a[1] + a[3] + 10, -10394518, false);
       }
@@ -74,7 +75,7 @@ public class AccountScreen extends UiScreen {
       c.playerHead(a.uuid(), tx, ty, 20);
       int nx = tx + 20 + 10;
       c.text(Kit.tronque(c, a.username(), this.z.w() - 90), nx, y + 8, !a.active() && !survol ? -6644317 : -1, false);
-      String sous = a.active() ? "Active" : (a.offline() ? "Offline" : "Microsoft");
+      String sous = a.active() ? Tr.of("swift.accounts.active") : (a.offline() ? Tr.of("swift.accounts.offline") : Tr.of("swift.accounts.microsoft"));
       c.text(sous, nx, y + 20, a.active() ? -6644317 : -10394518, false);
       if (survol) {
          int[] r = this.rectRetirer(y);
@@ -89,7 +90,7 @@ public class AccountScreen extends UiScreen {
          return false;
       } else if (Kit.dedans(mouseX, mouseY, this.rectAjout())) {
          Platform.game().playClick();
-         this.statut = "Opening browser...";
+         this.statut = Tr.of("swift.accounts.opening");
          Platform.game().addAccount(msg -> this.statut = msg);
          return true;
       } else {
@@ -102,7 +103,7 @@ public class AccountScreen extends UiScreen {
                   Platform.game().removeAccount(a.uuid());
                } else if (!a.active()) {
                   Platform.game().playClick();
-                  this.statut = "Switching to " + a.username() + "...";
+                  this.statut = Tr.of("swift.accounts.switching", a.username());
                   Platform.game().switchAccount(a.uuid());
                }
 

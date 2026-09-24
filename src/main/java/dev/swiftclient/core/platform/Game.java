@@ -15,7 +15,12 @@ public interface Game {
 
    void setLanguage(String var1);
 
-   String translate(String var1);
+   String translate(String key);
+
+   /** Translation with {@code %s} arguments. */
+   default String translate(String key, Object... args) {
+      return args == null || args.length == 0 ? this.translate(key) : String.format(this.translate(key), args);
+   }
 
    void closeScreen();
 

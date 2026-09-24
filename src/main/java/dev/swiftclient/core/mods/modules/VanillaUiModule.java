@@ -6,6 +6,6 @@ import dev.swiftclient.core.mods.Module;
 @ConsumedBy({"TitleScreenMixin", "GameMenuScreenMixin"})
 public final class VanillaUiModule extends Module {
    public VanillaUiModule() {
-      super("vanillaui", "Vanilla UI", "Cache les boutons et le skin 3D Swift Client du menu principal (compat mods).", "Render", "vanillaui", false);
+      super("vanillaui", "Vanilla UI", "Hides the Swift Client buttons and 3D skin from the main menu (mod compatibility).", "Render", "vanillaui", false);
    }
 }

@@ -81,9 +81,9 @@ class SettingsAndProfilesTest {
 
    @Test
    void invalidShareCodesAreRejectedWithAReadableMessage() {
-      assertEquals("Ce n'est pas un code de profil Swift Client", assertThrows(IllegalArgumentException.class, () -> Profiles.importerCode("hello")).getMessage());
+      assertEquals("This is not a Swift Client profile code", assertThrows(IllegalArgumentException.class, () -> Profiles.importerCode("hello")).getMessage());
       assertEquals(
-         "Code de profil invalide ou incomplet", assertThrows(IllegalArgumentException.class, () -> Profiles.importerCode("SWIFT1.not-base64-gzip")).getMessage()
+         "Invalid or incomplete profile code", assertThrows(IllegalArgumentException.class, () -> Profiles.importerCode("SWIFT1.not-base64-gzip")).getMessage()
       );
       String code = Profiles.codePartage(Profiles.actif());
       assertThrows(IllegalArgumentException.class, () -> Profiles.importerCode(code.substring(0, code.length() / 2)));

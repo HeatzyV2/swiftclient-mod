@@ -1,5 +1,6 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.theme.Theme;
 import dev.swiftclient.core.theme.ThemeManager;
@@ -17,7 +18,7 @@ public class ThemeScreen extends UiScreen {
 
    @Override
    public String title() {
-      return "Themes";
+      return Tr.of("swift.theme.title");
    }
 
    @Override
@@ -52,7 +53,7 @@ public class ThemeScreen extends UiScreen {
    @Override
    public void draw(Canvas c, int mouseX, int mouseY, float delta) {
       Kit.titre(c, this.z, this.title());
-      Kit.sousTitre(c, this.z, this.title(), this.themes.size() + (this.themes.size() > 1 ? " themes" : " theme"));
+      Kit.sousTitre(c, this.z, this.title(), Tr.of(this.themes.size() > 1 ? "swift.theme.count" : "swift.theme.count_one", this.themes.size()));
       String actif = ThemeManager.currentId();
 
       for (int i = 0; i < this.themes.size(); i++) {

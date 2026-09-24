@@ -2,6 +2,7 @@ package dev.swiftclient.core.mods;
 
 import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.platform.Platform;
+import dev.swiftclient.core.platform.Tr;
 import java.util.Locale;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public final class ModuleSetting {
    private String[] options;
    private String[] optionKeys;
    private final String key;
+   private final String moduleId;
 
    private ModuleSetting(
       String moduleId, String id, String name, ModuleSetting.Type type, boolean bool, double value, int color, double min, double max, double step, String unit
@@ -46,6 +48,29 @@ public final class ModuleSetting {
       this.step = step;
       this.unit = unit;
       this.key = "mod." + moduleId + "." + id;
+      this.moduleId = moduleId;
+   }
+
+   // --- Display (translated from swift.module.<module>.setting.<id>..., falling back to the declared text) ---
+
+   private String tr(String suffix, String fallback) {
+      return Tr.orDefault("swift.module." + this.moduleId + ".setting." + this.id + suffix, fallback);
+   }
+
+   public String displayName() {
+      return this.tr(".name", this.name);
+   }
+
+   public String displayDescription() {
+      return this.tr(".desc", this.description);
+   }
+
+   public String displayGroup() {
+      return groupLabel(this.group);
+   }
+
+   public static String groupLabel(String group) {
+      return Tr.orDefault("swift.group." + optionKey(group), group);
    }
 
    public static ModuleSetting toggle(String moduleId, String id, String name, boolean def) {
@@ -133,7 +158,12 @@ public final class ModuleSetting {
    }
 
    public String cycleLabel() {
-      return this.options != null && this.options.length != 0 ? this.options[this.cycleIndex()] : "";
+      return this.options != null && this.options.length != 0 ? this.tr("." + this.optionKeys[this.cycleIndex()], this.options[this.cycleIndex()]) : "";
+   }
+
+   /** Declared (untranslated) label of option {@code i}. */
+   public String cycleLabelAt(int i) {
+      return this.options == null ? "" : this.options[i];
    }
 
    /** Storage key of the selected option. */

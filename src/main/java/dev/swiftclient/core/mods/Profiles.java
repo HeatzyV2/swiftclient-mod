@@ -1,5 +1,6 @@
 package dev.swiftclient.core.mods;
 
+import dev.swiftclient.core.platform.Tr;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -244,6 +245,13 @@ public final class Profiles {
    // --- Sharing: a profile as a short text code ---
 
    private static final String CODE_PREFIX = "SWIFT1.";
+
+   /** A share code the player pasted is not usable; the message is meant for them. */
+   private static final class CodeException extends IllegalArgumentException {
+      CodeException(String message) {
+         super(message);
+      }
+   }
    /** Refuse codes that would inflate to something absurd. */
    private static final int CODE_MAX_BYTES = 256 * 1024;
 
@@ -256,7 +264,7 @@ public final class Profiles {
 
       Map<String, Map<String, String>> p = PROFILS.get(nom);
       if (p == null) {
-         throw new IllegalArgumentException("Profil inconnu : " + nom);
+         throw new IllegalArgumentException(Tr.of("swift.profiles.err.unknown", nom));
       }
 
       JsonObject doc = new JsonObject();
@@ -285,7 +293,7 @@ public final class Profiles {
       charger();
       String c = code == null ? "" : code.trim();
       if (!c.startsWith(CODE_PREFIX)) {
-         throw new IllegalArgumentException("Ce n'est pas un code de profil Swift Client");
+         throw new CodeException(Tr.of("swift.profiles.err.not_code"));
       }
 
       JsonObject doc;
@@ -297,25 +305,25 @@ public final class Profiles {
          }
 
          if (json.length > CODE_MAX_BYTES) {
-            throw new IllegalArgumentException("Code de profil trop volumineux");
+            throw new CodeException(Tr.of("swift.profiles.err.too_big"));
          }
 
          doc = JsonParser.parseString(new String(json, StandardCharsets.UTF_8)).getAsJsonObject();
-      } catch (IllegalArgumentException e) {
-         throw e.getMessage() != null && e.getMessage().startsWith("Code") ? e : new IllegalArgumentException("Code de profil invalide ou incomplet");
+      } catch (CodeException e) {
+         throw e;
       } catch (Exception e) {
-         throw new IllegalArgumentException("Code de profil invalide ou incomplet");
+         throw new CodeException(Tr.of("swift.profiles.err.invalid"));
       }
 
       if (!doc.has("profile") || !doc.get("profile").isJsonObject()) {
-         throw new IllegalArgumentException("Code de profil invalide ou incomplet");
+         throw new CodeException(Tr.of("swift.profiles.err.invalid"));
       } else if (doc.has("v") && doc.get("v").getAsInt() > ConfigCodec.SCHEMA_VERSION) {
-         throw new IllegalArgumentException("Ce profil vient d'une version plus recente de Swift Client");
+         throw new CodeException(Tr.of("swift.profiles.err.newer"));
       }
 
       String base = doc.has("name") && doc.get("name").isJsonPrimitive() ? doc.get("name").getAsString().trim() : "";
       if (base.isEmpty() || base.length() > 32) {
-         base = "Profil importe";
+         base = Tr.of("swift.profiles.imported_default");
       }
 
       String nom = base;

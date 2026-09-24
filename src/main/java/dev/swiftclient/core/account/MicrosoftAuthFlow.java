@@ -1,5 +1,6 @@
 package dev.swiftclient.core.account;
 
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -56,23 +57,23 @@ public class MicrosoftAuthFlow {
                   + "&prompt=select_account&code_challenge="
                   + challenge
                   + "&code_challenge_method=S256";
-               onStatus.accept("Ouverture du navigateur...");
+               onStatus.accept(Tr.of("swift.auth.opening"));
                openBrowser(url);
-               onStatus.accept("Connectez-vous dans votre navigateur...");
+               onStatus.accept(Tr.of("swift.auth.sign_in"));
                String code = this.waitForCallback(port);
-               onStatus.accept("Authentification Microsoft...");
+               onStatus.accept(Tr.of("swift.auth.microsoft"));
                String[] msTokens = this.exchangeCode(code, redirectUri, verifier);
                String msAccessToken = msTokens[0];
                String msRefreshToken = msTokens[1];
-               onStatus.accept("Connexion Xbox Live...");
+               onStatus.accept(Tr.of("swift.auth.xbox"));
                String xblToken = this.authenticateXBL(msAccessToken);
-               onStatus.accept("Vérification XSTS...");
+               onStatus.accept(Tr.of("swift.auth.xsts"));
                String[] xsts = this.authenticateXSTS(xblToken);
-               onStatus.accept("Connexion Minecraft...");
+               onStatus.accept(Tr.of("swift.auth.minecraft"));
                String mcToken = this.authenticateMinecraft(xsts[0], xsts[1]);
-               onStatus.accept("Récupération du profil...");
+               onStatus.accept(Tr.of("swift.auth.profile"));
                AccountEntry entry = this.fetchProfile(mcToken, msRefreshToken);
-               onStatus.accept("Connecté en tant que " + entry.getUsername() + " !");
+               onStatus.accept(Tr.of("swift.auth.done", entry.getUsername()));
                return entry;
             } catch (Exception e) {
                throw new RuntimeException(e.getMessage(), e);
@@ -124,7 +125,7 @@ public class MicrosoftAuthFlow {
             conn.getOutputStream().write(httpResp.getBytes(StandardCharsets.UTF_8));
             conn.getOutputStream().flush();
             if (code == null) {
-               throw new IOException("Callback sans code d'autorisation.");
+               throw new IOException(Tr.of("swift.auth.no_code"));
             }
 
             return code;
@@ -166,7 +167,7 @@ public class MicrosoftAuthFlow {
          .formatted(xblToken);
       JsonObject json = parse(this.postJson(XSTS_URL, body).body());
       if (json.has("XErr")) {
-         throw new RuntimeException("Erreur XSTS: " + json.get("XErr").getAsLong());
+         throw new RuntimeException(Tr.of("swift.auth.xsts_error", json.get("XErr").getAsLong()));
       } else {
          String token = json.get("Token").getAsString();
          String hash = json.getAsJsonObject("DisplayClaims").getAsJsonArray("xui").get(0).getAsJsonObject().get("uhs").getAsString();
@@ -187,7 +188,7 @@ public class MicrosoftAuthFlow {
          .build();
       JsonObject json = parse(this.http.send(req, BodyHandlers.ofString()).body());
       if (!json.has("name")) {
-         throw new RuntimeException("Ce compte Microsoft ne possède pas Minecraft Java.");
+         throw new RuntimeException(Tr.of("swift.auth.no_java"));
       } else {
          String name = json.get("name").getAsString();
          String raw = json.get("id").getAsString();

@@ -1,5 +1,6 @@
 package dev.swiftclient.core.net;
 
+import dev.swiftclient.core.platform.Tr;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -67,11 +68,11 @@ public final class Backend {
          } else if (this.error != null) {
             return this.error;
          } else if (this.status == 401 || this.status == 403) {
-            return "Acces refuse par le serveur Swift (HTTP " + this.status + ")";
+            return Tr.of("swift.net.denied", this.status);
          } else if (this.status == 404) {
-            return "Service introuvable sur le serveur Swift";
+            return Tr.of("swift.net.not_found");
          } else {
-            return "Le serveur Swift a repondu une erreur (HTTP " + this.status + ")";
+            return Tr.of("swift.net.http_error", this.status);
          }
       }
 
@@ -124,14 +125,14 @@ public final class Backend {
 
    private static Response call(String path, boolean authenticated, RequestFactory factory, BodyHandler<String> handler) {
       if (!enabled()) {
-         return Response.failed("Le serveur Swift est desactive");
+         return Response.failed(Tr.of("swift.net.disabled"));
       } else if (AVAILABILITY.isOpen()) {
-         return Response.failed("Le serveur Swift est injoignable pour le moment");
+         return Response.failed(Tr.of("swift.net.unreachable"));
       } else if (authenticated && session() == null) {
-         return Response.failed(AVAILABILITY.isOpen() ? "Le serveur Swift est injoignable pour le moment" : "Connexion au serveur Swift impossible (compte Microsoft requis)");
+         return Response.failed(AVAILABILITY.isOpen() ? Tr.of("swift.net.unreachable") : Tr.of("swift.net.need_account"));
       } else {
          HttpResponse<String> r = send(path, authenticated, factory, handler);
-         return r == null ? Response.failed("Le serveur Swift est injoignable pour le moment") : new Response(r.statusCode(), r.body(), null);
+         return r == null ? Response.failed(Tr.of("swift.net.unreachable")) : new Response(r.statusCode(), r.body(), null);
       }
    }
 

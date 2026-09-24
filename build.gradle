@@ -58,6 +58,10 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // ./gradlew test --tests '*LangTest*' -PlangDump=<file> : writes the English texts still missing
+    if (project.hasProperty('langDump')) {
+        systemProperty 'swiftclient.langDump', project.property('langDump')
+    }
 }
 
 processResources {
