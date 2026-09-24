@@ -1,5 +1,9 @@
 package dev.swiftclient.core.music;
 
+import java.util.Base64;
+import java.security.SecureRandom;
+import java.security.MessageDigest;
+import dev.swiftclient.core.secure.Secrets;
 import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -31,6 +35,12 @@ import java.util.concurrent.TimeUnit;
 
 public final class SpotifyManager {
    private static final int PORT = 8888;
+   /**
+    * Swift Client's own Spotify app (PKCE, no secret): players just click "Connect". Set it here or with
+    * {@code -Dswiftclient.spotifyClientId=}. While empty, the setup page asks for the player's own Client ID
+    * (still PKCE, never a secret).
+    */
+   private static final String SWIFT_CLIENT_ID = System.getProperty("swiftclient.spotifyClientId", "");
    public static final String REDIRECT_URI = "http://127.0.0.1:8888/callback";
    private static final String SCOPE = "user-read-playback-state user-read-currently-playing";
    private static volatile String clientId = "";
@@ -44,7 +54,8 @@ public final class SpotifyManager {
    private static volatile Object nextArtHandle = null;
    private static volatile String lastNextArtUrl = "";
    private static volatile String tempId;
-   private static volatile String tempSecret;
+   /** PKCE verifier of the authorization in progress. */
+   private static volatile String tempVerifier;
    private static HttpServer server;
    private static boolean started = false;
 
@@ -77,9 +88,9 @@ public final class SpotifyManager {
 
          try {
             clientId = cfg("spotify.clientId");
-            clientSecret = cfg("spotify.clientSecret");
-            accessToken = cfg("spotify.accessToken");
-            refreshToken = cfg("spotify.refreshToken");
+            clientSecret = secret("spotify.clientSecret");
+            accessToken = secret("spotify.accessToken");
+            refreshToken = secret("spotify.refreshToken");
 
             try {
                expiresAt = Long.parseLong(cfg("spotify.expiresAt"));
@@ -97,7 +108,32 @@ public final class SpotifyManager {
    public static synchronized void connect() {
       ensureStarted();
       startServer();
-      openBrowser("http://127.0.0.1:8888/setup");
+      openBrowser(SWIFT_CLIENT_ID.isBlank() ? "http://127.0.0.1:8888/setup" : authorizeUrl(SWIFT_CLIENT_ID));
+   }
+
+   /** Spotify authorize URL for a PKCE flow; remembers the verifier until the callback. */
+   private static String authorizeUrl(String cid) {
+      byte[] raw = new byte[48];
+      new SecureRandom().nextBytes(raw);
+      String verifier = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
+      String challenge;
+
+      try {
+         challenge = Base64.getUrlEncoder().withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256").digest(verifier.getBytes(StandardCharsets.US_ASCII)));
+      } catch (Exception e) {
+         throw new IllegalStateException(e);
+      }
+
+      tempId = cid;
+      tempVerifier = verifier;
+      return "https://accounts.spotify.com/authorize?client_id="
+         + enc(cid)
+         + "&response_type=code&redirect_uri="
+         + enc(REDIRECT_URI)
+         + "&code_challenge_method=S256&code_challenge="
+         + challenge
+         + "&scope="
+         + enc(SCOPE);
    }
 
    private static void openBrowser(String url) {
@@ -125,8 +161,9 @@ public final class SpotifyManager {
       nextTitle = "";
       nextArtHandle = null;
       lastNextArtUrl = "";
-      setCfg("spotify.accessToken", "");
-      setCfg("spotify.refreshToken", "");
+      setCfg("spotify.accessToken", null);
+      setCfg("spotify.refreshToken", null);
+      setCfg("spotify.clientSecret", null);
       setCfg("spotify.expiresAt", "0");
    }
 
@@ -140,20 +177,11 @@ public final class SpotifyManager {
                ex -> {
                   Map<String, String> p = parseQuery(new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
                   String cid = p.getOrDefault("clientId", "").trim();
-                  String csec = p.getOrDefault("clientSecret", "").trim();
-                  if (!cid.isBlank() && !csec.isBlank()) {
-                     tempId = cid;
-                     tempSecret = csec;
-                     String authUrl = "https://accounts.spotify.com/authorize?client_id="
-                        + enc(cid)
-                        + "&response_type=code&redirect_uri="
-                        + enc("http://127.0.0.1:8888/callback")
-                        + "&scope="
-                        + enc("user-read-playback-state user-read-currently-playing");
-                     ex.getResponseHeaders().set("Location", authUrl);
+                  if (!cid.isBlank()) {
+                     ex.getResponseHeaders().set("Location", authorizeUrl(cid));
                      ex.sendResponseHeaders(303, -1L);
                   } else {
-                     respondHtml(ex, 400, messagePage("Missing credentials", "Client ID and Client Secret are required.", false));
+                     respondHtml(ex, 400, messagePage("Missing Client ID", "The Client ID of your Spotify app is required.", false));
                   }
                }
             );
@@ -162,20 +190,17 @@ public final class SpotifyManager {
                ex -> {
                   Map<String, String> q = parseQuery(ex.getRequestURI().getQuery());
                   String code = q.get("code");
-                  if (code != null && !code.isBlank() && tempId != null) {
-                     boolean ok = exchangeCode(code, tempId, tempSecret);
+                  if (code != null && !code.isBlank() && tempId != null && tempVerifier != null) {
+                     boolean ok = exchangeCode(code, tempId, tempVerifier);
                      respondHtml(
                         ex,
                         ok ? 200 : 400,
                         ok
                            ? messagePage("Connected", "Spotify is now linked. You can close this tab and go back to the game.", true)
-                           : messagePage("Authorization failed", "Could not exchange the code. Check your Client ID and Secret.", false)
+                           : messagePage("Authorization failed", "Could not exchange the code. Check the Client ID and the Redirect URI of the Spotify app.", false)
                      );
                      if (ok) {
-                        new Thread(() -> {
-                           sleep(1200L);
-                           stopServer();
-                        }).start();
+                        Net.SCHEDULER.schedule(SpotifyManager::stopServer, 1200L, TimeUnit.MILLISECONDS);
                      }
                   } else {
                      respondHtml(ex, 400, messagePage("Authorization failed", q.getOrDefault("error", "No code received."), false));
@@ -200,16 +225,16 @@ public final class SpotifyManager {
       }
    }
 
-   private static boolean exchangeCode(String code, String cid, String csec) {
+   private static boolean exchangeCode(String code, String cid, String verifier) {
       try {
          String body = "grant_type=authorization_code&code="
             + enc(code)
             + "&redirect_uri="
-            + enc("http://127.0.0.1:8888/callback")
+            + enc(REDIRECT_URI)
             + "&client_id="
             + enc(cid)
-            + "&client_secret="
-            + enc(csec);
+            + "&code_verifier="
+            + enc(verifier);
          JsonObject j = postForm("https://accounts.spotify.com/api/token", body);
          if (j != null && j.has("access_token")) {
             accessToken = j.get("access_token").getAsString();
@@ -219,13 +244,12 @@ public final class SpotifyManager {
 
             expiresAt = System.currentTimeMillis() + j.get("expires_in").getAsLong() * 1000L;
             clientId = cid;
-            clientSecret = csec;
+            clientSecret = "";
+            tempVerifier = null;
             authorized = true;
             setCfg("spotify.clientId", cid);
-            setCfg("spotify.clientSecret", csec);
-            setCfg("spotify.accessToken", accessToken);
-            setCfg("spotify.refreshToken", refreshToken);
-            setCfg("spotify.expiresAt", Long.toString(expiresAt));
+            setCfg("spotify.clientSecret", null);
+            saveTokens();
             return true;
          } else {
             return false;
@@ -235,12 +259,19 @@ public final class SpotifyManager {
       }
    }
 
+   private static void saveTokens() {
+      setCfg("spotify.accessToken", Secrets.protect(accessToken));
+      setCfg("spotify.refreshToken", Secrets.protect(refreshToken));
+      setCfg("spotify.expiresAt", Long.toString(expiresAt));
+   }
+
    private static void refresh() {
       if (refreshToken.isBlank()) {
          authorized = false;
       } else {
          try {
-            String body = "grant_type=refresh_token&refresh_token=" + enc(refreshToken) + "&client_id=" + enc(clientId) + "&client_secret=" + enc(clientSecret);
+            String body = "grant_type=refresh_token&refresh_token=" + enc(refreshToken) + "&client_id=" + enc(clientId)
+               + (clientSecret.isBlank() ? "" : "&client_secret=" + enc(clientSecret));
             JsonObject j = postForm("https://accounts.spotify.com/api/token", body);
             if (j == null || !j.has("access_token")) {
                return;
@@ -252,9 +283,7 @@ public final class SpotifyManager {
             }
 
             expiresAt = System.currentTimeMillis() + j.get("expires_in").getAsLong() * 1000L;
-            setCfg("spotify.accessToken", accessToken);
-            setCfg("spotify.refreshToken", refreshToken);
-            setCfg("spotify.expiresAt", Long.toString(expiresAt));
+            saveTokens();
          } catch (Throwable ignored) {
          }
       }
@@ -472,6 +501,18 @@ public final class SpotifyManager {
       }
    }
 
+   /** Decrypted value of a secret key; a value still in clear (older build) is encrypted in place. */
+   private static String secret(String k) {
+      String stored = cfg(k);
+      if (!stored.isEmpty() && !Secrets.isProtected(stored)) {
+         setCfg(k, Secrets.protect(stored));
+         return stored;
+      } else {
+         String v = Secrets.reveal(stored);
+         return v == null ? "" : v;
+      }
+   }
+
    private static void setCfg(String k, String v) {
       try {
          Platform.game().setConfig(k, v);
@@ -483,12 +524,6 @@ public final class SpotifyManager {
       return URLEncoder.encode(s, StandardCharsets.UTF_8);
    }
 
-   private static void sleep(long ms) {
-      try {
-         Thread.sleep(ms);
-      } catch (InterruptedException ignored) {
-      }
-   }
 
    private static String page(String bodyHtml) {
       return "<!doctype html><html><head><meta charset=utf-8><title>Swift Client · Spotify</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0b0d;color:#e9ecef;font-family:Segoe UI,Roboto,system-ui,sans-serif}.card{width:100%;max-width:420px;background:#141416;border:1px solid #26272b;border-radius:14px;padding:26px;box-shadow:0 20px 60px #0009}h1{font-size:19px;margin:0 0 4px}p{color:#9aa3b2;font-size:13px;line-height:1.6;margin:6px 0}label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#9aa3b2;margin:14px 0 5px}input{width:100%;padding:10px 12px;background:#0b0b0d;border:1px solid #26272b;border-radius:8px;color:#fff;font-size:13px}input:focus{outline:none;border-color:#3ba55d}button{width:100%;margin-top:18px;padding:11px;background:#3ba55d;color:#04140a;border:0;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer}code{background:#0b0b0d;border:1px solid #26272b;border-radius:5px;padding:2px 6px;color:#e9ecef;font-size:12px}ol{color:#9aa3b2;font-size:12.5px;line-height:1.7;padding-left:18px}a{color:#3ba55d}.ok{color:#3ba55d}.err{color:#e5484d}</style></head><body><div class=card>"
@@ -498,11 +533,9 @@ public final class SpotifyManager {
 
    private static String setupPage() {
       return page(
-         "<h1>Connect Spotify</h1><p>Only used to show the <b>next track</b> in your Now playing widget. Read-only.</p><ol><li>Open the <a href=\"https://developer.spotify.com/dashboard\" target=_blank>Spotify Developer Dashboard</a> and create an app.</li><li>In the app settings, add this Redirect URI: <code>http://127.0.0.1:8888/callback</code></li><li>Copy the Client ID and Client Secret below.</li></ol><form action=/submit method=post><label>Client ID</label><input name=clientId value=\""
+         "<h1>Connect Spotify</h1><p>Only used to show the <b>next track</b> in your Now playing widget. Read-only.</p><ol><li>Open the <a href=\"https://developer.spotify.com/dashboard\" target=_blank>Spotify Developer Dashboard</a> and create an app.</li><li>In the app settings, add this Redirect URI: <code>http://127.0.0.1:8888/callback</code></li><li>Copy its Client ID below. No secret is needed.</li></ol><form action=/submit method=post><label>Client ID</label><input name=clientId value=\""
             + esc(clientId)
-            + "\" placeholder=\"Client ID\" required><label>Client Secret</label><input name=clientSecret type=password value=\""
-            + esc(clientSecret)
-            + "\" placeholder=\"Client Secret\" required><button type=submit>Connect Spotify account</button></form>"
+            + "\" placeholder=\"Client ID\" required><button type=submit>Connect Spotify account</button></form>"
       );
    }
 
