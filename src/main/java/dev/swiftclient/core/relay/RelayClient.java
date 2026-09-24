@@ -1,6 +1,7 @@
 package dev.swiftclient.core.relay;
 
 import dev.swiftclient.core.log.Log;
+import dev.swiftclient.core.net.Backend;
 import dev.swiftclient.core.net.Endpoints;
 import org.slf4j.Logger;
 import java.io.BufferedReader;
@@ -58,13 +59,20 @@ public class RelayClient {
 
    private void runControl() {
       try {
+         // The relay only serves signed-in players: it gets the backend token of this session.
+         String token = Backend.session();
+         if (token == null) {
+            this.onError.accept("no backend session");
+            return;
+         }
+
          this.controlSock = new Socket();
          this.controlSock.connect(new InetSocketAddress(Endpoints.relayHost(), Endpoints.relayPort()), 8000);
          this.controlSock.setKeepAlive(true);
          this.alive.set(true);
          BufferedReader in = new BufferedReader(new InputStreamReader(this.controlSock.getInputStream()));
          BufferedWriter out = new BufferedWriter(new OutputStreamWriter(this.controlSock.getOutputStream()));
-         out.write("REGISTER " + this.sessionId + "\n");
+         out.write("REGISTER " + this.sessionId + " " + token + "\n");
          out.flush();
 
          String line;

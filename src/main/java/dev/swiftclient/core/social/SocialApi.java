@@ -5,7 +5,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.swiftclient.core.net.Backend;
-import dev.swiftclient.core.platform.Platform;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +12,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
- * Friends, direct messages and groups on the Swift backend. Every call is authenticated with the
- * backend token (the server knows who is calling, the client no longer just claims a UUID) and
- * returns a {@link Result} carrying the reason when it failed, for the UI.
+ * Friends and direct messages on the Swift backend ({@code /api/social}, shared with the launcher).
+ * Every call is authenticated with the backend token (the server knows who is calling) and returns a
+ * {@link Result} carrying the reason when it failed, for the UI.
  */
 public final class SocialApi {
    private SocialApi() {
@@ -29,7 +28,7 @@ public final class SocialApi {
 
       static <T> Result<T> of(Backend.Response r, Function<JsonElement, T> read, T fallback) {
          if (!r.ok()) {
-            return new Result<>(fallback, r.message());
+            return new Result<>(fallback, serverMessage(r));
          } else {
             try {
                JsonElement j = r.json();
@@ -41,87 +40,67 @@ public final class SocialApi {
       }
    }
 
-   public record Friend(String uuid, String username, boolean online, String status) {
+   /**
+    * A friend. {@code id} is the friend entry on the backend (what conversations are opened with),
+    * {@code uuid} their Minecraft UUID when known.
+    */
+   public record Friend(String id, String uuid, String username, boolean online, String status) {
    }
 
-   public record Group(int id, String name, String inviteCode) {
+   public record Message(String from, String content, String ts) {
    }
 
-   public record Message(String from, String fromName, String content, long ts) {
-   }
+   /** The backend's own explanation ("friend not found"...) when it gave one. */
+   private static String serverMessage(Backend.Response r) {
+      JsonElement j = r.status() > 0 ? r.json() : null;
+      if (j != null && j.isJsonObject()) {
+         String m = str(j.getAsJsonObject(), "message");
+         if (m != null && !m.isBlank()) {
+            return m;
+         }
+      }
 
-   public static String myUuid() {
-      String u = Platform.game().getUuid();
-      return u != null && !u.isEmpty() ? u : null;
-   }
-
-   private static CompletableFuture<Result<Boolean>> postOk(String path, Map<String, Object> body) {
-      return Backend.async(() -> Result.of(Backend.post(path, body, true), j -> true, false));
-   }
-
-   private static <T> CompletableFuture<Result<T>> get(String path, Function<JsonElement, T> read, T fallback) {
-      return Backend.async(() -> Result.of(Backend.get(path, true), read, fallback));
+      return r.message();
    }
 
    // --- Friends ---
 
    public static CompletableFuture<Result<List<Friend>>> listFriends() {
-      String me = myUuid();
-      return me == null ? CompletableFuture.completedFuture(new Result<>(List.of(), Tr.of("swift.social.no_account"))) : get("/api/friends/" + me, SocialApi::friends, List.of());
+      return Backend.async(() -> Result.of(Backend.get("/api/social/friends", true), SocialApi::friends, List.of()));
    }
 
+   /** Adds a friend by Swift username or Minecraft name. */
    public static CompletableFuture<Result<Boolean>> requestFriendByName(String username) {
-      return postOk("/api/friends/request", Map.of("from", String.valueOf(myUuid()), "to_username", username, "fromUsername", Platform.game().getUsername()));
+      return Backend.async(() -> Result.of(Backend.post("/api/social/friends/request", Map.of("username", username), true), j -> true, false));
    }
 
-   public static CompletableFuture<Result<Boolean>> acceptFriend(String requesterUuid) {
-      return postOk("/api/friends/accept", Map.of("user", String.valueOf(myUuid()), "requester", requesterUuid));
-   }
-
-   public static CompletableFuture<Result<Boolean>> declineFriend(String requesterUuid) {
-      return postOk("/api/friends/decline", Map.of("user", String.valueOf(myUuid()), "requester", requesterUuid));
+   public static CompletableFuture<Result<Boolean>> removeFriend(Friend friend) {
+      return Backend.async(() -> Result.of(Backend.post("/api/social/friends/" + friend.id() + "/remove", Map.of(), true), j -> true, false));
    }
 
    // --- Direct messages ---
 
-   public static CompletableFuture<Result<List<Message>>> listDM(String otherUuid) {
-      return get("/api/dm/" + myUuid() + "/" + otherUuid + "?limit=80", SocialApi::messages, List.of());
+   /** Conversation id with this friend, opened on first use. */
+   private static Result<String> conversation(Friend friend) {
+      return Result.of(Backend.post("/api/social/conversations", Map.of("friend_id", friend.id()), true), j -> str(j.getAsJsonObject(), "id"), null);
    }
 
-   public static CompletableFuture<Result<Boolean>> sendDM(String toUuid, String content) {
-      return postOk("/api/dm", Map.of("from", String.valueOf(myUuid()), "to", toUuid, "content", content));
+   public static CompletableFuture<Result<List<Message>>> listDM(Friend friend) {
+      return Backend.async(() -> {
+         Result<String> conv = conversation(friend);
+         return conv.value() == null
+            ? new Result<>(List.of(), conv.error() != null ? conv.error() : Tr.of("swift.net.bad_reply"))
+            : Result.of(Backend.get("/api/social/conversations/" + conv.value() + "/messages?limit=80", true), SocialApi::messages, List.of());
+      });
    }
 
-   // --- Groups ---
-
-   public static CompletableFuture<Result<List<Group>>> listGroups() {
-      return get("/api/groups/user/" + myUuid(), SocialApi::groups, List.of());
-   }
-
-   public static CompletableFuture<Result<List<Message>>> listGroupMessages(int groupId) {
-      return get("/api/groups/" + groupId + "/messages?limit=80", SocialApi::messages, List.of());
-   }
-
-   public static CompletableFuture<Result<Boolean>> sendGroupMessage(int groupId, String content) {
-      return postOk("/api/groups/" + groupId + "/messages", Map.of("from", String.valueOf(myUuid()), "content", content));
-   }
-
-   public static CompletableFuture<Result<Group>> createGroup(String name) {
-      return Backend.async(
-         () -> Result.of(Backend.post("/api/groups", Map.of("name", name, "owner", String.valueOf(myUuid())), true), j -> group(j.getAsJsonObject()), null)
-      );
-   }
-
-   public static CompletableFuture<Result<Boolean>> joinGroup(String inviteCode) {
-      return postOk("/api/groups/join", Map.of("invite_code", inviteCode, "uuid", String.valueOf(myUuid())));
-   }
-
-   public static CompletableFuture<Result<Boolean>> leaveGroup(int groupId) {
-      return postOk("/api/groups/" + groupId + "/leave", Map.of("uuid", String.valueOf(myUuid())));
-   }
-
-   public static CompletableFuture<Result<Boolean>> addToGroup(int groupId, String targetUuid) {
-      return postOk("/api/groups/" + groupId + "/add", Map.of("from", String.valueOf(myUuid()), "target", targetUuid));
+   public static CompletableFuture<Result<Boolean>> sendDM(Friend friend, String content) {
+      return Backend.async(() -> {
+         Result<String> conv = conversation(friend);
+         return conv.value() == null
+            ? new Result<>(false, conv.error() != null ? conv.error() : Tr.of("swift.net.bad_reply"))
+            : Result.of(Backend.post("/api/social/conversations/" + conv.value() + "/messages", Map.of("text", content), true), j -> true, false);
+      });
    }
 
    // --- JSON ---
@@ -129,11 +108,6 @@ public final class SocialApi {
    private static String str(JsonObject o, String key) {
       JsonElement e = o.get(key);
       return e != null && e.isJsonPrimitive() ? e.getAsString() : null;
-   }
-
-   private static long num(JsonObject o, String key) {
-      JsonElement e = o.get(key);
-      return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber() ? e.getAsLong() : 0L;
    }
 
    private static List<JsonObject> objects(JsonElement j) {
@@ -149,60 +123,31 @@ public final class SocialApi {
       return out;
    }
 
-   private static List<Friend> friends(JsonElement j) {
+   static List<Friend> friends(JsonElement j) {
       List<Friend> out = new ArrayList<>();
 
       for (JsonObject o : objects(j)) {
-         String uuid = str(o, "uuid");
-         if (uuid != null) {
-            String name = str(o, "username");
+         String id = str(o, "id");
+         String name = str(o, "username");
+         if (id != null && name != null) {
             String status = str(o, "status");
             boolean online = o.has("online") && o.get("online").isJsonPrimitive() && o.get("online").getAsBoolean();
-            out.add(new Friend(uuid, name != null ? name : uuid.substring(0, Math.min(8, uuid.length())), online, status != null ? status : "accepted"));
+            out.add(new Friend(id, str(o, "uuid"), name, online, status != null ? status : "accepted"));
          }
       }
 
       return out;
    }
 
-   private static Group group(JsonObject o) {
-      int id = (int)num(o, "id");
-      String name = str(o, "name");
-      String code = str(o, "invite_code");
-      return id <= 0 ? null : new Group(id, name != null ? name : Tr.of("swift.social.group"), code != null ? code : "");
-   }
-
-   private static List<Group> groups(JsonElement j) {
-      List<Group> out = new ArrayList<>();
-
-      for (JsonObject o : objects(j)) {
-         Group g = group(o);
-         if (g != null && str(o, "name") != null) {
-            out.add(g);
-         }
-      }
-
-      return out;
-   }
-
-   private static List<Message> messages(JsonElement j) {
+   static List<Message> messages(JsonElement j) {
       List<Message> out = new ArrayList<>();
 
       for (JsonObject o : objects(j)) {
-         String from = str(o, "from_uuid");
-         if (from == null) {
-            from = str(o, "from");
-         }
-
-         String content = str(o, "content");
-         if (from != null && content != null) {
-            String fromName = str(o, "from_username");
-            long ts = num(o, "created_at");
-            if (ts == 0L) {
-               ts = num(o, "ts");
-            }
-
-            out.add(new Message(from, fromName != null ? fromName : from.substring(0, Math.min(8, from.length())), content, ts));
+         String from = str(o, "from");
+         String text = str(o, "text");
+         if (from != null && text != null) {
+            String ts = str(o, "created_at");
+            out.add(new Message(from, text, ts != null ? ts : ""));
          }
       }
 

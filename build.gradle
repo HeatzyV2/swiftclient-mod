@@ -62,6 +62,13 @@ test {
     if (project.hasProperty('langDump')) {
         systemProperty 'swiftclient.langDump', project.property('langDump')
     }
+    // ./gradlew test --tests '*BackendE2ETest*' -Pe2eApi=http://127.0.0.1:8787 -Pe2eRelay=127.0.0.1:18600
+    // runs the mod against a real backend started with MOJANG_SESSION_URL=http://127.0.0.1:18555
+    if (project.hasProperty('e2eApi')) {
+        systemProperty 'swiftclient.e2e.api', project.property('e2eApi')
+        systemProperty 'swiftclient.e2e.relay', project.findProperty('e2eRelay') ?: ''
+        outputs.upToDateWhen { false }
+    }
 }
 
 processResources {

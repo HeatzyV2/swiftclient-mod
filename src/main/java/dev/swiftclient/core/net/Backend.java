@@ -21,12 +21,12 @@ import org.slf4j.Logger;
 
 /**
  * Client for the Swift Client backend ({@link Endpoints#api()}). Authenticates with a backend token
- * obtained by proving the Minecraft session (Mojang "join" then {@code /api/auth/login}), sends JSON
+ * obtained by proving the Minecraft session (Mojang "join" then {@code /api/auth/minecraft}), sends JSON
  * with Gson, and goes through circuit breakers so a dead backend is not hammered.
  */
 public final class Backend {
    private static final Logger LOG = Log.get("Backend");
-   private static final String MOJANG_JOIN = "https://sessionserver.mojang.com/session/minecraft/join";
+   private static volatile String mojangSession = "https://sessionserver.mojang.com";
    private static final SecureRandom RNG = new SecureRandom();
    /** Backend reachability: connection errors, 5xx, 429. */
    private static final CircuitBreaker AVAILABILITY = new CircuitBreaker("Backend Swift", 2, 15000L, 600000L);
@@ -188,6 +188,11 @@ public final class Backend {
 
    // --- Session ---
 
+   /** Test support: a fake Mojang session server. */
+   static void mojangSessionForTests(String url) {
+      mojangSession = url;
+   }
+
    /** Test support: forget the session and close both breakers. */
    static synchronized void resetForTests() {
       dropSession();
@@ -225,7 +230,7 @@ public final class Backend {
 
       try {
          HttpResponse<String> jr = Net.HTTP.send(
-            HttpRequest.newBuilder(URI.create(MOJANG_JOIN))
+            HttpRequest.newBuilder(URI.create(mojangSession + "/session/minecraft/join"))
                .timeout(Duration.ofSeconds(8L))
                .header("Content-Type", "application/json")
                .POST(BodyPublishers.ofString(join.toString()))
@@ -249,14 +254,14 @@ public final class Backend {
       login.addProperty("uuid", uuid);
       login.addProperty("serverId", serverId);
       HttpResponse<String> lr = raw(
-         base("/api/auth/login", null).header("Content-Type", "application/json").POST(BodyPublishers.ofString(login.toString())).build(),
+         base("/api/auth/minecraft", null).header("Content-Type", "application/json").POST(BodyPublishers.ofString(login.toString())).build(),
          BodyHandlers.ofString()
       );
       if (lr == null) {
          SESSION.failure("backend injoignable");
          return null;
       } else if (lr.statusCode() / 100 != 2) {
-         SESSION.failure("/api/auth/login HTTP " + lr.statusCode());
+         SESSION.failure("/api/auth/minecraft HTTP " + lr.statusCode());
          return null;
       } else {
          try {

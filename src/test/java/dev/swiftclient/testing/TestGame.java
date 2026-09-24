@@ -18,6 +18,8 @@ public final class TestGame {
    public static ConfigStore store;
 
    public static final String[] CLIPBOARD = {""};
+   /** Signed-in player: {uuid, name, Minecraft access token}; all null = no account. */
+   public static final String[] PLAYER = {null, null, null};
 
    private TestGame() {
    }
@@ -45,6 +47,7 @@ public final class TestGame {
 
    public static void install() {
       CONFIG.clear();
+      java.util.Arrays.fill(PLAYER, null);
 
       try {
          store = new ConfigStore(Files.createTempDirectory("swiftclient-test"));
@@ -67,6 +70,9 @@ public final class TestGame {
          case "config" -> store;
          case "translate" -> translate((String)args[0], args.length > 1 ? (Object[])args[1] : new Object[0]);
          case "readClipboard" -> CLIPBOARD[0];
+         case "getUuid" -> PLAYER[0];
+         case "getUsername" -> PLAYER[1];
+         case "getAccessToken" -> PLAYER[2];
          case "copyToClipboard" -> {
             CLIPBOARD[0] = (String)args[0];
             yield null;

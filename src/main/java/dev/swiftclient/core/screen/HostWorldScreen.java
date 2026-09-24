@@ -263,7 +263,7 @@ public class HostWorldScreen extends UiScreen {
          c.text(Kit.tronque(c, f.username(), 162), x + 14 + 24, yl + 8, -1, false);
          c.roundRect(x + 14 + 24 + c.textWidth(Kit.tronque(c, f.username(), 162)) + 5, yl + 12 - 2, 4, 4, 2.0F, f.online() ? -12868259 : -12960962);
          int[] ri = this.rectInviter(yl);
-         if (this.invites.contains(f.uuid())) {
+         if (this.invites.contains(f.id())) {
             c.centeredText(Tr.of("swift.host.invited"), ri[0] + ri[2] / 2, ri[1] + 4, -10394518, false);
          } else {
             Kit.bouton(c, ri, Tr.of("swift.host.invite"), Kit.dedans(mouseX, mouseY, ri));
@@ -397,7 +397,7 @@ public class HostWorldScreen extends UiScreen {
 
          for (int i = 0; i < Math.min(4, liste.size()); i++) {
             SocialApi.Friend f = liste.get(i);
-            if (Kit.dedans(mx, my, this.rectInviter(y)) && !this.invites.contains(f.uuid())) {
+            if (Kit.dedans(mx, my, this.rectInviter(y)) && !this.invites.contains(f.id())) {
                Platform.game().playClick();
                this.inviter(f);
                return true;
@@ -456,12 +456,12 @@ public class HostWorldScreen extends UiScreen {
    }
 
    private void inviter(SocialApi.Friend f) {
-      this.invites.add(f.uuid());
-      SocialApi.sendDM(f.uuid(), "swift-invite://" + this.adresse).thenAccept(res -> {
+      this.invites.add(f.id());
+      SocialApi.sendDM(f, "swift-invite://" + this.adresse).thenAccept(res -> {
          if (res.ok()) {
             this.pose(Tr.of("swift.host.invite_sent", f.username()));
          } else {
-            this.invites.remove(f.uuid());
+            this.invites.remove(f.id());
             this.pose(Tr.of("swift.host.invite_failed", res.error()));
             Platform.game().notify(Tr.of("swift.host.invite_failed_toast"), res.error());
          }

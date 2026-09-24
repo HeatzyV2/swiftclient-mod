@@ -10,16 +10,20 @@ import org.slf4j.Logger;
  *
  * <ul>
  *   <li>{@code -Dswiftclient.api=<url>} / {@code SWIFTCLIENT_API}: backend, {@code off} disables it</li>
- *   <li>{@code -Dswiftclient.relay=<host:port>} / {@code SWIFTCLIENT_RELAY}: world hosting relay</li>
+ *   <li>{@code -Dswiftclient.relay=<host:port>} / {@code SWIFTCLIENT_RELAY}: world hosting relay. By default
+ *       the backend host, on the port the backend announces ({@code GET /api/relay})</li>
  * </ul>
  */
 public final class Endpoints {
    private static final Logger LOG = Log.get("Net");
    public static final String DEFAULT_API = "http://151.240.30.3:10049";
-   /** Relay control port on the backend host, unless overridden. */
+   /** Relay control port on the backend host when the backend does not announce one. */
    public static final int DEFAULT_RELAY_PORT = 7777;
    private static volatile String API = resolveApi();
    private static volatile String RELAY = resolveRelay();
+   /** Whether RELAY came from the settings (else its port is asked to the backend once). */
+   private static volatile boolean relayExplicit = setting("swiftclient.relay", "SWIFTCLIENT_RELAY") != null;
+   private static volatile boolean relayDiscovered;
 
    private Endpoints() {
    }
@@ -28,6 +32,8 @@ public final class Endpoints {
    static void overrideForTests(String api, String relay) {
       API = api;
       RELAY = relay;
+      relayExplicit = relay != null;
+      relayDiscovered = false;
    }
 
    /** Backend base URL without trailing slash, or null when disabled / invalid. */
@@ -48,8 +54,29 @@ public final class Endpoints {
       return RELAY == null ? null : RELAY.substring(0, RELAY.lastIndexOf(':'));
    }
 
+   /** Relay control port. Blocking the first time (asks the backend): call it off the render thread. */
    public static int relayPort() {
-      return RELAY == null ? -1 : Integer.parseInt(RELAY.substring(RELAY.lastIndexOf(':') + 1));
+      discoverRelay();
+      String r = RELAY;
+      return r == null ? -1 : Integer.parseInt(r.substring(r.lastIndexOf(':') + 1));
+   }
+
+   private static synchronized void discoverRelay() {
+      if (relayExplicit || relayDiscovered || RELAY == null) {
+         return;
+      }
+
+      Backend.Response r = Backend.get("/api/relay", false);
+      com.google.gson.JsonElement j = r.ok() ? r.json() : null;
+      if (j != null && j.isJsonObject() && j.getAsJsonObject().has("port")) {
+         int port = j.getAsJsonObject().get("port").getAsInt();
+         RELAY = relayHost() + ":" + port;
+         relayDiscovered = true;
+         LOG.info("Relais : {}", RELAY);
+      } else if (r.status() == 404) {
+         // Answered, but the relay is off on this backend: keep the default, do not ask again.
+         relayDiscovered = true;
+      }
    }
 
    private static String setting(String property, String env) {
