@@ -21,7 +21,7 @@ public final class Shaders {
                api = c.getMethod("getInstance").invoke(null);
                enUsage = c.getMethod("isShaderPackInUse");
                break;
-            } catch (Throwable var6) {
+            } catch (Throwable ignored) {
             }
          }
       }
@@ -29,7 +29,7 @@ public final class Shaders {
       if (api != null && enUsage != null) {
          try {
             return Boolean.TRUE.equals(enUsage.invoke(api));
-         } catch (Throwable var5) {
+         } catch (Throwable ignored) {
             api = null;
             enUsage = null;
             return false;

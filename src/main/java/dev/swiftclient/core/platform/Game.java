@@ -13,7 +13,7 @@ public interface Game {
 
    String currentLanguage();
 
-   void setLanguage(String var1);
+   void setLanguage(String code);
 
    String translate(String key);
 
@@ -26,25 +26,25 @@ public interface Game {
 
    void playClick();
 
-   String getConfig(String var1, String var2);
+   String getConfig(String key, String def);
 
-   void setConfig(String var1, String var2);
+   void setConfig(String key, String value);
 
    Path configDir();
 
-   void runOnGameThread(Runnable var1);
+   void runOnGameThread(Runnable task);
 
-   boolean applySession(String var1, UUID var2, String var3);
+   boolean applySession(String username, UUID uuid, String accessToken);
 
    List<Account> accounts();
 
-   void switchAccount(String var1);
+   void switchAccount(String uuid);
 
-   void removeAccount(String var1);
+   void removeAccount(String uuid);
 
-   void addAccount(Consumer<String> var1);
+   void addAccount(Consumer<String> onStatus);
 
-   void applyPanorama(String var1);
+   void applyPanorama(String location);
 
    String getAccessToken();
 
@@ -56,7 +56,7 @@ public interface Game {
       return false;
    }
 
-   void loadCapeFrames(String var1, byte[] var2, int var3, int var4, BiConsumer<String, Object[]> var5);
+   void loadCapeFrames(String capeId, byte[] png, int frameW, int frameH, BiConsumer<String, Object[]> onReady);
 
    default void loadImage(String key, byte[] png, BiConsumer<String, Object> onReady) {
    }

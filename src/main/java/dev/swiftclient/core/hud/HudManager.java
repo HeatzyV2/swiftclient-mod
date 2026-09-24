@@ -139,7 +139,7 @@ public final class HudManager {
 
          try {
             hudScale = clampHudScale(Float.parseFloat(Platform.game().getConfig("hud_scale_global", "2.0")));
-         } catch (Exception var6) {
+         } catch (Exception ignored) {
             hudScale = 2.0F;
          }
       }
@@ -149,7 +149,7 @@ public final class HudManager {
       try {
          String[] p = raw.split(",");
          return new float[]{clamp01(Float.parseFloat(p[0])), clamp01(Float.parseFloat(p[1]))};
-      } catch (Exception var3) {
+      } catch (Exception ignored) {
          return new float[]{d.fx(), d.fy()};
       }
    }
@@ -158,7 +158,7 @@ public final class HudManager {
       try {
          String[] p = raw.split(",");
          return new int[]{clampAnchor(Integer.parseInt(p[0].trim())), clampAnchor(Integer.parseInt(p[1].trim()))};
-      } catch (Exception var3) {
+      } catch (Exception ignored) {
          return new int[]{d.ax(), d.ay()};
       }
    }
@@ -166,7 +166,7 @@ public final class HudManager {
    private static float parseScale(String raw) {
       try {
          return clampScale(Float.parseFloat(raw.trim()));
-      } catch (Exception var2) {
+      } catch (Exception ignored) {
          return 1.0F;
       }
    }

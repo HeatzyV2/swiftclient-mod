@@ -28,7 +28,7 @@ public class SkinRenderer {
    public static Identifier skinIdOf(AbstractClientPlayer p) {
       try {
          return extractBodyIdentifier(p.getSkin());
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
          return null;
       }
    }
@@ -60,8 +60,8 @@ public class SkinRenderer {
                   LOG.debug("Skin chargee : {}", id);
                }
             }));
-         } catch (Throwable var3) {
-            LOG.warn("Chargement du skin impossible", var3);
+         } catch (Throwable e) {
+            LOG.warn("Chargement du skin impossible", e);
          }
 
          return cachedTexture;
@@ -107,7 +107,7 @@ public class SkinRenderer {
          } else {
             return null;
          }
-      } catch (Throwable var9) {
+      } catch (Throwable ignored) {
          return null;
       }
    }
@@ -121,7 +121,7 @@ public class SkinRenderer {
          try {
             int size = Math.min(w / 2, h / 4);
             InventoryScreen.extractEntityInInventoryFollowsMouse(ctx, x, y, x + w, y + h, size, 0.0F, mouseX, mouseY, entity);
-         } catch (Throwable var10) {
+         } catch (Throwable ignored) {
             drawFullBody(ctx, x, y, w, h);
          }
       }

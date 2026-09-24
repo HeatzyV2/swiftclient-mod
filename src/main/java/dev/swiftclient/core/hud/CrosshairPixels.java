@@ -33,7 +33,7 @@ public final class CrosshairPixels {
                   }
                }
             }
-         } catch (Throwable var5) {
+         } catch (Throwable ignored) {
          }
       }
    }
@@ -56,7 +56,7 @@ public final class CrosshairPixels {
          }
 
          Platform.game().setConfig("mod.crosshair.pixels", sb.toString());
-      } catch (Throwable var5) {
+      } catch (Throwable ignored) {
       }
    }
 

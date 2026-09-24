@@ -46,7 +46,7 @@ public final class SwiftPanorama {
             if (apply(loc)) {
                persistedApplied = true;
             }
-         } catch (Throwable var1) {
+         } catch (Throwable ignored) {
          }
       }
    }

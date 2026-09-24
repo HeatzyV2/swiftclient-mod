@@ -43,8 +43,8 @@ public final class FakeWorldFactory {
          } else {
             try {
                fakePlayer = create();
-            } catch (Throwable var1) {
-               LOG.warn("Creation du monde factice impossible", var1);
+            } catch (Throwable e) {
+               LOG.warn("Creation du monde factice impossible", e);
             }
 
             return fakePlayer;
@@ -63,13 +63,13 @@ public final class FakeWorldFactory {
          Frozen loaded = (Frozen)RegistryDataLoader.load(rm, base, RegistryDataLoader.WORLDGEN_REGISTRIES, Runnable::run).join();
          RegistryCache.set(loaded, null);
          LOG.debug("Registres pre-charges depuis le datapack vanilla");
-      } catch (Throwable var13) {
-         LOG.warn("Pre-chargement des registres vanilla impossible", var13);
+      } catch (Throwable ex) {
+         LOG.warn("Pre-chargement des registres vanilla impossible", ex);
       } finally {
          if (rm != null) {
             try {
                rm.close();
-            } catch (Throwable var12) {
+            } catch (Throwable ignored) {
             }
          }
       }

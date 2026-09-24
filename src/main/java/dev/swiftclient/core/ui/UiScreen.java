@@ -19,7 +19,7 @@ public abstract class UiScreen {
       this.height = height;
    }
 
-   public abstract void draw(Canvas var1, int var2, int var3, float var4);
+   public abstract void draw(Canvas c, int mouseX, int mouseY, float delta);
 
    public boolean click(double mouseX, double mouseY, int button) {
       return false;

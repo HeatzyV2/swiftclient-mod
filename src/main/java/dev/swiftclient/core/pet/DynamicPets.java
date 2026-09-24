@@ -53,9 +53,9 @@ public final class DynamicPets {
 
                      FAILED.add(key);
                      LOG.warn("Aucun chargeur GeckoLib enregistre");
-                  } catch (Exception var12) {
+                  } catch (Exception e) {
                      FAILED.add(key);
-                     LOG.warn("Chargement du modele de familier {} echoue", petId, var12);
+                     LOG.warn("Chargement du modele de familier {} echoue", petId, e);
                      return;
                   } finally {
                      LOADING.remove(key);
@@ -67,6 +67,6 @@ public final class DynamicPets {
    }
 
    public interface Sink {
-      void inject(String var1, String var2, String var3, byte[] var4);
+      void inject(String petIdLower, String geoJson, String animJson, byte[] texturePng);
    }
 }

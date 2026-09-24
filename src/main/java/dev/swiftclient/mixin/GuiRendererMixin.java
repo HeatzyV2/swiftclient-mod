@@ -46,8 +46,8 @@ public abstract class GuiRendererMixin {
             Log.get("Theme").info("Panorama {} applique", location);
             return true;
          }
-      } catch (Exception var5) {
-         Log.get("Theme").warn("Panorama {} non applique", location, var5);
+      } catch (Exception e) {
+         Log.get("Theme").warn("Panorama {} non applique", location, e);
          return false;
       }
    }

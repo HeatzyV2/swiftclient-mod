@@ -672,6 +672,6 @@ public class WardrobeScreen extends UiScreen {
    }
 
    private interface Visiteur {
-      boolean cellule(WardrobeScreen.Item var1, String var2, int var3, int var4);
+      boolean cellule(WardrobeScreen.Item item, String section, int x, int y);
    }
 }

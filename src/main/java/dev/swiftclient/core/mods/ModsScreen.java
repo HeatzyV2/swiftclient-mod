@@ -509,7 +509,7 @@ public final class ModsScreen extends UiScreen {
 
       try {
          v = Platform.game().gameVersion();
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
       }
 
       return v != null && !v.isBlank() ? "Fabric " + v : "Swift Client";

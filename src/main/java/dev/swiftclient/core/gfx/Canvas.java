@@ -1,37 +1,37 @@
 package dev.swiftclient.core.gfx;
 
 public interface Canvas {
-   void fill(int var1, int var2, int var3, int var4, int var5);
+   void fill(int x, int y, int x2, int y2, int argb);
 
-   void gradientV(int var1, int var2, int var3, int var4, int var5, int var6);
+   void gradientV(int x, int y, int w, int h, int top, int bottom);
 
-   void roundRect(int var1, int var2, int var3, int var4, float var5, int var6);
+   void roundRect(int x, int y, int w, int h, float radius, int argb);
 
-   void card(int var1, int var2, int var3, int var4, int var5, int var6, int var7, float var8);
+   void card(int x, int y, int w, int h, int bg, int border, int thickness, float radius);
 
-   void text(String var1, int var2, int var3, int var4, boolean var5);
+   void text(String s, int x, int y, int argb, boolean shadow);
 
-   void centeredText(String var1, int var2, int var3, int var4, boolean var5);
+   void centeredText(String s, int cx, int y, int argb, boolean shadow);
 
-   int textWidth(String var1);
+   int textWidth(String s);
 
    int lineHeight();
 
-   void pushScissor(int var1, int var2, int var3, int var4);
+   void pushScissor(int x, int y, int w, int h);
 
    void popScissor();
 
-   void pushTranslate(int var1, int var2);
+   void pushTranslate(int dx, int dy);
 
    void popTranslate();
 
-   void pushScale(int var1, int var2, float var3);
+   void pushScale(int ox, int oy, float scale);
 
    void popScale();
 
-   void playerHead(String var1, int var2, int var3, int var4);
+   void playerHead(String uuid, int x, int y, int size);
 
-   void vanillaButton(int var1, int var2, int var3, int var4, boolean var5);
+   void vanillaButton(int x, int y, int w, int h, boolean hovered);
 
    default void playerModel(int x, int y, int w, int h, int mouseX, int mouseY, float delta) {
    }

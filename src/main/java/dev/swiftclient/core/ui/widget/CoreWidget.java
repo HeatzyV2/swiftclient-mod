@@ -3,7 +3,7 @@ package dev.swiftclient.core.ui.widget;
 import dev.swiftclient.core.gfx.Canvas;
 
 public interface CoreWidget {
-   void draw(Canvas var1, int var2, int var3, int var4, int var5, boolean var6, boolean var7, int var8, int var9, float var10);
+   void draw(Canvas c, int x, int y, int w, int h, boolean hovered, boolean active, int mouseX, int mouseY, float delta);
 
    default void onClick() {
    }

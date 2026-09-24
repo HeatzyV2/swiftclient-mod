@@ -78,8 +78,8 @@ public final class PlayerSkin3DRenderer {
             resetModelPose(widget);
             widget.extractRenderState(ctx, mouseX, mouseY, delta);
             return true;
-         } catch (Throwable var16) {
-            LOG.warn("Rendu du skin 3D impossible", var16);
+         } catch (Throwable e) {
+            LOG.warn("Rendu du skin 3D impossible", e);
             return false;
          }
       }
@@ -101,7 +101,7 @@ public final class PlayerSkin3DRenderer {
          if (fSlimModel.get(w) instanceof Model m) {
             m.resetPose();
          }
-      } catch (Throwable var3) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -116,7 +116,7 @@ public final class PlayerSkin3DRenderer {
 
          fRotationX.setFloat(w, pitch);
          fRotationY.setFloat(w, yaw);
-      } catch (Throwable var4) {
+      } catch (Throwable ignored) {
       }
    }
 

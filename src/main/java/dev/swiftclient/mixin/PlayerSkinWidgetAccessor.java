@@ -7,10 +7,10 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin({PlayerSkinWidget.class})
 public interface PlayerSkinWidgetAccessor {
    @Accessor("rotationX")
-   void swiftclient$setXRotation(float var1);
+   void swiftclient$setXRotation(float rotation);
 
    @Accessor("rotationY")
-   void swiftclient$setYRotation(float var1);
+   void swiftclient$setYRotation(float rotation);
 
    @Accessor("rotationX")
    float swiftclient$getXRotation();

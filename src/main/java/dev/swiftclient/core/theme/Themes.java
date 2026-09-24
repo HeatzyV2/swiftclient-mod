@@ -47,37 +47,25 @@ public final class Themes {
    private static List<Theme> load() {
       List<Theme> out = new ArrayList<>();
 
-      try {
-         label94: {
-            Object var13;
-            try (InputStream in = Themes.class.getResourceAsStream("/swiftclient/themes.json")) {
-               if (in != null) {
-                  JsonObject root = new JsonParser().parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
-                  JsonArray arr = root.getAsJsonArray("themes");
-                  if (arr == null) {
-                     return out;
-                  }
-
-                  for (JsonElement el : arr) {
-                     if (el.isJsonObject()) {
-                        JsonObject o = el.getAsJsonObject();
-                        String id = str(o, "id");
-                        if (!id.isEmpty()) {
-                           int top = color(o, "top", -15723496);
-                           int bottom = color(o, "bottom", top);
-                           out.add(new Theme(id, str(o, "name").isEmpty() ? id : str(o, "name"), str(o, "panorama"), top, bottom));
-                        }
+      try (InputStream in = Themes.class.getResourceAsStream("/swiftclient/themes.json")) {
+         if (in != null) {
+            JsonArray arr = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("themes");
+            if (arr != null) {
+               for (JsonElement el : arr) {
+                  if (el.isJsonObject()) {
+                     JsonObject o = el.getAsJsonObject();
+                     String id = str(o, "id");
+                     if (!id.isEmpty()) {
+                        int top = color(o, "top", -15723496);
+                        int bottom = color(o, "bottom", top);
+                        out.add(new Theme(id, str(o, "name").isEmpty() ? id : str(o, "name"), str(o, "panorama"), top, bottom));
                      }
                   }
-                  break label94;
                }
-
-               var13 = out;
             }
-
-            return (List<Theme>)var13;
          }
-      } catch (Exception var12) {
+      } catch (Exception ignored) {
+         // Broken bundled file: no entries rather than a crash.
       }
 
       return out;
@@ -94,7 +82,7 @@ public final class Themes {
       } else {
          try {
             return (int)Long.parseLong(s.replaceFirst("(?i)^0x", ""), 16);
-         } catch (NumberFormatException var5) {
+         } catch (NumberFormatException ignored) {
             return def;
          }
       }

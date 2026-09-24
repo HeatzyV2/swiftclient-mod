@@ -5,7 +5,7 @@ public interface CameraOverriddenEntity {
 
    float swiftclient$getCamYaw();
 
-   void swiftclient$setCamPitch(float var1);
+   void swiftclient$setCamPitch(float pitch);
 
-   void swiftclient$setCamYaw(float var1);
+   void swiftclient$setCamYaw(float yaw);
 }

@@ -23,9 +23,9 @@ public class SafeCubeMapTexture extends CubeMapTexture {
       try {
          this.ok = true;
          return super.loadContents(resourceManager);
-      } catch (Throwable var3) {
+      } catch (Throwable e) {
          this.ok = false;
-         LOG.warn("Panorama illisible : {}", var3.toString());
+         LOG.warn("Panorama illisible : {}", e.toString());
          return TextureContents.createMissing();
       }
    }

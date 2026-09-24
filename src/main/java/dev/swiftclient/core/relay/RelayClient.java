@@ -52,7 +52,7 @@ public class RelayClient {
          if (this.controlSock != null) {
             this.controlSock.close();
          }
-      } catch (IOException var2) {
+      } catch (IOException ignored) {
       }
    }
 
@@ -81,8 +81,8 @@ public class RelayClient {
                break;
             }
          }
-      } catch (Throwable var13) {
-         this.onError.accept(var13.getMessage() != null ? var13.getMessage() : var13.toString());
+      } catch (Throwable e) {
+         this.onError.accept(e.getMessage() != null ? e.getMessage() : e.toString());
       } finally {
          this.alive.set(false);
 
@@ -90,7 +90,7 @@ public class RelayClient {
             if (this.controlSock != null) {
                this.controlSock.close();
             }
-         } catch (IOException var12) {
+         } catch (IOException ignored) {
          }
       }
    }
@@ -110,21 +110,21 @@ public class RelayClient {
          lanSock.connect(new InetSocketAddress("127.0.0.1", this.lanPort), 8000);
          lanSock.setTcpNoDelay(true);
          pipe(dataSock, lanSock);
-      } catch (Throwable var8) {
-         LOG.warn("Connexion relais {} echouee : {}", connId, var8.getMessage());
+      } catch (Throwable ex) {
+         LOG.warn("Connexion relais {} echouee : {}", connId, ex.getMessage());
 
          try {
             if (dataSock != null) {
                dataSock.close();
             }
-         } catch (IOException var7) {
+         } catch (IOException ignored) {
          }
 
          try {
             if (lanSock != null) {
                lanSock.close();
             }
-         } catch (IOException var6) {
+         } catch (IOException ignored) {
          }
       }
    }
@@ -151,17 +151,17 @@ public class RelayClient {
                out.write(buf, 0, n);
                out.flush();
             }
-         } catch (IOException var27) {
+         } catch (IOException ignored) {
          }
       } finally {
          try {
             from.close();
-         } catch (IOException var22) {
+         } catch (IOException ignored) {
          }
 
          try {
             to.close();
-         } catch (IOException var21) {
+         } catch (IOException ignored) {
          }
       }
    }

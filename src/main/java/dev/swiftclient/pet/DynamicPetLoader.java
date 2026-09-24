@@ -33,8 +33,8 @@ public final class DynamicPetLoader implements DynamicPets.Sink {
          NativeImage img;
          try {
             img = NativeImage.read(texturePng);
-         } catch (Exception var11) {
-            LOG.warn("Texture de familier illisible pour {}", petIdLower, var11);
+         } catch (Exception e) {
+            LOG.warn("Texture de familier illisible pour {}", petIdLower, e);
             return;
          }
 

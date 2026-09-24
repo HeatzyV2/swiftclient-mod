@@ -181,7 +181,7 @@ public final class HudDataImpl implements HudData {
             Holder<Biome> holder = this.mc.level.getBiome(this.p().blockPosition());
             ResourceKey<Biome> key = (ResourceKey<Biome>)holder.unwrapKey().orElse(null);
             return key == null ? "" : prettify(key.identifier().getPath());
-         } catch (Throwable var3) {
+         } catch (Throwable ignored) {
             return "";
          }
       } else {

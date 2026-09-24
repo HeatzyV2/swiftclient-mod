@@ -35,7 +35,7 @@ public class InviteManager {
          int freePort;
          try (ServerSocket ss = new ServerSocket(0)) {
             freePort = ss.getLocalPort();
-         } catch (IOException var13) {
+         } catch (IOException ignored) {
             result.completeExceptionally(new RuntimeException(Tr.of("swift.host.err.no_port")));
             return result;
          }
@@ -52,8 +52,7 @@ public class InviteManager {
          } else {
             activeLanPort = freePort;
 
-            Difficulty diff;
-            Difficulty var16 = diff = switch (difficulte) {
+            Difficulty diff = switch (difficulte) {
                case "peaceful" -> Difficulty.PEACEFUL;
                case "easy" -> Difficulty.EASY;
                case "hard" -> Difficulty.HARD;

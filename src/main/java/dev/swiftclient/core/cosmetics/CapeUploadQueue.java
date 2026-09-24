@@ -22,7 +22,7 @@ public final class CapeUploadQueue {
 
          try {
             r.run();
-         } catch (Throwable var4) {
+         } catch (Throwable ignored) {
          }
       }
    }

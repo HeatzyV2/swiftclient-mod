@@ -17,7 +17,7 @@ public final class LauncherIpc {
    private static PrintStream ouvrirBrut() {
       try {
          return new PrintStream(new FileOutputStream(FileDescriptor.out), true, "UTF-8");
-      } catch (Exception var1) {
+      } catch (Exception ignored) {
          return System.out;
       }
    }

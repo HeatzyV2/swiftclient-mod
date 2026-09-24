@@ -57,7 +57,7 @@ public final class OfflineNames {
             }
 
             return new UUID(hi, lo);
-         } catch (Exception var7) {
+         } catch (Exception ignored) {
             return null;
          }
       } else {
@@ -70,7 +70,7 @@ public final class OfflineNames {
       if (self != null && self.length() == 32) {
          try {
             return new UUID(Long.parseUnsignedLong(self.substring(0, 16), 16), Long.parseUnsignedLong(self.substring(16), 16));
-         } catch (Exception var2) {
+         } catch (Exception ignored) {
             return null;
          }
       } else {

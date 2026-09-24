@@ -50,7 +50,7 @@ public final class PartnerServers {
 
                   majAdresses(cache);
                   lastFetch = System.currentTimeMillis();
-               } catch (Throwable var4) {
+               } catch (Throwable ignored) {
                   if (cache == null) {
                      cache = disque();
                   }
@@ -105,7 +105,7 @@ public final class PartnerServers {
          } else {
             return List.of();
          }
-      } catch (Throwable var7) {
+      } catch (Throwable ignored) {
          return List.of();
       }
    }
@@ -124,7 +124,7 @@ public final class PartnerServers {
          }
 
          Platform.game().setConfig(CACHE_KEY, arr.toString());
-      } catch (Throwable var5) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -170,7 +170,7 @@ public final class PartnerServers {
                if (fin.chars().allMatch(Character::isDigit)) {
                   try {
                      return normalise(a.substring(0, i), Integer.parseInt(fin));
-                  } catch (NumberFormatException var5) {
+                  } catch (NumberFormatException ignored) {
                   }
                }
             }
@@ -290,7 +290,7 @@ public final class PartnerServers {
 
          try {
             Platform.game().setConfig("partners.hidden", String.join(",", h));
-         } catch (Throwable var3) {
+         } catch (Throwable ignored) {
          }
       }
    }
@@ -308,7 +308,7 @@ public final class PartnerServers {
                   out.add(t);
                }
             }
-         } catch (Throwable var6) {
+         } catch (Throwable ignored) {
             return out;
          }
 
@@ -320,37 +320,25 @@ public final class PartnerServers {
    private static List<PartnerServer> load() {
       List<PartnerServer> out = new ArrayList<>();
 
-      try {
-         label102: {
-            Object var13;
-            try (InputStream in = PartnerServers.class.getResourceAsStream("/swiftclient/partners.json")) {
-               if (in != null) {
-                  JsonObject root = new JsonParser().parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
-                  JsonArray arr = root.getAsJsonArray("servers");
-                  if (arr == null) {
-                     return out;
-                  }
-
-                  for (JsonElement el : arr) {
-                     if (el.isJsonObject()) {
-                        JsonObject o = el.getAsJsonObject();
-                        String name = str(o, "name");
-                        String ip = str(o, "ip");
-                        if (!name.isEmpty() && !ip.isEmpty()) {
-                           int port = o.has("port") && o.get("port").isJsonPrimitive() ? o.get("port").getAsInt() : 25565;
-                           out.add(new PartnerServer(name, ip, port, str(o, "description")));
-                        }
+      try (InputStream in = PartnerServers.class.getResourceAsStream("/swiftclient/partners.json")) {
+         if (in != null) {
+            JsonArray arr = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("servers");
+            if (arr != null) {
+               for (JsonElement el : arr) {
+                  if (el.isJsonObject()) {
+                     JsonObject o = el.getAsJsonObject();
+                     String name = str(o, "name");
+                     String ip = str(o, "ip");
+                     if (!name.isEmpty() && !ip.isEmpty()) {
+                        int port = o.has("port") && o.get("port").isJsonPrimitive() ? o.get("port").getAsInt() : 25565;
+                        out.add(new PartnerServer(name, ip, port, str(o, "description")));
                      }
                   }
-                  break label102;
                }
-
-               var13 = out;
             }
-
-            return (List<PartnerServer>)var13;
          }
-      } catch (Exception var12) {
+      } catch (Exception ignored) {
+         // Broken bundled file: no entries rather than a crash.
       }
 
       return out;

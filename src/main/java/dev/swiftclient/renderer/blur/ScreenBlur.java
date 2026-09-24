@@ -54,7 +54,7 @@ public final class ScreenBlur {
             uniformBuffer = RenderSystem.getDevice().createBuffer(() -> "SwiftClient Blur Uniforms", 136, 32L);
             sampler = RenderSystem.getDevice()
                .createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
-         } catch (Throwable var1) {
+         } catch (Throwable ignored) {
             pipeline = null;
          }
       }
@@ -106,22 +106,22 @@ public final class ScreenBlur {
                pass.bindTexture("Sampler0", captureView, sampler);
                pass.setUniform("Uniforms", uniformBuffer);
                pass.draw(0, 6, 0, 1);
-            } catch (Throwable var12) {
+            } catch (Throwable e) {
                if (pass != null) {
                   try {
                      pass.close();
-                  } catch (Throwable var11) {
-                     var12.addSuppressed(var11);
+                  } catch (Throwable ex) {
+                     e.addSuppressed(ex);
                   }
                }
 
-               throw var12;
+               throw e;
             }
 
             if (pass != null) {
                pass.close();
             }
-         } catch (Throwable var13) {
+         } catch (Throwable ignored) {
          }
       }
    }
@@ -130,7 +130,7 @@ public final class ScreenBlur {
       if (captureView != null) {
          try {
             captureView.close();
-         } catch (Throwable var2) {
+         } catch (Throwable ignored) {
          }
 
          captureView = null;
@@ -139,7 +139,7 @@ public final class ScreenBlur {
       if (captureTex != null) {
          try {
             captureTex.close();
-         } catch (Throwable var1) {
+         } catch (Throwable ignored) {
          }
 
          captureTex = null;

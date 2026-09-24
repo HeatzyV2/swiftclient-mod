@@ -18,15 +18,15 @@ public abstract class HudElement {
       return "hud_" + this.id;
    }
 
-   public abstract int width(Canvas var1, HudData var2);
+   public abstract int width(Canvas c, HudData d);
 
-   public abstract int height(Canvas var1);
+   public abstract int height(Canvas c);
 
    public int height(Canvas c, HudData d) {
       return this.height(c);
    }
 
-   public abstract void draw(Canvas var1, HudData var2, int var3, int var4);
+   public abstract void draw(Canvas c, HudData d, int x, int y);
 
    public String icon() {
       return "gear";

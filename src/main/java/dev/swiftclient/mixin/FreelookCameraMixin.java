@@ -22,7 +22,7 @@ public abstract class FreelookCameraMixin {
    private Entity entity;
 
    @Shadow
-   protected abstract void setRotation(float var1, float var2);
+   protected abstract void setRotation(float yaw, float pitch);
 
    @Inject(
       method = {"alignWithEntity"},

@@ -17,7 +17,7 @@ public final class Nametag {
          boolean v;
          try {
             v = !"0".equals(Platform.game().getConfig("nametag.ownname", "1"));
-         } catch (Throwable var3) {
+         } catch (Throwable ignored) {
             return true;
          }
 
@@ -31,7 +31,7 @@ public final class Nametag {
 
       try {
          Platform.game().setConfig("nametag.ownname", on ? "1" : "0");
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
       }
    }
 }
