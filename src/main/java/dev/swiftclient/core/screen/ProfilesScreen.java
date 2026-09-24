@@ -77,6 +77,21 @@ public class ProfilesScreen extends UiScreen {
       return new int[]{this.detailX(), 118, Math.min(120, this.detailW()), 24};
    }
 
+   private int[] rectPartager() {
+      return new int[]{this.detailX(), 152, Math.min(120, this.detailW()), 24};
+   }
+
+   private int[] rectImporter() {
+      int[] a = this.rectPartager();
+      return new int[]{a[0] + a[2] + 8, a[1], Math.min(120, this.detailW() - a[2] - 8), 24};
+   }
+
+   private void bouton(Canvas c, int[] r, String label, int mouseX, int mouseY) {
+      boolean over = Kit.dedans(mouseX, mouseY, r);
+      c.card(r[0], r[1], r[2], r[3], over ? -1441125824 : -1728053248, over ? ACCENT : 419430399, 1, 5.0F);
+      c.centeredText(Kit.tronque(c, label, r[2] - 8), r[0] + r[2] / 2, r[1] + (r[3] - 8) / 2, over ? -1 : -6644317, false);
+   }
+
    private int[] rectSupprimer() {
       int[] a = this.rectActiver();
       return new int[]{a[0] + a[2] + 8, a[1], Math.min(100, this.detailW() - a[2] - 8), 24};
@@ -172,6 +187,9 @@ public class ProfilesScreen extends UiScreen {
          c.text(I18n.get("swift.profiles.using"), x, 122, -10394518, false);
       }
 
+      this.bouton(c, this.rectPartager(), I18n.get("swift.profiles.share"), mouseX, mouseY);
+      this.bouton(c, this.rectImporter(), I18n.get("swift.profiles.import"), mouseX, mouseY);
+
       if (!this.statut.isBlank() && System.currentTimeMillis() - this.statutMs < 4000L) {
          c.text(Kit.tronque(c, this.statut, w), x, this.height - 28, -6644317, false);
       }
@@ -214,6 +232,28 @@ public class ProfilesScreen extends UiScreen {
             Platform.game().playClick();
             return true;
          }
+      }
+
+      if (Kit.dedans(mouseX, mouseY, this.rectPartager())) {
+         Platform.game().playClick();
+         Platform.game().copyToClipboard(Profiles.codePartage(this.focus));
+         this.pose(I18n.get("swift.profiles.code_copied", this.focus));
+         return true;
+      }
+
+      if (Kit.dedans(mouseX, mouseY, this.rectImporter())) {
+         Platform.game().playClick();
+
+         try {
+            String nom = Profiles.importerCode(Platform.game().readClipboard());
+            this.noms = Profiles.noms();
+            this.focus = nom;
+            this.pose(I18n.get("swift.profiles.imported", nom));
+         } catch (IllegalArgumentException e) {
+            this.pose(e.getMessage());
+         }
+
+         return true;
       }
 
       if (!this.focus.equals(this.actif) && Kit.dedans(mouseX, mouseY, this.rectActiver())) {

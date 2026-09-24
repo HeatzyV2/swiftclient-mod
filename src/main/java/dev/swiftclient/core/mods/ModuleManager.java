@@ -198,6 +198,13 @@ public final class ModuleManager {
                safely(m, "disable", m::fireDisable);
             }
          }
+
+         try {
+            // Loads the profiles now: those saved by older builds get their cycle positions rewritten as keys.
+            Profiles.actif();
+         } catch (Throwable t) {
+            LOG.error("Chargement des profils impossible", t);
+         }
       }
    }
 

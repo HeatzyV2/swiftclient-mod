@@ -1,9 +1,19 @@
 package dev.swiftclient.core.mods;
 
+import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.platform.Platform;
+import java.util.Locale;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 
+/**
+ * One module setting. Stored under {@code mod.<module>.<id>}:
+ * toggles as booleans, sliders as numbers, colours as {@code #AARRGGBB}, cycles by option <b>key</b>
+ * (e.g. {@code "custom_outline"}), never by position, so reordering options cannot change a choice.
+ * Values written by older builds (cycle index, bare hex colour) are still read and rewritten.
+ */
 public final class ModuleSetting {
+   private static final Logger LOG = Log.get("Config");
    public final String id;
    public final String name;
    public final ModuleSetting.Type type;
@@ -19,6 +29,7 @@ public final class ModuleSetting {
    private Supplier<String> actionLabel;
    private Runnable action;
    private String[] options;
+   private String[] optionKeys;
    private final String key;
 
    private ModuleSetting(
@@ -35,19 +46,18 @@ public final class ModuleSetting {
       this.step = step;
       this.unit = unit;
       this.key = "mod." + moduleId + "." + id;
-      this.load();
    }
 
    public static ModuleSetting toggle(String moduleId, String id, String name, boolean def) {
-      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.TOGGLE, def, 0.0, 0, 0.0, 0.0, 0.0, "");
+      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.TOGGLE, def, 0.0, 0, 0.0, 0.0, 0.0, "").loaded();
    }
 
    public static ModuleSetting slider(String moduleId, String id, String name, double def, double min, double max, double step, String unit) {
-      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.SLIDER, false, def, 0, min, max, step, unit);
+      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.SLIDER, false, def, 0, min, max, step, unit).loaded();
    }
 
    public static ModuleSetting color(String moduleId, String id, String name, int defArgb) {
-      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.COLOR, false, 0.0, defArgb, 0.0, 0.0, 0.0, "");
+      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.COLOR, false, 0.0, defArgb, 0.0, 0.0, 0.0, "").loaded();
    }
 
    public static ModuleSetting action(String moduleId, String id, String name, Supplier<String> buttonLabel, Runnable onClick) {
@@ -55,6 +65,37 @@ public final class ModuleSetting {
       s.actionLabel = buttonLabel;
       s.action = onClick;
       return s;
+   }
+
+   /**
+    * {@code options} are the labels shown in the menu. Each one gets a stable storage key derived from it
+    * ({@code "Custom outline"} → {@code "custom_outline"}): that key is what the config remembers.
+    */
+   public static ModuleSetting cycle(String moduleId, String id, String name, String[] options, int def) {
+      ModuleSetting s = new ModuleSetting(moduleId, id, name, ModuleSetting.Type.CYCLE, false, def, 0, 0.0, 0.0, 0.0, "");
+      s.options = options;
+      s.optionKeys = new String[options.length];
+
+      for (int i = 0; i < options.length; i++) {
+         s.optionKeys[i] = optionKey(options[i]);
+      }
+
+      return s.loaded();
+   }
+
+   public static ModuleSetting key(String moduleId, String id, String name, int defGlfwKey) {
+      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.KEY, false, defGlfwKey, 0, 0.0, 0.0, 0.0, "").loaded();
+   }
+
+   /** Storage key of a cycle option: lower case, anything else than a-z/0-9 becomes '_'. */
+   public static String optionKey(String label) {
+      String k = label.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
+      return k.isEmpty() ? "option" : k;
+   }
+
+   private ModuleSetting loaded() {
+      this.load();
+      return this;
    }
 
    public ModuleSetting desc(String d) {
@@ -85,12 +126,6 @@ public final class ModuleSetting {
       }
    }
 
-   public static ModuleSetting cycle(String moduleId, String id, String name, String[] options, int def) {
-      ModuleSetting s = new ModuleSetting(moduleId, id, name, ModuleSetting.Type.CYCLE, false, def, 0, 0.0, 0.0, 0.0, "");
-      s.options = options;
-      return s;
-   }
-
    public int cycleIndex() {
       int n = this.options == null ? 1 : this.options.length;
       int i = (int)this.value;
@@ -101,13 +136,18 @@ public final class ModuleSetting {
       return this.options != null && this.options.length != 0 ? this.options[this.cycleIndex()] : "";
    }
 
+   /** Storage key of the selected option. */
+   public String cycleKey() {
+      return this.optionKeys != null && this.optionKeys.length != 0 ? this.optionKeys[this.cycleIndex()] : "";
+   }
+
+   public String[] optionKeys() {
+      return this.optionKeys == null ? new String[0] : this.optionKeys.clone();
+   }
+
    public void cycleNext() {
       this.value = this.cycleIndex() + 1;
       this.save();
-   }
-
-   public static ModuleSetting key(String moduleId, String id, String name, int defGlfwKey) {
-      return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.KEY, false, defGlfwKey, 0, 0.0, 0.0, 0.0, "");
    }
 
    public int keyCode() {
@@ -203,32 +243,69 @@ public final class ModuleSetting {
       this.setBool(!this.bool);
    }
 
+   // --- Storage format ---
+
+   /** Value as stored (config and profiles). Null for actions, which hold no value. */
    public String exporter() {
       return switch (this.type) {
-         case TOGGLE -> this.bool ? "1" : "0";
-         default -> Double.toString(this.value);
-         case COLOR -> Long.toHexString(this.color & 4294967295L);
          case ACTION -> null;
+         case TOGGLE -> this.bool ? "1" : "0";
+         case COLOR -> String.format(Locale.ROOT, "#%08X", this.color);
+         case CYCLE -> this.cycleKey();
+         default -> Double.toString(this.value);
       };
    }
 
+   /** Applies a stored value (profile import). Unreadable values are ignored. */
    public void importer(String v) {
-      if (v != null && this.type != ModuleSetting.Type.ACTION) {
-         try {
-            switch (this.type) {
-               case TOGGLE:
-                  this.bool = "1".equals(v);
-                  break;
-               case COLOR:
-                  this.color = (int)Long.parseLong(v, 16);
-                  break;
-               default:
-                  this.value = Double.parseDouble(v);
-            }
+      if (v != null && this.type != ModuleSetting.Type.ACTION && this.decode(v) != Decoded.INVALID) {
+         this.save();
+      }
+   }
 
-            this.save();
-         } catch (Exception ignored) {
+   private enum Decoded {
+      CURRENT,
+      LEGACY,
+      INVALID;
+   }
+
+   /** Reads {@code v} into this setting. LEGACY means it was in an older format and should be rewritten. */
+   private Decoded decode(String v) {
+      try {
+         switch (this.type) {
+            case TOGGLE:
+               this.bool = "1".equals(v) || "true".equalsIgnoreCase(v);
+               return Decoded.CURRENT;
+            case COLOR: {
+               boolean current = v.startsWith("#");
+               this.color = (int)Long.parseLong(current ? v.substring(1) : v, 16);
+               return current ? Decoded.CURRENT : Decoded.LEGACY;
+            }
+            case CYCLE: {
+               for (int i = 0; i < this.optionKeys.length; i++) {
+                  if (this.optionKeys[i].equals(v)) {
+                     this.value = i;
+                     return Decoded.CURRENT;
+                  }
+               }
+
+               // Older builds stored the position ("1.0"): keep the same choice, rewrite it as a key.
+               int index = (int)Double.parseDouble(v);
+               if (index >= 0 && index < this.optionKeys.length) {
+                  this.value = index;
+                  return Decoded.LEGACY;
+               }
+
+               LOG.warn("{} : option inconnue '{}', valeur par defaut conservee", this.key, v);
+               return Decoded.INVALID;
+            }
+            default:
+               this.value = Double.parseDouble(v);
+               return Decoded.CURRENT;
          }
+      } catch (RuntimeException e) {
+         LOG.warn("{} : valeur illisible '{}', valeur par defaut conservee", this.key, v);
+         return Decoded.INVALID;
       }
    }
 
@@ -236,19 +313,8 @@ public final class ModuleSetting {
       if (this.type != ModuleSetting.Type.ACTION) {
          try {
             String v = Platform.game().getConfig(this.key, null);
-            if (v == null) {
-               return;
-            }
-
-            switch (this.type) {
-               case TOGGLE:
-                  this.bool = "1".equals(v);
-                  break;
-               case COLOR:
-                  this.color = (int)Long.parseLong(v, 16);
-                  break;
-               default:
-                  this.value = Double.parseDouble(v);
+            if (v != null && this.decode(v) == Decoded.LEGACY) {
+               this.save();
             }
          } catch (Throwable ignored) {
          }
@@ -258,12 +324,7 @@ public final class ModuleSetting {
    private void save() {
       if (this.type != ModuleSetting.Type.ACTION) {
          try {
-            String v = switch (this.type) {
-               case TOGGLE -> this.bool ? "1" : "0";
-               case COLOR -> Long.toHexString(this.color & 4294967295L);
-               default -> Double.toString(this.value);
-            };
-            Platform.game().setConfig(this.key, v);
+            Platform.game().setConfig(this.key, this.exporter());
          } catch (Throwable ignored) {
          }
       }

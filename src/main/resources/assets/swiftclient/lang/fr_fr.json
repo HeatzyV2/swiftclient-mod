@@ -59,5 +59,9 @@
   "swift.hud.anchor": "Ancre",
   "key.category.swiftclient.main": "Swift Client",
   "key.swiftclient.zoom": "Zoom",
-  "key.swiftclient.freelook": "Vue libre"
+  "key.swiftclient.freelook": "Vue libre",
+  "swift.profiles.share": "Copier le code",
+  "swift.profiles.import": "Importer",
+  "swift.profiles.code_copied": "Code de %s copié dans le presse-papier",
+  "swift.profiles.imported": "Profil %s importé"
 }

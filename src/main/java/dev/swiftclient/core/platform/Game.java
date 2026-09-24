@@ -1,5 +1,6 @@
 package dev.swiftclient.core.platform;
 
+import dev.swiftclient.core.config.ConfigStore;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -79,6 +80,14 @@ public interface Game {
    }
 
    default void copyToClipboard(String texte) {
+   }
+
+   /** The Swift Client configuration (swiftclient.json). */
+   ConfigStore config();
+
+   /** Clipboard text, or "" if it cannot be read. */
+   default String readClipboard() {
+      return "";
    }
 
    /** Shows a short in-game notification (toast). Safe to call from any thread. */

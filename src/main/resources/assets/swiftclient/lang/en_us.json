@@ -59,5 +59,9 @@
   "swift.hud.anchor": "Anchor",
   "key.category.swiftclient.main": "Swift Client",
   "key.swiftclient.zoom": "Zoom",
-  "key.swiftclient.freelook": "Freelook"
+  "key.swiftclient.freelook": "Freelook",
+  "swift.profiles.share": "Copy code",
+  "swift.profiles.import": "Import",
+  "swift.profiles.code_copied": "Code of %s copied to the clipboard",
+  "swift.profiles.imported": "Imported profile %s"
 }

@@ -7,7 +7,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import dev.swiftclient.core.account.AccountEntry;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.cosmetics.CapeLayout;
-import dev.swiftclient.core.config.PropertiesStore;
+import dev.swiftclient.core.config.ConfigStore;
 import dev.swiftclient.core.cosmetics.CapeUploadQueue;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Game;
@@ -214,10 +214,23 @@ public final class GameImpl implements Game {
       SwiftPanorama.apply(location);
    }
 
-   /** swiftclient.properties, read once and written back atomically (see PropertiesStore). */
-   private static final PropertiesStore CONFIG = new PropertiesStore(
-      FabricLoader.getInstance().getConfigDir().resolve("swiftclient.properties"), "SwiftClient"
-   );
+   /** swiftclient.json: read once (or migrated from the older files), written back atomically. */
+   private static final ConfigStore CONFIG = new ConfigStore(FabricLoader.getInstance().getConfigDir());
+
+   @Override
+   public ConfigStore config() {
+      return CONFIG;
+   }
+
+   @Override
+   public String readClipboard() {
+      try {
+         String s = Minecraft.getInstance().keyboardHandler.getClipboard();
+         return s == null ? "" : s;
+      } catch (Throwable ignored) {
+         return "";
+      }
+   }
 
    @Override
    public String getConfig(String key, String def) {
