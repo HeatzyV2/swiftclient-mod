@@ -1,5 +1,6 @@
 package dev.swiftclient.core.account;
 
+import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.BufferedReader;
@@ -34,7 +35,7 @@ public class MicrosoftAuthFlow {
    private static final String MC_AUTH_URL = "https://api.minecraftservices.com/authentication/login_with_xbox";
    private static final String MC_PROF_URL = "https://api.minecraftservices.com/minecraft/profile";
    private static final int BROWSER_TIMEOUT_MS = 180000;
-   private final HttpClient http = HttpClient.newHttpClient();
+   private final HttpClient http = Net.HTTP;
 
    public CompletableFuture<AccountEntry> browserLogin(Consumer<String> onStatus) {
       return CompletableFuture.supplyAsync(
@@ -76,7 +77,8 @@ public class MicrosoftAuthFlow {
             } catch (Exception e) {
                throw new RuntimeException(e.getMessage(), e);
             }
-         }
+         },
+         Net.IO
       );
    }
 

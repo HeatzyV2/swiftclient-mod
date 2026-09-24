@@ -61,10 +61,15 @@ public class HostWorldScreen extends UiScreen {
    private void chargerAmis() {
       if (!this.amisCharges) {
          this.amisCharges = true;
-         SocialApi.listFriends().thenAccept(liste -> {
+         SocialApi.listFriends().thenAccept(res -> {
+            if (!res.ok()) {
+               this.pose("Friends unavailable: " + res.error());
+               Platform.game().notify("Amis Swift", res.error());
+            }
+
             List<SocialApi.Friend> ok = new ArrayList<>();
 
-            for (SocialApi.Friend f : liste) {
+            for (SocialApi.Friend f : res.value()) {
                if ("accepted".equals(f.status())) {
                   ok.add(f);
                }
@@ -407,6 +412,7 @@ public class HostWorldScreen extends UiScreen {
          if (err != null) {
             Throwable cause = err.getCause() != null ? err.getCause() : err;
             this.erreur = "Couldn't host: " + (cause.getMessage() != null ? cause.getMessage() : cause);
+            Platform.game().notify("Hebergement impossible", cause.getMessage() != null ? cause.getMessage() : String.valueOf(cause));
             this.etat = HostWorldScreen.Etat.REGLAGES;
          } else {
             this.adresse = a;
@@ -426,12 +432,13 @@ public class HostWorldScreen extends UiScreen {
 
    private void inviter(SocialApi.Friend f) {
       this.invites.add(f.uuid());
-      SocialApi.sendDM(f.uuid(), "swift-invite://" + this.adresse).thenAccept(ok -> {
-         if (Boolean.TRUE.equals(ok)) {
+      SocialApi.sendDM(f.uuid(), "swift-invite://" + this.adresse).thenAccept(res -> {
+         if (res.ok()) {
             this.pose("Invite sent to " + f.username());
          } else {
             this.invites.remove(f.uuid());
-            this.pose("Couldn't send the invite");
+            this.pose("Couldn't send the invite: " + res.error());
+            Platform.game().notify("Invitation non envoyee", res.error());
          }
       });
    }

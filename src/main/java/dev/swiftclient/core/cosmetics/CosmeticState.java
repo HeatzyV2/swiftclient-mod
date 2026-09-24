@@ -1,5 +1,6 @@
 package dev.swiftclient.core.cosmetics;
 
+import dev.swiftclient.core.net.Net;
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
 import com.google.gson.JsonElement;
@@ -12,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class CosmeticState {
    private static final Logger LOG = Log.get("Cape");
@@ -27,11 +27,7 @@ public final class CosmeticState {
    private static final Set<UUID> PENDING = ConcurrentHashMap.newKeySet();
    private static volatile boolean selfAnimated = true;
    private static volatile boolean selfAnimatedInit = false;
-   private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
-      Thread t = new Thread(r, "swiftclient-cosmetics");
-      t.setDaemon(true);
-      return t;
-   });
+   private static final ExecutorService IO = Net.IO;
    private static volatile boolean catalogLoaded = false;
 
    private CosmeticState() {

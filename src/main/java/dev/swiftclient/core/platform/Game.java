@@ -81,6 +81,10 @@ public interface Game {
    default void copyToClipboard(String texte) {
    }
 
+   /** Shows a short in-game notification (toast). Safe to call from any thread. */
+   default void notify(String title, String message) {
+   }
+
    default boolean supportsBackgroundBlur() {
       return false;
    }

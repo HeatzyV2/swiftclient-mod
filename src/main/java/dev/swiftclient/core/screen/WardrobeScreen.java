@@ -1,5 +1,7 @@
 package dev.swiftclient.core.screen;
 
+import dev.swiftclient.core.net.Backend;
+import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,7 +21,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class WardrobeScreen extends UiScreen {
    private static final int CARTE_W = 56;
@@ -37,11 +38,7 @@ public class WardrobeScreen extends UiScreen {
    private volatile String equippedPet;
    private volatile int coins = -1;
    private String pendingBuy;
-   private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
-      Thread t = new Thread(r, "swiftclient-wardrobe");
-      t.setDaemon(true);
-      return t;
-   });
+   private static final ExecutorService IO = Net.IO;
    private volatile List<WardrobeScreen.Item> items = List.of();
    private volatile boolean loaded;
    private volatile String selected;
@@ -108,10 +105,27 @@ public class WardrobeScreen extends UiScreen {
       this.statusMs = System.currentTimeMillis();
    }
 
+   /** Status line for the outcome of a backend call, with a toast on failure (seen even if the screen is closed). */
+   private boolean report(Backend.Response r, String success) {
+      if (r.ok()) {
+         this.pose(success, false);
+         return true;
+      } else {
+         this.pose(r.message(), true);
+         Platform.game().notify("Garde-robe", r.message());
+         return false;
+      }
+   }
+
    private void loadData() {
       List<WardrobeScreen.Item> out = new ArrayList<>();
       out.add(new WardrobeScreen.Item("__none__", "None", "", null));
-      JsonObject own = CosmeticHttp.ownedSelf();
+      Backend.Response ownedResponse = CosmeticHttp.ownedSelfResponse();
+      JsonObject own = ownedResponse.ok() && ownedResponse.json() != null && ownedResponse.json().isJsonObject() ? ownedResponse.json().getAsJsonObject() : null;
+      if (!ownedResponse.ok()) {
+         this.pose(ownedResponse.message(), true);
+      }
+
       JsonArray catalog = CosmeticHttp.catalog();
       List<WardrobeScreen.Item> customs = new ArrayList<>();
       if (own != null && own.has("owned")) {
@@ -582,22 +596,22 @@ public class WardrobeScreen extends UiScreen {
       this.pose("Applying...", false);
       CosmeticState.applySelf(none ? "" : it.value);
       IO.execute(() -> {
-         boolean ok;
          if (none) {
-            ok = CosmeticHttp.equipCosmetic("none");
+            Backend.Response r = CosmeticHttp.equipCosmetic("none");
             CosmeticHttp.disableMojangCape();
             CosmeticHttp.declareMojangCape(null);
+            this.report(r, "Applied");
          } else if (it.extra != null) {
             CosmeticHttp.equipCosmetic("none");
-            ok = CosmeticHttp.setMojangCapeActive(it.extra);
-            if (ok) {
-               CosmeticHttp.declareMojangCape(it.value.substring("mojang:".length()));
+            if (CosmeticHttp.setMojangCapeActive(it.extra)) {
+               this.report(CosmeticHttp.declareMojangCape(it.value.substring("mojang:".length())), "Applied");
+            } else {
+               this.pose("Mojang refused the cape change", true);
+               Platform.game().notify("Garde-robe", "Mojang a refuse le changement de cape");
             }
          } else {
-            ok = CosmeticHttp.equipCosmetic(it.value);
+            this.report(CosmeticHttp.equipCosmetic(it.value), "Applied");
          }
-
-         this.pose(ok ? "Applied" : "Failed - not applied", !ok);
       });
    }
 
@@ -606,13 +620,9 @@ public class WardrobeScreen extends UiScreen {
       this.pendingBuy = null;
       this.pose("Buying...", false);
       IO.execute(() -> {
-         boolean ok = CosmeticHttp.buyCosmetic(p.id);
-         if (ok) {
+         if (this.report(CosmeticHttp.buyCosmetic(p.id), "Bought - click to equip")) {
             p.owned = true;
             this.coins = CosmeticHttp.balance();
-            this.pose("Bought - click to equip", false);
-         } else {
-            this.pose("Purchase refused (not enough coins?)", true);
          }
       });
    }
@@ -625,8 +635,7 @@ public class WardrobeScreen extends UiScreen {
       this.pose("Applying...", false);
       String target = none ? "none" : id;
       IO.execute(() -> {
-         boolean ok = CosmeticHttp.equipPet(target);
-         this.pose(ok ? "Applied" : "Failed - not applied", !ok);
+         this.report(CosmeticHttp.equipPet(target), "Applied");
       });
    }
 

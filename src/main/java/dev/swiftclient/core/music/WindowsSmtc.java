@@ -2,7 +2,7 @@ package dev.swiftclient.core.music;
 
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
-import dev.swiftclient.core.cosmetics.Backoff;
+import dev.swiftclient.core.net.CircuitBreaker;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,7 @@ public final class WindowsSmtc {
    private static final Logger LOG = Log.get("Music");
    private static final Object LOCK = new Object();
    /** Throttles respawns if PowerShell keeps dying (missing WinRT, blocked by policy...). */
-   private static final Backoff RESTART = new Backoff("Now Playing SMTC", 5000L, 300000L);
+   private static final CircuitBreaker RESTART = new CircuitBreaker("Now Playing SMTC", 1, 5000L, 300000L);
    private static Process process;
    private static boolean hookInstalled;
 
@@ -41,7 +41,7 @@ public final class WindowsSmtc {
                RESTART.failure("process PowerShell termine");
             }
 
-            if (process == null && !RESTART.blocked()) {
+            if (process == null && RESTART.allow()) {
                start();
             }
          } else if (process != null) {

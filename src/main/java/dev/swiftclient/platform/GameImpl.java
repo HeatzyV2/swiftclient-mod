@@ -29,6 +29,8 @@ import java.util.function.Consumer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.multiplayer.ProfileKeyPairManager;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.resources.language.I18n;
@@ -225,6 +227,15 @@ public final class GameImpl implements Game {
    @Override
    public void setConfig(String key, String value) {
       CONFIG.set(key, value);
+   }
+
+   private static final SystemToast.SystemToastId SWIFT_TOAST = new SystemToast.SystemToastId();
+
+   @Override
+   public void notify(String title, String message) {
+      this.mc().execute(() -> SystemToast.addOrUpdate(
+         this.mc().gui.toastManager(), SWIFT_TOAST, Component.literal(title), message == null ? null : Component.literal(message)
+      ));
    }
 
    @Override

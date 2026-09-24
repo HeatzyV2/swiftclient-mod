@@ -1,10 +1,9 @@
 package dev.swiftclient.core.cosmetics;
 
+import dev.swiftclient.core.net.Net;
 import dev.swiftclient.core.badges.BadgeState;
 import dev.swiftclient.core.platform.Platform;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
@@ -25,16 +24,11 @@ public final class HeartbeatManager {
       inGame = inGameCheck;
       if (!started && CosmeticHttp.backendConfigured()) {
          started = true;
-         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "swiftclient-heartbeat");
-            t.setDaemon(true);
-            return t;
-         });
-         exec.scheduleWithFixedDelay(HeartbeatManager::tick, 2L, 3L, TimeUnit.SECONDS);
+         Net.SCHEDULER.scheduleWithFixedDelay(() -> Net.IO.execute(HeartbeatManager::tick), 2L, 3L, TimeUnit.SECONDS);
       }
    }
 
-   private static void tick() {
+   private static synchronized void tick() {
       try {
          boolean now = inGame.getAsBoolean();
          if (!now) {

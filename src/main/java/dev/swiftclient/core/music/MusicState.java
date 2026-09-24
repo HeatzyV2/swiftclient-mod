@@ -1,12 +1,11 @@
 package dev.swiftclient.core.music;
 
+import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.swiftclient.core.platform.Platform;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public final class MusicState {
@@ -47,12 +46,7 @@ public final class MusicState {
 
       Path file = resolveNowPlayingFile();
       if (file != null) {
-         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "swiftclient-music-file");
-            t.setDaemon(true);
-            return t;
-         });
-         exec.scheduleAtFixedRate(() -> pollFile(file), 0L, 1L, TimeUnit.SECONDS);
+         Net.SCHEDULER.scheduleAtFixedRate(() -> pollFile(file), 0L, 1L, TimeUnit.SECONDS);
       }
    }
 

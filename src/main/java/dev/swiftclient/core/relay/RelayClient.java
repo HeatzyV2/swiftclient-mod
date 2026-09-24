@@ -1,6 +1,7 @@
 package dev.swiftclient.core.relay;
 
 import dev.swiftclient.core.log.Log;
+import dev.swiftclient.core.net.Endpoints;
 import org.slf4j.Logger;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,8 +18,6 @@ import java.util.function.Consumer;
 
 public class RelayClient {
    private static final Logger LOG = Log.get("Relay");
-   private static final String RELAY_HOST = "127.0.0.1";
-   private static final int RELAY_PORT = 7777;
    private static final int CONNECT_TIMEOUT_MS = 8000;
    private final String sessionId;
    private final int lanPort;
@@ -60,7 +59,7 @@ public class RelayClient {
    private void runControl() {
       try {
          this.controlSock = new Socket();
-         this.controlSock.connect(new InetSocketAddress("127.0.0.1", 7777), 8000);
+         this.controlSock.connect(new InetSocketAddress(Endpoints.relayHost(), Endpoints.relayPort()), 8000);
          this.controlSock.setKeepAlive(true);
          this.alive.set(true);
          BufferedReader in = new BufferedReader(new InputStreamReader(this.controlSock.getInputStream()));
@@ -102,7 +101,7 @@ public class RelayClient {
 
       try {
          dataSock = new Socket();
-         dataSock.connect(new InetSocketAddress("127.0.0.1", 7777), 8000);
+         dataSock.connect(new InetSocketAddress(Endpoints.relayHost(), Endpoints.relayPort()), 8000);
          dataSock.setTcpNoDelay(true);
          String header = "DATA " + this.sessionId + " " + connId + "\n";
          dataSock.getOutputStream().write(header.getBytes());

@@ -1,5 +1,7 @@
 package dev.swiftclient.core.badges;
 
+import java.util.concurrent.TimeUnit;
+import dev.swiftclient.core.net.Net;
 import dev.swiftclient.core.cosmetics.CosmeticHttp;
 import dev.swiftclient.core.cosmetics.OfflineNames;
 import java.util.ArrayList;
@@ -9,7 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class BadgeState {
    private static final long REFRESH_MS = 120000L;
@@ -17,11 +18,7 @@ public final class BadgeState {
    private static final Map<UUID, String> GRADES = new ConcurrentHashMap<>();
    private static final Map<UUID, Long> QUERIED = new ConcurrentHashMap<>();
    private static final Set<UUID> PENDING = ConcurrentHashMap.newKeySet();
-   private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
-      Thread t = new Thread(r, "swiftclient-badges");
-      t.setDaemon(true);
-      return t;
-   });
+   private static final ExecutorService IO = Net.IO;
    private static volatile boolean selfSwiftPlus = false;
    private static volatile long selfCheckedAt = 0L;
    private static volatile long lastFetchAt = 0L;
@@ -86,42 +83,38 @@ public final class BadgeState {
    }
 
    private static void scheduleFetch() {
-      IO.execute(() -> {
-         if (!PENDING.isEmpty()) {
-            long wait = 1500L - (System.currentTimeMillis() - lastFetchAt);
-            if (wait > 0L) {
-               try {
-                  Thread.sleep(wait);
-               } catch (InterruptedException ignored) {
-               }
+      // Batches lookups: at most one request per 1.5 s, without holding a pool thread while waiting.
+      long wait = Math.max(0L, 1500L - (System.currentTimeMillis() - lastFetchAt));
+      Net.SCHEDULER.schedule(() -> IO.execute(BadgeState::fetchPending), wait, TimeUnit.MILLISECONDS);
+   }
+
+   private static synchronized void fetchPending() {
+      if (!PENDING.isEmpty()) {
+         List<UUID> batch = new ArrayList<>(PENDING);
+         PENDING.clear();
+         if (!batch.isEmpty()) {
+            lastFetchAt = System.currentTimeMillis();
+            List<String> ids = new ArrayList<>(batch.size());
+
+            for (UUID u : batch) {
+               ids.add(u.toString().replace("-", ""));
             }
 
-            List<UUID> batch = new ArrayList<>(PENDING);
-            PENDING.clear();
-            if (!batch.isEmpty()) {
-               lastFetchAt = System.currentTimeMillis();
-               List<String> ids = new ArrayList<>(batch.size());
-
+            Map<String, String> res = CosmeticHttp.gradesFor(ids);
+            long now = System.currentTimeMillis();
+            if (res == null) {
                for (UUID u : batch) {
-                  ids.add(u.toString().replace("-", ""));
+                  QUERIED.put(u, now - 12000L + 4000L);
                }
-
-               Map<String, String> res = CosmeticHttp.gradesFor(ids);
-               long now = System.currentTimeMillis();
-               if (res == null) {
-                  for (UUID u : batch) {
-                     QUERIED.put(u, now - 12000L + 4000L);
-                  }
-               } else {
-                  for (UUID u : batch) {
-                     String key = u.toString().replace("-", "");
-                     GRADES.put(u, res.getOrDefault(key, ""));
-                     QUERIED.put(u, now);
-                  }
+            } else {
+               for (UUID u : batch) {
+                  String key = u.toString().replace("-", "");
+                  GRADES.put(u, res.getOrDefault(key, ""));
+                  QUERIED.put(u, now);
                }
             }
          }
-      });
+      }
    }
 
    /** Forgets players that are no longer around; they are fetched again if they come back. */

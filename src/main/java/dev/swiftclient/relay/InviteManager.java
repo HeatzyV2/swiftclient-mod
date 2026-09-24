@@ -1,6 +1,7 @@
 package dev.swiftclient.relay;
 
 import dev.swiftclient.core.log.Log;
+import dev.swiftclient.core.net.Endpoints;
 import org.slf4j.Logger;
 import dev.swiftclient.core.relay.RelayClient;
 import java.io.IOException;
@@ -13,7 +14,6 @@ import net.minecraft.world.level.GameType;
 
 public class InviteManager {
    private static final Logger LOG = Log.get("Relay");
-   private static final String RELAY_HOST = "127.0.0.1";
    private static RelayClient activeRelay;
    private static int activePublicPort = -1;
    private static int activeLanPort = -1;
@@ -23,6 +23,9 @@ public class InviteManager {
       IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
       if (server == null) {
          result.completeExceptionally(new IllegalStateException("No singleplayer world is open"));
+         return result;
+      } else if (Endpoints.relay() == null) {
+         result.completeExceptionally(new IllegalStateException("No hosting relay configured (-Dswiftclient.relay=host:port)"));
          return result;
       } else if (activeRelay != null && activeRelay.isAlive() && activePublicPort > 0) {
          result.complete(adresse(activePublicPort));
@@ -91,6 +94,6 @@ public class InviteManager {
    }
 
    private static String adresse(int port) {
-      return "relay.swiftclient.dev:" + port;
+      return Endpoints.relayHost() + ":" + port;
    }
 }

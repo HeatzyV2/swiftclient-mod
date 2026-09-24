@@ -1,5 +1,6 @@
 package dev.swiftclient.core.cosmetics;
 
+import dev.swiftclient.core.net.Net;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -7,7 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class PetState {
    private static final long REFRESH_MS = 30000L;
@@ -15,11 +15,7 @@ public final class PetState {
    private static final Map<UUID, String> EQUIPPED = new ConcurrentHashMap<>();
    private static final Map<UUID, Long> QUERIED = new ConcurrentHashMap<>();
    private static final Set<UUID> PENDING = ConcurrentHashMap.newKeySet();
-   private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
-      Thread t = new Thread(r, "swiftclient-pets");
-      t.setDaemon(true);
-      return t;
-   });
+   private static final ExecutorService IO = Net.IO;
 
    private PetState() {
    }

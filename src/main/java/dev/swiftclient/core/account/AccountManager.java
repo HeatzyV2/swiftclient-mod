@@ -1,5 +1,6 @@
 package dev.swiftclient.core.account;
 
+import dev.swiftclient.core.net.Net;
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
 import dev.swiftclient.core.platform.Platform;
@@ -126,7 +127,7 @@ public final class AccountManager {
                   onDone.accept(false);
                });
             }
-         });
+         }, Net.IO);
       } else {
          boolean ok = this.switchTo(entry);
          Platform.game().runOnGameThread(() -> onDone.accept(ok));

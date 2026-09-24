@@ -1,5 +1,6 @@
 package dev.swiftclient.core.partner;
 
+import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class PartnerServers {
    private static final String HIDDEN_KEY = "partners.hidden";
@@ -28,11 +28,7 @@ public final class PartnerServers {
    private static volatile boolean fetching;
    private static volatile Set<String> adresses = new HashSet<>();
    private static Set<String> hidden;
-   private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
-      Thread t = new Thread(r, "swiftclient-partners");
-      t.setDaemon(true);
-      return t;
-   });
+   private static final ExecutorService IO = Net.IO;
 
    private PartnerServers() {
    }

@@ -1,5 +1,6 @@
 package dev.swiftclient.core.pet;
 
+import dev.swiftclient.core.net.Net;
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
 import com.google.gson.JsonObject;
@@ -9,16 +10,11 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class DynamicPets {
    private static final Logger LOG = Log.get("Pet");
    private static volatile DynamicPets.Sink sink;
-   private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
-      Thread t = new Thread(r, "swiftclient-dynpets");
-      t.setDaemon(true);
-      return t;
-   });
+   private static final ExecutorService IO = Net.IO;
    private static final Set<String> LOADING = ConcurrentHashMap.newKeySet();
    private static final Set<String> FAILED = ConcurrentHashMap.newKeySet();
 

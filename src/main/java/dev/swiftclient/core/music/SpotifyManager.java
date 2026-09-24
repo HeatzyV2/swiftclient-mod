@@ -1,5 +1,6 @@
 package dev.swiftclient.core.music;
 
+import dev.swiftclient.core.net.Net;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -89,12 +90,7 @@ public final class SpotifyManager {
          } catch (Throwable ignored) {
          }
 
-         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "swiftclient-spotify");
-            t.setDaemon(true);
-            return t;
-         });
-         exec.scheduleAtFixedRate(SpotifyManager::pollSafe, 2L, 5L, TimeUnit.SECONDS);
+         Net.SCHEDULER.scheduleWithFixedDelay(() -> Net.IO.execute(SpotifyManager::pollSafe), 2L, 5L, TimeUnit.SECONDS);
       }
    }
 
@@ -264,7 +260,7 @@ public final class SpotifyManager {
       }
    }
 
-   private static void pollSafe() {
+   private static synchronized void pollSafe() {
       try {
          poll();
       } catch (Throwable ignored) {
@@ -283,7 +279,7 @@ public final class SpotifyManager {
    }
 
    private static void pollCurrentlyPlaying() throws Exception {
-      HttpResponse<String> res = HttpClient.newHttpClient()
+      HttpResponse<String> res = Net.HTTP
          .send(
             HttpRequest.newBuilder(URI.create("https://api.spotify.com/v1/me/player/currently-playing"))
                .header("Authorization", "Bearer " + accessToken)
@@ -328,7 +324,7 @@ public final class SpotifyManager {
          if (Files.exists(file) && Files.size(file) > 0L) {
             return file.toString();
          }
-         HttpResponse<byte[]> res = HttpClient.newHttpClient()
+         HttpResponse<byte[]> res = Net.HTTP
             .send(HttpRequest.newBuilder(URI.create(url)).GET().build(), BodyHandlers.ofByteArray());
          if (res.statusCode() == 200 && res.body() != null && res.body().length > 0) {
             Files.write(file, res.body());
@@ -340,7 +336,7 @@ public final class SpotifyManager {
    }
 
    private static void pollQueue() throws Exception {
-      HttpResponse<String> res = HttpClient.newHttpClient()
+      HttpResponse<String> res = Net.HTTP
          .send(
             HttpRequest.newBuilder(URI.create("https://api.spotify.com/v1/me/player/queue")).header("Authorization", "Bearer " + accessToken).GET().build(),
             BodyHandlers.ofString()
@@ -383,7 +379,7 @@ public final class SpotifyManager {
 
    private static void loadArt(String url) {
       try {
-         byte[] png = HttpClient.newHttpClient().send(HttpRequest.newBuilder(URI.create(url)).GET().build(), BodyHandlers.ofByteArray()).body();
+         byte[] png = Net.HTTP.send(HttpRequest.newBuilder(URI.create(url)).GET().build(), BodyHandlers.ofByteArray()).body();
          if (png == null || png.length == 0) {
             return;
          }
@@ -394,7 +390,7 @@ public final class SpotifyManager {
    }
 
    private static JsonObject postForm(String url, String body) throws Exception {
-      HttpResponse<String> res = HttpClient.newHttpClient()
+      HttpResponse<String> res = Net.HTTP
          .send(
             HttpRequest.newBuilder(URI.create(url)).header("Content-Type", "application/x-www-form-urlencoded").POST(BodyPublishers.ofString(body)).build(),
             BodyHandlers.ofString()
