@@ -19,7 +19,9 @@ import java.util.concurrent.Executors;
 
 public final class PartnerServers {
    private static final String HIDDEN_KEY = "partners.hidden";
-   private static final String CACHE_KEY = "partners.cache";
+   /** Last list served by the backend. "partners.cache" (older builds) may hold another client's list: ignored. */
+   private static final String CACHE_KEY = "partners.cache.v2";
+   private static final String OBSOLETE_CACHE_KEY = "partners.cache";
    private static final long REFRESH_MS = 300000L;
    private static volatile List<PartnerServer> cache;
    private static volatile long lastFetch;
@@ -84,7 +86,11 @@ public final class PartnerServers {
 
    private static List<PartnerServer> disque() {
       try {
-         String json = Platform.game().getConfig("partners.cache", "");
+         if (Platform.game().getConfig(OBSOLETE_CACHE_KEY, null) != null) {
+            Platform.game().setConfig(OBSOLETE_CACHE_KEY, null);
+         }
+
+         String json = Platform.game().getConfig(CACHE_KEY, "");
          if (json != null && !json.isBlank()) {
             List<PartnerServer> out = new ArrayList<>();
 
@@ -121,7 +127,7 @@ public final class PartnerServers {
             arr.add(o);
          }
 
-         Platform.game().setConfig("partners.cache", arr.toString());
+         Platform.game().setConfig(CACHE_KEY, arr.toString());
       } catch (Throwable var5) {
       }
    }
@@ -191,12 +197,35 @@ public final class PartnerServers {
       return lastFetch > 0L;
    }
 
-   public static List<PartnerServer> all() {
-      ensureFresh();
+   /** Backend list if any, else its last cached copy, else the list shipped in the jar. */
+   private static List<PartnerServer> current() {
       List<PartnerServer> cur = cache;
-      if (cur == null) {
+      if (cur == null || cur.isEmpty()) {
          cur = disque();
       }
+
+      if (cur.isEmpty()) {
+         cur = bundled();
+      }
+
+      return cur;
+   }
+
+   private static volatile List<PartnerServer> bundled;
+
+   private static List<PartnerServer> bundled() {
+      List<PartnerServer> b = bundled;
+      if (b == null) {
+         b = load();
+         bundled = b;
+      }
+
+      return b;
+   }
+
+   public static List<PartnerServer> all() {
+      ensureFresh();
+      List<PartnerServer> cur = current();
 
       Set<String> h = hidden();
       if (h.isEmpty()) {
@@ -225,13 +254,7 @@ public final class PartnerServers {
          } else if (adresses.contains(cle)) {
             return true;
          } else {
-            List<PartnerServer> cur = cache;
-            if (cur == null) {
-               cur = disque();
-               if (cur.isEmpty()) {
-                  cur = load();
-               }
-            }
+            List<PartnerServer> cur = current();
 
             for (PartnerServer s : cur) {
                if (normalise(s.ip(), s.port()).equals(cle)) {

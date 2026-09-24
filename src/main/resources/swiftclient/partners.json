@@ -1,8 +1,6 @@
 {
-  "_comment": "Serveurs partenaires affiches dans la liste multijoueur. Edite cette liste puis rebuild le mod.",
+  "_comment": "Serveurs partenaires affiches dans la liste multijoueur quand le backend n'en fournit pas.",
   "servers": [
-    { "name": "GlowSMP",   "ip": "glowsmp.fun",            "port": 25565, "description": "" },
-    { "name": "PurpleSMP", "ip": "play.purple-network.fr", "port": 25565, "description": "" },
-    { "name": "LuxSMP",    "ip": "LuxSMP.org",             "port": 25565, "description": "" }
+    { "name": "Elysia SMP", "ip": "elysiasmp.com", "port": 25565, "description": "" }
   ]
 }
