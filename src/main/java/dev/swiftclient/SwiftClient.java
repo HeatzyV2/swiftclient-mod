@@ -1,6 +1,7 @@
 package dev.swiftclient;
 
 import dev.swiftclient.core.DisplayModeFix;
+import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.core.badges.BadgeState;
 import dev.swiftclient.core.cosmetics.CosmeticState;
 import dev.swiftclient.core.cosmetics.OfflineNames;
@@ -81,6 +82,9 @@ public class SwiftClient implements ClientModInitializer {
          }
 
          DisplayModeFix.tick();
+         if (client.gui.overlay() == null) {
+            SwiftPanorama.applyWhenReady();
+         }
          if (client.player != null) {
             PlayerCache.set(client.player);
          } else if (client.level == null) {

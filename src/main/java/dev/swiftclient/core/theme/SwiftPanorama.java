@@ -9,10 +9,20 @@ public final class SwiftPanorama {
    private SwiftPanorama() {
    }
 
+   /**
+    * Called while Minecraft is being built: resources (and so this mod's textures) are not loaded yet,
+    * so the saved theme is applied later, by {@link #applyWhenReady()}.
+    */
    public static void bind(Predicate<String> s) {
       swapper = s;
-      if (!persistedApplied) {
+   }
+
+   /** Applies the saved theme once, the first time it is called after the resources finished loading. */
+   public static void applyWhenReady() {
+      if (!persistedApplied && swapper != null) {
          ensurePersistedApplied();
+         // Tried with the resources loaded: if the theme is broken, do not retry every tick.
+         persistedApplied = true;
       }
    }
 

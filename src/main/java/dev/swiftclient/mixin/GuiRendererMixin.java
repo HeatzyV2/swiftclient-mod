@@ -2,12 +2,10 @@ package dev.swiftclient.mixin;
 
 import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.theme.SwiftPanorama;
-import dev.swiftclient.core.theme.ThemeManager;
 import dev.swiftclient.render.SafeCubeMapTexture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.renderer.CubeMap;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,31 +30,20 @@ public abstract class GuiRendererMixin {
       SwiftPanorama.bind(this::swiftclient$swap);
    }
 
-   @Inject(
-      method = {"registerPanoramaTextures"},
-      at = {@At("TAIL")}
-   )
-   private void swiftclient$applyThemeAtLoad(TextureManager tm, CallbackInfo ci) {
-      try {
-         String loc = ThemeManager.currentPanorama();
-         if (loc != null && !loc.isBlank()) {
-            this.swiftclient$swap(loc);
-         }
-      } catch (Throwable var4) {
-      }
-   }
-
    private boolean swiftclient$swap(String location) {
       try {
          Identifier id = swiftclient$id(location);
          Minecraft mc = Minecraft.getInstance();
          SafeCubeMapTexture tex = new SafeCubeMapTexture(id);
-         tex.apply(tex.loadContents(mc.getResourceManager()));
+         var contents = tex.loadContents(mc.getResourceManager());
          if (!tex.loadedOk()) {
+            // Never hand the 16x2 "missing" image to a cube map: it must be square.
             return false;
          } else {
+            tex.apply(contents);
             mc.getTextureManager().register(id, tex);
             this.cubeMap = new CubeMap(id);
+            Log.get("Theme").info("Panorama {} applique", location);
             return true;
          }
       } catch (Exception var5) {
