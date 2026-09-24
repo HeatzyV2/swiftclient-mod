@@ -1,6 +1,7 @@
 package dev.swiftclient.core.mods;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -60,6 +61,15 @@ public final class CapeSimManager {
 
    public static void forget(UUID id) {
       ENTRIES.remove(id);
+   }
+
+   /** Drops the simulation of every player not in {@code keep} (left the world or out of range). */
+   public static void retainOnly(Set<UUID> keep) {
+      ENTRIES.keySet().removeIf(id -> !keep.contains(id));
+   }
+
+   public static void clear() {
+      ENTRIES.clear();
    }
 
    private static final class Entry {

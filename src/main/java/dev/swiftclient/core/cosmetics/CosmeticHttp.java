@@ -6,7 +6,6 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import dev.swiftclient.core.partner.PartnerTracking;
 import dev.swiftclient.core.platform.Platform;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -24,10 +24,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public final class CosmeticHttp {
-   private static final String API = "http://127.0.0.1:28752/api/disabled";
+   /**
+    * Swift Client backend base URL. Nothing is contacted unless it is set, via
+    * {@code -Dswiftclient.api=https://...} or the {@code SWIFTCLIENT_API} environment variable.
+    */
+   private static final String API = resolveApi();
    private static final String MOJANG_JOIN = "https://sessionserver.mojang.com/session/minecraft/join";
    private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8L)).build();
    private static final SecureRandom RNG = new SecureRandom();
+   /** Mojang join + backend login. Each attempt costs a sessionserver call, so back off hard. */
+   private static final Backoff SESSION = new Backoff("session cosmetiques", 30000L, 900000L);
+   /** Backend reachability (connection errors, 5xx, 429). */
+   private static final Backoff BACKEND = new Backoff("backend Swift", 15000L, 600000L);
    private static volatile String token;
    private static volatile long tokenExp;
    private static volatile String tokenUuid;
@@ -37,18 +45,92 @@ public final class CosmeticHttp {
    private CosmeticHttp() {
    }
 
+   private static String resolveApi() {
+      String v = System.getProperty("swiftclient.api");
+      if (v == null || v.isBlank()) {
+         v = System.getenv("SWIFTCLIENT_API");
+      }
+
+      if (v == null || v.isBlank()) {
+         System.out.println("[SwiftClient] backend non configure : cosmetiques, badges et heartbeat desactives");
+         return null;
+      } else {
+         v = v.trim();
+         while (v.endsWith("/")) {
+            v = v.substring(0, v.length() - 1);
+         }
+
+         if (!v.startsWith("https://") && !v.startsWith("http://")) {
+            System.out.println("[SwiftClient] swiftclient.api invalide (http/https attendu) : " + v);
+            return null;
+         } else {
+            System.out.println("[SwiftClient] backend : " + v);
+            return v;
+         }
+      }
+   }
+
+   /** True only when a backend URL is configured. Every backend call is skipped otherwise. */
+   public static boolean backendConfigured() {
+      return API != null;
+   }
+
+   private static String url(String path) {
+      return API + path;
+   }
+
+   /** Backend call guarded by the reachability backoff. Returns null when skipped or failed. */
+   private static <T> HttpResponse<T> send(HttpRequest req, BodyHandler<T> handler) {
+      if (!backendConfigured() || BACKEND.blocked()) {
+         return null;
+      } else {
+         try {
+            HttpResponse<T> r = HTTP.send(req, handler);
+            int code = r.statusCode();
+            if (code / 100 != 5 && code != 429) {
+               BACKEND.success();
+            } else {
+               BACKEND.failure("HTTP " + code);
+            }
+
+            return r;
+         } catch (InterruptedException var4) {
+            Thread.currentThread().interrupt();
+            return null;
+         } catch (Exception var5) {
+            BACKEND.failure(var5.getClass().getSimpleName());
+            return null;
+         }
+      }
+   }
+
+   private static HttpRequest get(String url, String bearer, long timeoutS) {
+      Builder b = HttpRequest.newBuilder(URI.create(url)).GET().timeout(Duration.ofSeconds(timeoutS));
+      if (bearer != null) {
+         b.header("Authorization", "Bearer " + bearer);
+      }
+
+      return b.build();
+   }
+
+   private static boolean ok(HttpResponse<?> r) {
+      return r != null && r.statusCode() / 100 == 2;
+   }
+
    public static synchronized void dropSession() {
       token = null;
       tokenUuid = null;
    }
 
    public static synchronized String ensureSession() {
-      long now = System.currentTimeMillis();
-      String uuid = Platform.game().getUuid();
-      if (token != null && now < tokenExp - 60000L && uuid != null && uuid.equals(tokenUuid)) {
-         return token;
+      if (!backendConfigured()) {
+         return null;
       } else {
-         try {
+         long now = System.currentTimeMillis();
+         String uuid = Platform.game().getUuid();
+         if (token != null && now < tokenExp - 60000L && uuid != null && uuid.equals(tokenUuid)) {
+            return token;
+         } else if (!SESSION.blocked() && !BACKEND.blocked()) {
             String access = Platform.game().getAccessToken();
             String name = Platform.game().getUsername();
             if (access != null && !access.isBlank() && uuid != null && !uuid.isBlank()) {
@@ -59,35 +141,50 @@ public final class CosmeticHttp {
                join.addProperty("accessToken", access);
                join.addProperty("selectedProfile", uuid);
                join.addProperty("serverId", serverId);
-               HttpResponse<String> jr = HTTP.send(
-                  post("https://sessionserver.mojang.com/session/minecraft/join", join.toString(), null), BodyHandlers.ofString()
-               );
-               if (jr.statusCode() / 100 != 2) {
-                  System.out.println("[LC/Cape] join Mojang a échoué HTTP " + jr.statusCode());
+
+               try {
+                  HttpResponse<String> jr = HTTP.send(post(MOJANG_JOIN, join.toString(), null), BodyHandlers.ofString());
+                  if (jr.statusCode() / 100 != 2) {
+                     SESSION.failure("join Mojang HTTP " + jr.statusCode());
+                     return null;
+                  }
+               } catch (InterruptedException var11) {
+                  Thread.currentThread().interrupt();
+                  return null;
+               } catch (Exception var12) {
+                  SESSION.failure("join Mojang " + var12.getClass().getSimpleName());
+                  return null;
+               }
+
+               JsonObject body = new JsonObject();
+               body.addProperty("username", name);
+               body.addProperty("uuid", uuid);
+               body.addProperty("serverId", serverId);
+               HttpResponse<String> lr = send(post(url("/api/auth/login"), body.toString(), null), BodyHandlers.ofString());
+               if (lr == null) {
+                  SESSION.failure("backend injoignable");
+                  return null;
+               } else if (lr.statusCode() / 100 != 2) {
+                  SESSION.failure("/api/auth/login HTTP " + lr.statusCode());
                   return null;
                } else {
-                  JsonObject body = new JsonObject();
-                  body.addProperty("username", name);
-                  body.addProperty("uuid", uuid);
-                  body.addProperty("serverId", serverId);
-                  HttpResponse<String> lr = HTTP.send(post("http://127.0.0.1:28752/api/disabled", body.toString(), null), BodyHandlers.ofString());
-                  if (lr.statusCode() / 100 != 2) {
-                     System.out.println("[LC/Cape] /api/auth/login a échoué HTTP " + lr.statusCode() + " : " + lr.body());
-                     return null;
-                  } else {
-                     JsonObject j = new JsonParser().parse(lr.body()).getAsJsonObject();
+                  try {
+                     JsonObject j = JsonParser.parseString(lr.body()).getAsJsonObject();
                      token = j.get("token").getAsString();
                      tokenExp = j.has("expiresAt") ? j.get("expiresAt").getAsLong() : now + 3600000L;
                      tokenUuid = uuid;
+                     SESSION.success();
                      System.out.println("[LC/Cape] session OK (auth réussie)");
                      return token;
+                  } catch (Exception var10) {
+                     SESSION.failure("reponse login illisible");
+                     return null;
                   }
                }
             } else {
                return null;
             }
-         } catch (Exception var12) {
-            System.out.println("[LC/Cape] auth exception : " + var12);
+         } else {
             return null;
          }
       }
@@ -95,21 +192,17 @@ public final class CosmeticHttp {
 
    private static HttpResponse<String> authedPost(String path, String body) {
       for (int attempt = 0; attempt < 2; attempt++) {
-         try {
-            String t = ensureSession();
-            if (t == null) {
-               return null;
-            }
-
-            HttpResponse<String> r = HTTP.send(post("http://127.0.0.1:28752/api/disabled" + path, body, t), BodyHandlers.ofString());
-            if (r.statusCode() != 401 || attempt != 0) {
-               return r;
-            }
-
-            dropSession();
-         } catch (Exception var5) {
+         String t = ensureSession();
+         if (t == null) {
             return null;
          }
+
+         HttpResponse<String> r = send(post(url(path), body, t), BodyHandlers.ofString());
+         if (r == null || r.statusCode() != 401 || attempt != 0) {
+            return r;
+         }
+
+         dropSession();
       }
 
       return null;
@@ -136,171 +229,89 @@ public final class CosmeticHttp {
       return body;
    }
 
-   public static Map<String, String> equippedFor(List<String> uuids) {
+   private static Map<String, String> stringMap(String path, List<String> uuids) {
       try {
-         String t = ensureSession();
-         if (t == null) {
-            return Map.of();
+         HttpResponse<String> r = authedPost(path, batchBody(uuids).toString());
+         if (!ok(r)) {
+            return null;
          } else {
-            JsonObject body = batchBody(uuids);
-            HttpResponse<String> r = authedPost("/api/cosmetics/equipped", body.toString());
-            if (r != null && r.statusCode() / 100 == 2) {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
-               Map<String, String> out = new HashMap<>();
+            JsonObject j = JsonParser.parseString(r.body()).getAsJsonObject();
+            Map<String, String> out = new HashMap<>();
 
-               for (Entry<String, JsonElement> e : j.entrySet()) {
-                  out.put(e.getKey(), e.getValue().getAsString());
-               }
-
-               return out;
-            } else {
-               return Map.of();
+            for (Entry<String, JsonElement> e : j.entrySet()) {
+               out.put(e.getKey(), e.getValue().getAsString());
             }
+
+            return out;
          }
-      } catch (Exception var8) {
-         return Map.of();
+      } catch (Exception var6) {
+         return null;
       }
+   }
+
+   public static Map<String, String> equippedFor(List<String> uuids) {
+      Map<String, String> m = stringMap("/api/cosmetics/equipped", uuids);
+      return m == null ? Map.of() : m;
    }
 
    public static Map<String, Boolean> animatedFor(List<String> uuids) {
       try {
-         String t = ensureSession();
-         if (t == null) {
+         HttpResponse<String> r = authedPost("/api/cosmetics/animated", batchBody(uuids).toString());
+         if (!ok(r)) {
             return Map.of();
          } else {
-            JsonObject body = batchBody(uuids);
-            HttpResponse<String> r = authedPost("/api/cosmetics/animated", body.toString());
-            if (r != null && r.statusCode() / 100 == 2) {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
-               Map<String, Boolean> out = new HashMap<>();
+            JsonObject j = JsonParser.parseString(r.body()).getAsJsonObject();
+            Map<String, Boolean> out = new HashMap<>();
 
-               for (Entry<String, JsonElement> e : j.entrySet()) {
-                  out.put(e.getKey(), e.getValue().getAsBoolean());
-               }
-
-               return out;
-            } else {
-               return Map.of();
+            for (Entry<String, JsonElement> e : j.entrySet()) {
+               out.put(e.getKey(), e.getValue().getAsBoolean());
             }
+
+            return out;
          }
-      } catch (Exception var8) {
+      } catch (Exception var6) {
          return Map.of();
       }
    }
 
    public static boolean setCapeAnimated(boolean enabled) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return false;
-         } else {
-            JsonObject b = new JsonObject();
-            b.addProperty("uuid", Platform.game().getUuid());
-            b.addProperty("enabled", enabled);
-            HttpResponse<String> r = HTTP.send(post("http://127.0.0.1:28752/api/disabled", b.toString(), t), BodyHandlers.ofString());
-            return r.statusCode() / 100 == 2;
-         }
-      } catch (Exception var4) {
-         return false;
-      }
+      JsonObject b = new JsonObject();
+      b.addProperty("uuid", Platform.game().getUuid());
+      b.addProperty("enabled", enabled);
+      return ok(authedPost("/api/cosmetics/cape-animated", b.toString()));
    }
 
    public static Map<String, String> petsFor(List<String> uuids) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return Map.of();
-         } else {
-            JsonObject body = batchBody(uuids);
-            HttpResponse<String> r = authedPost("/api/cosmetics/pets", body.toString());
-            if (r != null && r.statusCode() / 100 == 2) {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
-               Map<String, String> out = new HashMap<>();
-
-               for (Entry<String, JsonElement> e : j.entrySet()) {
-                  out.put(e.getKey(), e.getValue().getAsString());
-               }
-
-               return out;
-            } else {
-               return Map.of();
-            }
-         }
-      } catch (Exception var8) {
-         return Map.of();
-      }
+      Map<String, String> m = stringMap("/api/cosmetics/pets", uuids);
+      return m == null ? Map.of() : m;
    }
 
    public static boolean equipPet(String id) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return false;
-         } else {
-            JsonObject b = new JsonObject();
-            b.addProperty("uuid", Platform.game().getUuid());
-            b.addProperty("id", id);
-            HttpResponse<String> r = HTTP.send(post("http://127.0.0.1:28752/api/disabled", b.toString(), t), BodyHandlers.ofString());
-            return r.statusCode() / 100 == 2;
-         }
-      } catch (Exception var4) {
-         return false;
-      }
+      JsonObject b = new JsonObject();
+      b.addProperty("uuid", Platform.game().getUuid());
+      b.addProperty("id", id);
+      return ok(authedPost("/api/cosmetics/equip-pet", b.toString()));
    }
 
    public static boolean heartbeat() {
       JsonObject b = new JsonObject();
       b.addProperty("uuid", Platform.game().getUuid());
-      String srv = PartnerTracking.serveurCourant();
-      if (srv != null && !srv.isBlank()) {
-         b.addProperty("server", srv);
-      }
-
-      HttpResponse<String> r = authedPost("/api/users/heartbeat", b.toString());
-      return r != null && r.statusCode() / 100 == 2;
+      return ok(authedPost("/api/users/heartbeat", b.toString()));
    }
 
    public static Map<String, String> gradesFor(List<String> uuids) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return null;
-         } else {
-            JsonObject body = batchBody(uuids);
-            HttpResponse<String> r = authedPost("/api/users/grades", body.toString());
-            if (r != null && r.statusCode() / 100 == 2) {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
-               Map<String, String> out = new HashMap<>();
-
-               for (Entry<String, JsonElement> e : j.entrySet()) {
-                  out.put(e.getKey(), e.getValue().getAsString());
-               }
-
-               return out;
-            } else {
-               return null;
-            }
-         }
-      } catch (Exception var8) {
-         return null;
-      }
+      return stringMap("/api/users/grades", uuids);
    }
 
    public static boolean subscriptionActiveSelf() {
       try {
          String uuid = Platform.game().getUuid();
-         if (uuid != null && !uuid.isBlank()) {
-            HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled" + uuid))
-                  .GET()
-                  .timeout(Duration.ofSeconds(8L))
-                  .build(),
-               BodyHandlers.ofString()
-            );
-            if (r.statusCode() / 100 != 2) {
+         if (backendConfigured() && uuid != null && !uuid.isBlank()) {
+            HttpResponse<String> r = send(get(url("/api/subscription/status/" + uuid), null, 8L), BodyHandlers.ofString());
+            if (!ok(r)) {
                return false;
             } else {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
+               JsonObject j = JsonParser.parseString(r.body()).getAsJsonObject();
                return j.has("active") && j.get("active").getAsBoolean();
             }
          } else {
@@ -313,11 +324,12 @@ public final class CosmeticHttp {
 
    public static JsonArray catalog() {
       try {
-         HttpResponse<String> r = HTTP.send(
-            HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled")).GET().timeout(Duration.ofSeconds(8L)).build(),
-            BodyHandlers.ofString()
-         );
-         return r.statusCode() / 100 != 2 ? new JsonArray() : new JsonParser().parse(r.body()).getAsJsonArray();
+         if (!backendConfigured()) {
+            return new JsonArray();
+         } else {
+            HttpResponse<String> r = send(get(url("/api/cosmetics/catalog"), null, 8L), BodyHandlers.ofString());
+            return !ok(r) ? new JsonArray() : JsonParser.parseString(r.body()).getAsJsonArray();
+         }
       } catch (Exception var1) {
          return new JsonArray();
       }
@@ -325,15 +337,16 @@ public final class CosmeticHttp {
 
    public static JsonArray ingamePartners() {
       try {
-         HttpResponse<String> r = HTTP.send(
-            HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled")).GET().timeout(Duration.ofSeconds(8L)).build(),
-            BodyHandlers.ofString()
-         );
-         if (r.statusCode() / 100 != 2) {
+         if (!backendConfigured()) {
             return new JsonArray();
          } else {
-            JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
-            return j.has("slots") && j.get("slots").isJsonArray() ? j.getAsJsonArray("slots") : new JsonArray();
+            HttpResponse<String> r = send(get(url("/api/partners/ingame"), null, 8L), BodyHandlers.ofString());
+            if (!ok(r)) {
+               return new JsonArray();
+            } else {
+               JsonObject j = JsonParser.parseString(r.body()).getAsJsonObject();
+               return j.has("slots") && j.get("slots").isJsonArray() ? j.getAsJsonArray("slots") : new JsonArray();
+            }
          }
       } catch (Exception var2) {
          return new JsonArray();
@@ -342,15 +355,16 @@ public final class CosmeticHttp {
 
    public static JsonArray partnerServers() {
       try {
-         HttpResponse<String> r = HTTP.send(
-            HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled")).GET().timeout(Duration.ofSeconds(8L)).build(),
-            BodyHandlers.ofString()
-         );
-         if (r.statusCode() / 100 != 2) {
+         if (!backendConfigured()) {
             return new JsonArray();
          } else {
-            JsonElement el = new JsonParser().parse(r.body());
-            return el.isJsonArray() ? el.getAsJsonArray() : new JsonArray();
+            HttpResponse<String> r = send(get(url("/api/servers"), null, 8L), BodyHandlers.ofString());
+            if (!ok(r)) {
+               return new JsonArray();
+            } else {
+               JsonElement el = JsonParser.parseString(r.body());
+               return el.isJsonArray() ? el.getAsJsonArray() : new JsonArray();
+            }
          }
       } catch (Exception var2) {
          return new JsonArray();
@@ -358,23 +372,12 @@ public final class CosmeticHttp {
    }
 
    public static byte[] texture(String id) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return null;
-         } else {
-            HttpResponse<byte[]> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled" + id))
-                  .header("Authorization", "Bearer " + t)
-                  .GET()
-                  .timeout(Duration.ofSeconds(15L))
-                  .build(),
-               BodyHandlers.ofByteArray()
-            );
-            return r.statusCode() / 100 != 2 ? null : r.body();
-         }
-      } catch (Exception var3) {
+      String t = ensureSession();
+      if (t == null) {
          return null;
+      } else {
+         HttpResponse<byte[]> r = send(get(url("/api/cosmetics/texture/" + id), t, 15L), BodyHandlers.ofByteArray());
+         return !ok(r) ? null : r.body();
       }
    }
 
@@ -384,15 +387,8 @@ public final class CosmeticHttp {
          if (t == null) {
             return null;
          } else {
-            HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled" + id))
-                  .header("Authorization", "Bearer " + t)
-                  .GET()
-                  .timeout(Duration.ofSeconds(20L))
-                  .build(),
-               BodyHandlers.ofString()
-            );
-            return r.statusCode() / 100 != 2 ? null : new JsonParser().parse(r.body()).getAsJsonObject();
+            HttpResponse<String> r = send(get(url("/api/cosmetics/pet-model/" + id), t, 20L), BodyHandlers.ofString());
+            return !ok(r) ? null : JsonParser.parseString(r.body()).getAsJsonObject();
          }
       } catch (Exception var3) {
          return null;
@@ -400,8 +396,7 @@ public final class CosmeticHttp {
    }
 
    public static boolean postAuthed(String path, JsonObject body) {
-      HttpResponse<String> r = authedPost(path, body.toString());
-      return r != null && r.statusCode() / 100 == 2;
+      return ok(authedPost(path, body.toString()));
    }
 
    public static JsonObject ownedSelf() {
@@ -410,15 +405,8 @@ public final class CosmeticHttp {
          if (t == null) {
             return null;
          } else {
-            HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled" + Platform.game().getUuid()))
-                  .header("Authorization", "Bearer " + t)
-                  .GET()
-                  .timeout(Duration.ofSeconds(8L))
-                  .build(),
-               BodyHandlers.ofString()
-            );
-            return r.statusCode() / 100 != 2 ? null : new JsonParser().parse(r.body()).getAsJsonObject();
+            HttpResponse<String> r = send(get(url("/api/cosmetics/owned/" + Platform.game().getUuid()), t, 8L), BodyHandlers.ofString());
+            return !ok(r) ? null : JsonParser.parseString(r.body()).getAsJsonObject();
          }
       } catch (Exception var2) {
          return null;
@@ -428,15 +416,12 @@ public final class CosmeticHttp {
    public static int balance() {
       try {
          String uuid = Platform.game().getUuid();
-         if (uuid != null && !uuid.isBlank()) {
-            HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("http://127.0.0.1:28752/api/disabled" + uuid)).GET().timeout(Duration.ofSeconds(8L)).build(),
-               BodyHandlers.ofString()
-            );
-            if (r.statusCode() / 100 != 2) {
+         if (backendConfigured() && uuid != null && !uuid.isBlank()) {
+            HttpResponse<String> r = send(get(url("/api/shop/balance/" + uuid), null, 8L), BodyHandlers.ofString());
+            if (!ok(r)) {
                return -1;
             } else {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
+               JsonObject j = JsonParser.parseString(r.body()).getAsJsonObject();
                return j.has("coins") ? j.get("coins").getAsInt() : -1;
             }
          } else {
@@ -448,77 +433,40 @@ public final class CosmeticHttp {
    }
 
    public static boolean buyCosmetic(String id) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return false;
-         } else {
-            JsonObject b = new JsonObject();
-            b.addProperty("uuid", Platform.game().getUuid());
-            b.addProperty("id", id);
-            HttpResponse<String> r = HTTP.send(post("http://127.0.0.1:28752/api/disabled", b.toString(), t), BodyHandlers.ofString());
-            return r.statusCode() / 100 == 2;
-         }
-      } catch (Exception var4) {
-         return false;
-      }
+      JsonObject b = new JsonObject();
+      b.addProperty("uuid", Platform.game().getUuid());
+      b.addProperty("id", id);
+      return ok(authedPost("/api/cosmetics/buy", b.toString()));
    }
 
    public static boolean equipCosmetic(String id) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return false;
-         } else {
-            JsonObject b = new JsonObject();
-            b.addProperty("uuid", Platform.game().getUuid());
-            b.addProperty("id", id);
-            HttpResponse<String> r = HTTP.send(post("http://127.0.0.1:28752/api/disabled", b.toString(), t), BodyHandlers.ofString());
-            return r.statusCode() / 100 == 2;
-         }
-      } catch (Exception var4) {
-         return false;
-      }
+      JsonObject b = new JsonObject();
+      b.addProperty("uuid", Platform.game().getUuid());
+      b.addProperty("id", id);
+      return ok(authedPost("/api/cosmetics/equip", b.toString()));
    }
 
    public static boolean declareMojangCape(String url) {
-      try {
-         String t = ensureSession();
-         if (t == null) {
-            return false;
-         } else {
-            JsonObject b = new JsonObject();
-            b.addProperty("uuid", Platform.game().getUuid());
-            if (url == null) {
-               b.add("url", JsonNull.INSTANCE);
-            } else {
-               b.addProperty("url", url);
-            }
-
-            HttpResponse<String> r = HTTP.send(post("http://127.0.0.1:28752/api/disabled", b.toString(), t), BodyHandlers.ofString());
-            return r.statusCode() / 100 == 2;
-         }
-      } catch (Exception var4) {
-         return false;
+      JsonObject b = new JsonObject();
+      b.addProperty("uuid", Platform.game().getUuid());
+      if (url == null) {
+         b.add("url", JsonNull.INSTANCE);
+      } else {
+         b.addProperty("url", url);
       }
+
+      return ok(authedPost("/api/cosmetics/mojang-cape", b.toString()));
    }
 
    public static JsonArray mojangCapes() {
       try {
          String access = Platform.game().getAccessToken();
          if (access != null && !access.isBlank()) {
-            HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("https://api.minecraftservices.com/minecraft/profile"))
-                  .header("Authorization", "Bearer " + access)
-                  .GET()
-                  .timeout(Duration.ofSeconds(8L))
-                  .build(),
-               BodyHandlers.ofString()
-            );
+            HttpResponse<String> r = HTTP.send(get(MC_PROFILE, access, 8L), BodyHandlers.ofString());
             if (r.statusCode() / 100 != 2) {
                return null;
             } else {
-               JsonObject j = new JsonParser().parse(r.body()).getAsJsonObject();
+               JsonObject j = JsonParser.parseString(r.body()).getAsJsonObject();
                return j.has("capes") ? j.getAsJsonArray("capes") : new JsonArray();
             }
          } else {
@@ -536,7 +484,7 @@ public final class CosmeticHttp {
             JsonObject b = new JsonObject();
             b.addProperty("capeId", capeId);
             HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("https://api.minecraftservices.com/minecraft/profile/capes/active"))
+               HttpRequest.newBuilder(URI.create(MC_CAPE_ACTIVE))
                   .header("Authorization", "Bearer " + access)
                   .header("Content-Type", "application/json")
                   .method("PUT", BodyPublishers.ofString(b.toString()))
@@ -558,11 +506,7 @@ public final class CosmeticHttp {
          String access = Platform.game().getAccessToken();
          if (access != null && !access.isBlank()) {
             HttpResponse<String> r = HTTP.send(
-               HttpRequest.newBuilder(URI.create("https://api.minecraftservices.com/minecraft/profile/capes/active"))
-                  .header("Authorization", "Bearer " + access)
-                  .DELETE()
-                  .timeout(Duration.ofSeconds(8L))
-                  .build(),
+               HttpRequest.newBuilder(URI.create(MC_CAPE_ACTIVE)).header("Authorization", "Bearer " + access).DELETE().timeout(Duration.ofSeconds(8L)).build(),
                BodyHandlers.ofString()
             );
             return r.statusCode() / 100 == 2;

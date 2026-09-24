@@ -14,7 +14,6 @@ import dev.swiftclient.ui.CanvasWidget;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -197,13 +196,5 @@ public abstract class GameMenuScreenMixin extends Screen {
          this.lightclient$minY = y0;
          this.lightclient$maxY = n >= 2 ? yLast + bh : y0 + bh;
       }
-   }
-
-   @Inject(
-      method = {"extractRenderState"},
-      at = {@At("RETURN")}
-   )
-   private void lightclient$drawSkinPanel(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-      // no-op: pause-menu 3D skin removed
    }
 }

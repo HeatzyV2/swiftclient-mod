@@ -1,87 +1,119 @@
 package dev.swiftclient.core.music;
 
+import dev.swiftclient.core.cosmetics.Backoff;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Reads the focused Windows media session (Spotify, browser, etc.) via SMTC.
  * Replaces the old launcher-side {@code nowPlayingFile} bridge that Swift never shipped.
+ *
+ * <p>One long-lived PowerShell process runs {@link #SCRIPT}, which prints one JSON line per
+ * second on stdout; a daemon thread reads that stream. The process only exists while the
+ * "Now playing" module is enabled ({@link #setActive}), and exits on its own if the game dies.
  */
 public final class WindowsSmtc {
-   private static final AtomicBoolean STARTED = new AtomicBoolean(false);
-   private static Path scriptPath;
+   private static final Object LOCK = new Object();
+   /** Throttles respawns if PowerShell keeps dying (missing WinRT, blocked by policy...). */
+   private static final Backoff RESTART = new Backoff("Now Playing SMTC", 5000L, 300000L);
+   private static Process process;
+   private static boolean hookInstalled;
 
    private WindowsSmtc() {
    }
 
-   public static void ensureStarted() {
-      if (!isWindows() || !STARTED.compareAndSet(false, true)) {
+   /** Start or stop the SMTC reader. Cheap enough to call every client tick. */
+   public static void setActive(boolean on) {
+      if (!isWindows()) {
          return;
       }
-      try {
-         scriptPath = writeScript();
-      } catch (Throwable t) {
-         System.err.println("[SwiftClient] Now Playing SMTC script: " + t.getMessage());
-         return;
+
+      synchronized (LOCK) {
+         if (on) {
+            if (process != null && !process.isAlive()) {
+               process = null;
+               RESTART.failure("process PowerShell termine");
+            }
+
+            if (process == null && !RESTART.blocked()) {
+               start();
+            }
+         } else if (process != null) {
+            stop();
+         }
       }
-      ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(r -> {
-         Thread t = new Thread(r, "swiftclient-smtc");
-         t.setDaemon(true);
-         return t;
-      });
-      exec.scheduleAtFixedRate(WindowsSmtc::tickSafe, 0L, 1L, TimeUnit.SECONDS);
    }
 
    private static boolean isWindows() {
       return System.getProperty("os.name", "").toLowerCase().contains("win");
    }
 
-   private static void tickSafe() {
+   private static void start() {
       try {
-         tick();
-      } catch (Throwable ignored) {
+         Path script = writeScript();
+         ProcessBuilder pb = new ProcessBuilder(
+            "powershell.exe",
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            script.toAbsolutePath().toString(),
+            "-ParentPid",
+            Long.toString(ProcessHandle.current().pid()),
+            "-IntervalMs",
+            "1000"
+         );
+         pb.redirectErrorStream(true);
+         Process p = pb.start();
+         process = p;
+         Thread reader = new Thread(() -> read(p), "swiftclient-smtc");
+         reader.setDaemon(true);
+         reader.start();
+         if (!hookInstalled) {
+            hookInstalled = true;
+            Runtime.getRuntime().addShutdownHook(new Thread(WindowsSmtc::shutdown, "swiftclient-smtc-shutdown"));
+         }
+
+         System.out.println("[SwiftClient] Now Playing SMTC demarre (pid " + p.pid() + ")");
+      } catch (Throwable t) {
+         process = null;
+         RESTART.failure(t.getClass().getSimpleName() + ": " + t.getMessage());
       }
    }
 
-   private static void tick() throws Exception {
-      if (scriptPath == null || !Files.isRegularFile(scriptPath)) {
-         return;
+   private static void stop() {
+      Process p = process;
+      process = null;
+      if (p != null) {
+         p.destroy();
+         System.out.println("[SwiftClient] Now Playing SMTC arrete");
       }
-      ProcessBuilder pb = new ProcessBuilder(
-         "powershell.exe",
-         "-NoProfile",
-         "-NonInteractive",
-         "-ExecutionPolicy",
-         "Bypass",
-         "-File",
-         scriptPath.toAbsolutePath().toString()
-      );
-      pb.redirectErrorStream(true);
-      Process p = pb.start();
-      StringBuilder out = new StringBuilder();
+   }
+
+   private static void shutdown() {
+      synchronized (LOCK) {
+         stop();
+      }
+   }
+
+   private static void read(Process p) {
       try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
          String line;
          while ((line = r.readLine()) != null) {
-            out.append(line);
+            line = line.trim();
+            if (line.startsWith("{")) {
+               RESTART.success();
+               MusicState.applyJson(line, true);
+            } else if (line.startsWith("NO_SESSION")) {
+               RESTART.success();
+            }
          }
+      } catch (Throwable ignored) {
       }
-      p.waitFor(4L, TimeUnit.SECONDS);
-      if (p.isAlive()) {
-         p.destroyForcibly();
-         return;
-      }
-      String body = out.toString().trim();
-      if (body.isEmpty() || body.startsWith("NO_SESSION") || !body.startsWith("{")) {
-         return;
-      }
-      MusicState.applyJson(body, true);
    }
 
    private static Path writeScript() throws Exception {
@@ -96,6 +128,8 @@ public final class WindowsSmtc {
    // Thumbnail must be read via IInputStream.ReadAsync reflection — PowerShell cannot cast
    // the OpenReadAsync COM object to IRandomAccessStream / AsStreamForRead.
    private static final String SCRIPT = """
+      param([int]$ParentPid = 0, [int]$IntervalMs = 1000)
+      [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
       Add-Type -AssemblyName System.Runtime.WindowsRuntime
       $asTask = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
         $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
@@ -142,20 +176,36 @@ public final class WindowsSmtc {
       [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,Windows.Media.Control,ContentType=WindowsRuntime] | Out-Null
       [Windows.Storage.Streams.Buffer,Windows.Storage.Streams,ContentType=WindowsRuntime] | Out-Null
       $mgr = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
-      $s = $mgr.GetCurrentSession()
-      if (-not $s) { Write-Output 'NO_SESSION'; exit 0 }
-      $props = Await ($s.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
-      $pb = $s.GetPlaybackInfo()
-      $tl = $s.GetTimelineProperties()
-      $title = Esc $props.Title
-      $artist = Esc $props.Artist
-      if ([string]::IsNullOrWhiteSpace($title)) { Write-Output 'NO_SESSION'; exit 0 }
-      $playing = if ([int]$pb.PlaybackStatus -eq 4) { 'true' } else { 'false' }
-      $pos = [int64]$tl.Position.TotalMilliseconds
-      $dur = [int64](($tl.EndTime - $tl.StartTime).TotalMilliseconds)
-      if ($dur -lt 0) { $dur = 0 }
-      $tid = [Math]::Abs(($title + '|' + $artist).GetHashCode())
-      $art = Esc (ReadThumb $props.Thumbnail)
-      Write-Output ('{"title":"' + $title + '","artist":"' + $artist + '","playing":' + $playing + ',"position":' + $pos + ',"duration":' + $dur + ',"trackId":"' + $tid + '","art":"' + $art + '"}')
+      $lastTid = ''
+      $lastArt = ''
+      $artTries = 0
+      while ($true) {
+        if ($ParentPid -gt 0 -and -not (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) { exit 0 }
+        $line = 'NO_SESSION'
+        try {
+          $s = $mgr.GetCurrentSession()
+          if ($s) {
+            $props = Await ($s.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
+            $title = Esc $props.Title
+            if (-not [string]::IsNullOrWhiteSpace($title)) {
+              $pb = $s.GetPlaybackInfo()
+              $tl = $s.GetTimelineProperties()
+              $artist = Esc $props.Artist
+              $playing = if ([int]$pb.PlaybackStatus -eq 4) { 'true' } else { 'false' }
+              $pos = [int64]$tl.Position.TotalMilliseconds
+              $dur = [int64](($tl.EndTime - $tl.StartTime).TotalMilliseconds)
+              if ($dur -lt 0) { $dur = 0 }
+              $tid = [Math]::Abs(($title + '|' + $artist).GetHashCode())
+              if ($tid -ne $lastTid) { $lastTid = $tid; $lastArt = ''; $artTries = 0 }
+              # Thumbnail only once per track (a few retries: SMTC often publishes it late).
+              if ($lastArt -eq '' -and $artTries -lt 5) { $artTries++; $lastArt = Esc (ReadThumb $props.Thumbnail) }
+              $line = '{"title":"' + $title + '","artist":"' + $artist + '","playing":' + $playing + ',"position":' + $pos + ',"duration":' + $dur + ',"trackId":"' + $tid + '","art":"' + $lastArt + '"}'
+            }
+          }
+        } catch { $line = 'NO_SESSION' }
+        [Console]::Out.WriteLine($line)
+        [Console]::Out.Flush()
+        Start-Sleep -Milliseconds $IntervalMs
+      }
       """;
 }

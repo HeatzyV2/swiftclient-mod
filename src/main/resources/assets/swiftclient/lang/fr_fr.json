@@ -22,6 +22,7 @@
   "swift.rpc.in_menu": "Dans le menu",
   "swift.rpc.singleplayer": "Solo · %s",
   "swift.rpc.on_server": "Sur %s",
+  "swift.rpc.on_server_hidden": "Sur un serveur",
   "swift.rpc.world": "Monde",
   "swift.profiles.new": "+  Nouveau profil depuis les réglages actuels",
   "swift.profiles.new_short": "+  Nouveau",

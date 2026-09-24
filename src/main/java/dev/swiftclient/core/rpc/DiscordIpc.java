@@ -91,6 +91,24 @@ public final class DiscordIpc {
       }
    }
 
+   /** SET_ACTIVITY without an activity removes the presence from the Discord profile. */
+   public synchronized void clearActivity() {
+      if (this.pipe != null) {
+         try {
+            JsonObject args = new JsonObject();
+            args.addProperty("pid", (int)ProcessHandle.current().pid());
+            JsonObject cmd = new JsonObject();
+            cmd.addProperty("cmd", "SET_ACTIVITY");
+            cmd.add("args", args);
+            cmd.addProperty("nonce", UUID.randomUUID().toString());
+            this.write(1, cmd.toString());
+            this.readFrame();
+         } catch (IOException var3) {
+            this.close();
+         }
+      }
+   }
+
    public synchronized void close() {
       if (this.pipe != null) {
          try {

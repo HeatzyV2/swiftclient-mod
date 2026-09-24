@@ -35,6 +35,10 @@ public final class BadgeState {
    }
 
    public static String gradeFor(UUID uuid) {
+      if (uuid == null || !CosmeticHttp.backendConfigured()) {
+         return null;
+      }
+
       Long q = QUERIED.get(uuid);
       long now = System.currentTimeMillis();
       String g = GRADES.get(uuid);
@@ -71,7 +75,7 @@ public final class BadgeState {
 
    public static boolean selfSwiftPlus() {
       long now = System.currentTimeMillis();
-      if (now - selfCheckedAt > 120000L) {
+      if (CosmeticHttp.backendConfigured() && now - selfCheckedAt > 120000L) {
          selfCheckedAt = now;
          IO.execute(() -> selfSwiftPlus = CosmeticHttp.subscriptionActiveSelf());
       }
@@ -120,5 +124,16 @@ public final class BadgeState {
             }
          }
       });
+   }
+
+   /** Forgets players that are no longer around; they are fetched again if they come back. */
+   public static void retainOnly(Set<UUID> keep) {
+      GRADES.keySet().removeIf(u -> !keep.contains(u));
+      QUERIED.keySet().removeIf(u -> !keep.contains(u));
+   }
+
+   public static void clear() {
+      GRADES.clear();
+      QUERIED.clear();
    }
 }

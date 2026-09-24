@@ -1,5 +1,7 @@
 package dev.swiftclient.rpc;
 
+import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.rpc.DiscordIpc;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,13 +54,19 @@ public final class RpcManager {
    }
 
    private static void update(Minecraft mc) {
-      if (mc != null) {
+      if (mc != null && !ModuleManager.active("discord_rpc")) {
+         if (!"off".equals(lastKey)) {
+            lastKey = "off";
+            RPC_IO.execute(ipc::clearActivity);
+         }
+      } else if (mc != null) {
          String details = I18n.get("swift.rpc.details");
          String largeText = I18n.get("swift.rpc.large_text");
          ServerData server = mc.getCurrentServer();
          String state;
          if (mc.level != null && server != null && !mc.hasSingleplayerServer()) {
-            state = I18n.get("swift.rpc.on_server", server.ip);
+            ModuleSetting hide = ModuleManager.byId("discord_rpc").setting("hide_ip");
+            state = hide == null || hide.boolValue() ? I18n.get("swift.rpc.on_server_hidden") : I18n.get("swift.rpc.on_server", server.ip);
          } else if (mc.level != null) {
             String worldName = I18n.get("swift.rpc.world");
             if (mc.getSingleplayerServer() != null) {

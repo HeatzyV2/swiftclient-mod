@@ -48,7 +48,8 @@ public final class Profiles {
          int n = 0;
 
          for (Entry<String, Map<String, String>> en : p.entrySet()) {
-            if (!"hud".equals(en.getKey()) && "1".equals(en.getValue().get("enabled"))) {
+            Module m = ModuleManager.byId(en.getKey());
+            if (m != null && m.implemented() && "1".equals(en.getValue().get("enabled"))) {
                n++;
             }
          }

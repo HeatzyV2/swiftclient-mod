@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.platform.Platform;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -270,7 +271,7 @@ public final class SpotifyManager {
    }
 
    private static void poll() throws Exception {
-      if (authorized && !accessToken.isBlank()) {
+      if (authorized && !accessToken.isBlank() && ModuleManager.active("hud_music")) {
          if (System.currentTimeMillis() + 60000L > expiresAt) {
             refresh();
          }

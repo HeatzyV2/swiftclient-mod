@@ -15,6 +15,7 @@ public abstract class Module {
    public final boolean swiftPlus;
    private boolean enabled;
    private final boolean defEnabled;
+   private boolean implemented = true;
    protected final List<ModuleSetting> settings = new ArrayList<>();
 
    protected Module(String id, String name, String description, String category, String icon, boolean defEnabled) {
@@ -32,8 +33,22 @@ public abstract class Module {
       this.enabled = defEnabled;
    }
 
+   /** Stays false for a module without behaviour, whatever its saved state says. */
    public boolean isEnabled() {
-      return this.enabled;
+      return this.implemented && this.enabled;
+   }
+
+   /**
+    * False for modules declared ahead of their implementation. They stay registered so their
+    * saved values survive in swiftclient.properties and in profiles, but they are hidden from
+    * the UI and never report themselves as enabled.
+    */
+   public boolean implemented() {
+      return this.implemented;
+   }
+
+   protected final void notImplemented() {
+      this.implemented = false;
    }
 
    public void setEnabled(boolean e) {

@@ -87,7 +87,12 @@ jar {
 
 // Push build into launcher mods folders. Otherwise the game keeps loading the
 // stale ~/.lightclient/.../mods/lightclient-mod.jar and nothing appears to change.
+// Opt-in only: it deletes old Swift/Light Client jars and the .fabric cache of every
+// installed instance, so it must never run as a side effect of `build` or `jar`.
+// Run it explicitly: ./gradlew deployLocal
 tasks.register('deployLocal') {
+    group = 'distribution'
+    description = 'Copies the built jar into every local launcher instance (destructive, opt-in).'
     dependsOn jar
     doLast {
         def built = tasks.jar.archiveFile.get().asFile
@@ -119,5 +124,3 @@ tasks.register('deployLocal') {
         }
     }
 }
-
-tasks.named('jar').configure { finalizedBy('deployLocal') }

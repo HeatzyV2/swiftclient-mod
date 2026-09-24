@@ -23,7 +23,7 @@ public final class HeartbeatManager {
 
    public static synchronized void start(BooleanSupplier inGameCheck) {
       inGame = inGameCheck;
-      if (!started) {
+      if (!started && CosmeticHttp.backendConfigured()) {
          started = true;
          ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "swiftclient-heartbeat");

@@ -35,7 +35,7 @@ public final class CosmeticState {
    }
 
    private static void ensureCatalog() {
-      if (!catalogLoaded) {
+      if (!catalogLoaded && CosmeticHttp.backendConfigured()) {
          catalogLoaded = true;
          IO.execute(
             () -> {
@@ -66,6 +66,10 @@ public final class CosmeticState {
    }
 
    public static String capeFor(UUID uuid) {
+      if (uuid == null || !CosmeticHttp.backendConfigured()) {
+         return null;
+      }
+
       ensureCatalog();
       Long q = QUERIED.get(uuid);
       long now = System.currentTimeMillis();
@@ -250,5 +254,18 @@ public final class CosmeticState {
             }
          );
       }
+   }
+
+   /** Forgets players that are no longer around; they are fetched again if they come back. */
+   public static void retainOnly(Set<UUID> keep) {
+      EQUIPPED.keySet().removeIf(u -> !keep.contains(u));
+      QUERIED.keySet().removeIf(u -> !keep.contains(u));
+      ANIMATED.keySet().removeIf(u -> !keep.contains(u));
+   }
+
+   public static void clear() {
+      EQUIPPED.clear();
+      QUERIED.clear();
+      ANIMATED.clear();
    }
 }

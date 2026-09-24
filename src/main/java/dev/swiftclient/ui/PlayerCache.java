@@ -14,4 +14,9 @@ public class PlayerCache {
    public static LivingEntity get() {
       return cached;
    }
+
+   /** Called on disconnect: the cached player would otherwise keep its whole ClientLevel alive. */
+   public static void clear() {
+      cached = null;
+   }
 }

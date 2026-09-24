@@ -1,6 +1,7 @@
 package dev.swiftclient.hud;
 
 import dev.swiftclient.core.cosmetics.CapeUploadQueue;
+import dev.swiftclient.core.cosmetics.CosmeticHttp;
 import dev.swiftclient.core.cosmetics.HeartbeatManager;
 import dev.swiftclient.core.gfx.Shaders;
 import dev.swiftclient.core.hud.HudManager;
@@ -29,6 +30,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public final class HudClient {
    private static boolean menuKeyWasDown = false;
@@ -44,7 +48,9 @@ public final class HudClient {
 
    public static void init() {
       ModuleManager.init();
-      HeartbeatManager.start(() -> Minecraft.getInstance().player != null);
+      if (CosmeticHttp.backendConfigured()) {
+         HeartbeatManager.start(() -> Minecraft.getInstance().player != null);
+      }
       ModuleManager.register(new CrosshairModule());
       ModuleManager.register(new FreelookModule());
       ModuleManager.register(new GuiBlurModule());
@@ -74,13 +80,24 @@ public final class HudClient {
       );
    }
 
+   /** Beyond this distance the cape is drawn with the plain vanilla model (see CapeLayerMixin). */
+   private static final double CAPE_SIM_RANGE_SQ = 32.0 * 32.0;
+
    private static void tickCapes(Minecraft mc) {
-      if (RealisticCapeState.active && mc.level != null) {
+      if (RealisticCapeState.active && mc.level != null && mc.player != null) {
          long now = System.currentTimeMillis();
+         Set<UUID> simulated = new HashSet<>();
 
          for (AbstractClientPlayer p : mc.level.players()) {
-            CapeSimManager.tick(p.getUUID(), p.getX(), p.getY(), p.getZ(), p.yOld, p.yBodyRot, p.isCrouching(), p.isUnderWater(), now);
+            if (p == mc.player || p.distanceToSqr(mc.player) <= CAPE_SIM_RANGE_SQ) {
+               simulated.add(p.getUUID());
+               CapeSimManager.tick(p.getUUID(), p.getX(), p.getY(), p.getZ(), p.yOld, p.yBodyRot, p.isCrouching(), p.isUnderWater(), now);
+            }
          }
+
+         CapeSimManager.retainOnly(simulated);
+      } else {
+         CapeSimManager.clear();
       }
    }
 

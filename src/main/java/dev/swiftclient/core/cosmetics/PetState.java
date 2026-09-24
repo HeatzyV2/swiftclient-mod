@@ -30,7 +30,7 @@ public final class PetState {
    }
 
    public static String petFor(UUID uuid) {
-      if (uuid == null) {
+      if (uuid == null || !CosmeticHttp.backendConfigured()) {
          return null;
       } else {
          Long q = QUERIED.get(uuid);
@@ -82,5 +82,16 @@ public final class PetState {
             }
          }
       });
+   }
+
+   /** Forgets players that are no longer around; they are fetched again if they come back. */
+   public static void retainOnly(Set<UUID> keep) {
+      EQUIPPED.keySet().removeIf(u -> !keep.contains(u));
+      QUERIED.keySet().removeIf(u -> !keep.contains(u));
+   }
+
+   public static void clear() {
+      EQUIPPED.clear();
+      QUERIED.clear();
    }
 }

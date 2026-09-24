@@ -66,7 +66,8 @@ public final class ModuleManager {
          register(new ArmorModule());
          register(new ScoreboardModule());
 
-         // Nouveaux Modules Exclusifs Swift Client (36 au total)
+         // Nouveaux modules Swift Client. Ceux qui appellent notImplemented() n ont pas encore
+         // de comportement : ils restent enregistres (valeurs sauvegardees conservees) mais caches.
          register(new dev.swiftclient.core.mods.modules.ShulkerPreviewModule());
          register(new dev.swiftclient.core.mods.modules.QuickSwapModule());
          register(new dev.swiftclient.core.mods.modules.DynamicLightsModule());
@@ -79,6 +80,7 @@ public final class ModuleManager {
          register(new dev.swiftclient.core.mods.modules.StreamerModeModule());
          register(new dev.swiftclient.core.mods.modules.ChatToolsModule());
          register(new dev.swiftclient.core.mods.modules.MacroKeybindsModule());
+         register(new dev.swiftclient.core.mods.modules.DiscordRpcModule());
       }
    }
 

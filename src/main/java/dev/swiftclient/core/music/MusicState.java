@@ -26,7 +26,7 @@ public final class MusicState {
    private MusicState() {
    }
 
-   /** Start Spotify + Windows SMTC pollers (safe to call from any thread). */
+   /** Start the Spotify poller and the optional launcher file bridge (safe to call from any thread). */
    public static void boot() {
       ensureStarted();
    }
@@ -42,11 +42,8 @@ public final class MusicState {
       } catch (Throwable ignored) {
       }
 
-      try {
-         WindowsSmtc.ensureStarted();
-      } catch (Throwable t) {
-         System.err.println("[SwiftClient] Now Playing SMTC: " + t.getMessage());
-      }
+      // Windows SMTC is not started here: WindowsSmtc.setActive() runs it only while the
+      // "Now playing" module is enabled (see SwiftClient tick).
 
       Path file = resolveNowPlayingFile();
       if (file != null) {
