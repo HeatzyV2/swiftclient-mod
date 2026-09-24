@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import dev.swiftclient.core.account.AccountEntry;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.cosmetics.CapeLayout;
+import dev.swiftclient.core.config.PropertiesStore;
 import dev.swiftclient.core.cosmetics.CapeUploadQueue;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Game;
@@ -13,14 +14,10 @@ import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.mixin.MinecraftClientAccessor;
 import dev.swiftclient.relay.InviteManager;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
@@ -212,45 +209,19 @@ public final class GameImpl implements Game {
       SwiftPanorama.apply(location);
    }
 
-   private static Path configFile() {
-      return FabricLoader.getInstance().getConfigDir().resolve("swiftclient.properties");
-   }
+   /** swiftclient.properties, read once and written back atomically (see PropertiesStore). */
+   private static final PropertiesStore CONFIG = new PropertiesStore(
+      FabricLoader.getInstance().getConfigDir().resolve("swiftclient.properties"), "SwiftClient"
+   );
 
    @Override
    public String getConfig(String key, String def) {
-      Path p = configFile();
-      if (!Files.exists(p)) {
-         return def;
-      } else {
-         Properties props = new Properties();
-
-         try (InputStream in = Files.newInputStream(p)) {
-            props.load(in);
-         } catch (IOException var10) {
-            return def;
-         }
-
-         return props.getProperty(key, def);
-      }
+      return CONFIG.get(key, def);
    }
 
    @Override
    public void setConfig(String key, String value) {
-      Path p = configFile();
-      Properties props = new Properties();
-      if (Files.exists(p)) {
-         try (InputStream in = Files.newInputStream(p)) {
-            props.load(in);
-         } catch (IOException var13) {
-         }
-      }
-
-      props.setProperty(key, value);
-
-      try (OutputStream out = Files.newOutputStream(p)) {
-         props.store(out, "SwiftClient");
-      } catch (IOException var11) {
-      }
+      CONFIG.set(key, value);
    }
 
    @Override
