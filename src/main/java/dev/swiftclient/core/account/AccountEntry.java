@@ -111,7 +111,7 @@ public class AccountEntry {
             }
 
             return e;
-         } catch (IllegalArgumentException var8) {
+         } catch (IllegalArgumentException ignored) {
             return null;
          }
       } else {

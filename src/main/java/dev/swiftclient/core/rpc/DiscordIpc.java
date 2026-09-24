@@ -31,7 +31,7 @@ public final class DiscordIpc {
                this.pipe = new RandomAccessFile("\\\\.\\pipe\\discord-ipc-" + i, "rw");
                this.handshake();
                return true;
-            } catch (IOException var3) {
+            } catch (IOException ignored) {
                this.close();
             }
          }
@@ -85,7 +85,7 @@ public final class DiscordIpc {
             cmd.addProperty("nonce", UUID.randomUUID().toString());
             this.write(1, cmd.toString());
             this.readFrame();
-         } catch (IOException var9) {
+         } catch (IOException ignored) {
             this.close();
          }
       }
@@ -103,7 +103,7 @@ public final class DiscordIpc {
             cmd.addProperty("nonce", UUID.randomUUID().toString());
             this.write(1, cmd.toString());
             this.readFrame();
-         } catch (IOException var3) {
+         } catch (IOException ignored) {
             this.close();
          }
       }
@@ -113,7 +113,7 @@ public final class DiscordIpc {
       if (this.pipe != null) {
          try {
             this.pipe.close();
-         } catch (IOException var2) {
+         } catch (IOException ignored) {
          }
 
          this.pipe = null;

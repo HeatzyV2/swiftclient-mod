@@ -58,7 +58,7 @@ public final class HeartbeatManager {
          }
 
          lastOk = ok;
-      } catch (Throwable var6) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -76,7 +76,7 @@ public final class HeartbeatManager {
          BadgeState.invalidate(
             UUID.fromString(u.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"))
          );
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
       }
    }
 }

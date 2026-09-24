@@ -57,9 +57,7 @@ public final class BadgeState {
    }
 
    public static int colorFor(String grade) {
-      String var1 = grade == null ? "member" : grade;
-
-      return switch (var1) {
+      return switch (grade == null ? "member" : grade) {
          case "staff" -> -1096636;
          case "partner" -> -4160260;
          case "swift_plus" -> -10934;
@@ -94,7 +92,7 @@ public final class BadgeState {
             if (wait > 0L) {
                try {
                   Thread.sleep(wait);
-               } catch (InterruptedException var10) {
+               } catch (InterruptedException ignored) {
                }
             }
 

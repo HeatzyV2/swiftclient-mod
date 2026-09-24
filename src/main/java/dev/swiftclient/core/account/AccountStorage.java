@@ -40,8 +40,8 @@ public class AccountStorage {
                   }
                }
             }
-         } catch (IOException var7) {
-            LOG.error("Lecture des comptes impossible", var7);
+         } catch (IOException e) {
+            LOG.error("Lecture des comptes impossible", e);
          }
 
          return list;
@@ -58,8 +58,8 @@ public class AccountStorage {
                writer.newLine();
             }
          }
-      } catch (IOException var7) {
-         LOG.error("Enregistrement des comptes impossible", var7);
+      } catch (IOException ex) {
+         LOG.error("Enregistrement des comptes impossible", ex);
       }
    }
 }

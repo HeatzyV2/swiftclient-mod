@@ -144,7 +144,7 @@ public final class GameImpl implements Game {
    public String gameVersion() {
       try {
          return FabricLoader.getInstance().getModContainer("minecraft").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("");
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
          return "";
       }
    }
@@ -201,8 +201,8 @@ public final class GameImpl implements Game {
          acc.swiftclient$setUserApiService(UserApiService.OFFLINE);
          acc.swiftclient$setProfileKeyPairManager(ProfileKeyPairManager.EMPTY_KEY_MANAGER);
          return true;
-      } catch (Exception var8) {
-         LOG.error("Application de la session impossible", var8);
+      } catch (Exception e) {
+         LOG.error("Application de la session impossible", e);
          return false;
       }
    }
@@ -275,7 +275,7 @@ public final class GameImpl implements Game {
       NativeImage full;
       try {
          full = NativeImage.read(png);
-      } catch (IOException var16) {
+      } catch (IOException ignored) {
          return;
       }
 
@@ -319,7 +319,7 @@ public final class GameImpl implements Game {
       NativeImage img;
       try {
          img = NativeImage.read(png);
-      } catch (IOException var6) {
+      } catch (IOException ignored) {
          return;
       }
 

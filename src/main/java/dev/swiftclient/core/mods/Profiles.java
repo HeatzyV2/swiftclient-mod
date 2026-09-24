@@ -115,7 +115,7 @@ public final class Profiles {
 
       try {
          out.put("hud", HudManager.exporter());
-      } catch (Throwable var3) {
+      } catch (Throwable ignored) {
       }
 
       return out;
@@ -129,7 +129,7 @@ public final class Profiles {
 
          try {
             HudManager.importer(p.get("hud"));
-         } catch (Throwable var3) {
+         } catch (Throwable ignored) {
          }
       }
    }
@@ -168,13 +168,13 @@ public final class Profiles {
                   actif = racine.get("active").getAsString();
                }
             }
-         } catch (Exception var12) {
-            LOG.error("Profils illisibles, repli sur Default (copie dans .bak)", var12);
+         } catch (Exception e) {
+            LOG.error("Profils illisibles, repli sur Default (copie dans .bak)", e);
             PROFILS.clear();
 
             try {
                Files.copy(fichier(), fichier().resolveSibling("swiftclient-profiles.json.bak"), StandardCopyOption.REPLACE_EXISTING);
-            } catch (Exception var11) {
+            } catch (Exception ignored) {
             }
          }
 
@@ -202,11 +202,11 @@ public final class Profiles {
 
          try {
             Files.move(tmp, f, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-         } catch (AtomicMoveNotSupportedException var4) {
+         } catch (AtomicMoveNotSupportedException ignored) {
             Files.move(tmp, f, StandardCopyOption.REPLACE_EXISTING);
          }
-      } catch (Exception var5) {
-         LOG.error("Profils non enregistres", var5);
+      } catch (Exception ex) {
+         LOG.error("Profils non enregistres", ex);
       }
    }
 }

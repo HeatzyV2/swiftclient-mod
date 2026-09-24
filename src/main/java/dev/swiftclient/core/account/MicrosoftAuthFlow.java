@@ -45,11 +45,11 @@ public class MicrosoftAuthFlow {
                   port = probe.getLocalPort();
                }
 
-               String var18 = "http://localhost:" + port;
+               String redirectUri = "http://localhost:" + port;
                String verifier = generateVerifier();
                String challenge = codeChallenge(verifier);
-               String url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb&response_type=code&redirect_uri="
-                  + enc(var18)
+               String url = AUTH_URL + "?client_id=" + CLIENT_ID + "&response_type=code&redirect_uri="
+                  + enc(redirectUri)
                   + "&scope="
                   + enc("XboxLive.signin offline_access")
                   + "&prompt=select_account&code_challenge="
@@ -60,7 +60,7 @@ public class MicrosoftAuthFlow {
                onStatus.accept("Connectez-vous dans votre navigateur...");
                String code = this.waitForCallback(port);
                onStatus.accept("Authentification Microsoft...");
-               String[] msTokens = this.exchangeCode(code, var18, verifier);
+               String[] msTokens = this.exchangeCode(code, redirectUri, verifier);
                String msAccessToken = msTokens[0];
                String msRefreshToken = msTokens[1];
                onStatus.accept("Connexion Xbox Live...");
@@ -73,8 +73,8 @@ public class MicrosoftAuthFlow {
                AccountEntry entry = this.fetchProfile(mcToken, msRefreshToken);
                onStatus.accept("Connecté en tant que " + entry.getUsername() + " !");
                return entry;
-            } catch (Exception var17) {
-               throw new RuntimeException(var17.getMessage(), var17);
+            } catch (Exception e) {
+               throw new RuntimeException(e.getMessage(), e);
             }
          }
       );
@@ -84,7 +84,7 @@ public class MicrosoftAuthFlow {
       String body = formEncode(
          Map.of(
             "client_id",
-            "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb",
+            CLIENT_ID,
             "refresh_token",
             refreshToken,
             "grant_type",
@@ -93,7 +93,7 @@ public class MicrosoftAuthFlow {
             "XboxLive.signin offline_access"
          )
       );
-      HttpResponse<String> resp = this.postForm("https://login.microsoftonline.com/consumers/oauth2/v2.0/token", body);
+      HttpResponse<String> resp = this.postForm(TOKEN_URL, body);
       JsonObject json = parse(resp.body());
       assertNoError(json, "Token refresh");
       String msAccessToken = json.get("access_token").getAsString();
@@ -107,9 +107,8 @@ public class MicrosoftAuthFlow {
    }
 
    private String waitForCallback(int port) throws IOException {
-      String var9;
       try (ServerSocket server = new ServerSocket(port)) {
-         server.setSoTimeout(180000);
+         server.setSoTimeout(BROWSER_TIMEOUT_MS);
 
          try (Socket conn = server.accept()) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
@@ -126,18 +125,16 @@ public class MicrosoftAuthFlow {
                throw new IOException("Callback sans code d'autorisation.");
             }
 
-            var9 = code;
+            return code;
          }
       }
-
-      return var9;
    }
 
    private String[] exchangeCode(String code, String redirectUri, String verifier) throws Exception {
       String body = formEncode(
          Map.of(
             "client_id",
-            "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb",
+            CLIENT_ID,
             "code",
             code,
             "grant_type",
@@ -150,7 +147,7 @@ public class MicrosoftAuthFlow {
             "XboxLive.signin offline_access"
          )
       );
-      HttpResponse<String> resp = this.postForm("https://login.microsoftonline.com/consumers/oauth2/v2.0/token", body);
+      HttpResponse<String> resp = this.postForm(TOKEN_URL, body);
       JsonObject json = parse(resp.body());
       assertNoError(json, "Échange de code");
       return new String[]{json.get("access_token").getAsString(), json.has("refresh_token") ? json.get("refresh_token").getAsString() : ""};
@@ -159,13 +156,13 @@ public class MicrosoftAuthFlow {
    private String authenticateXBL(String msToken) throws IOException, InterruptedException {
       String body = "{\"Properties\":{\"AuthMethod\":\"RPS\",\"SiteName\":\"user.auth.xboxlive.com\",\"RpsTicket\":\"d=%s\"},\"RelyingParty\":\"http://auth.xboxlive.com\",\"TokenType\":\"JWT\"}\n"
          .formatted(msToken);
-      return parse(this.postJson("https://user.auth.xboxlive.com/user/authenticate", body).body()).get("Token").getAsString();
+      return parse(this.postJson(XBL_URL, body).body()).get("Token").getAsString();
    }
 
    private String[] authenticateXSTS(String xblToken) throws IOException, InterruptedException {
       String body = "{\"Properties\":{\"SandboxId\":\"RETAIL\",\"UserTokens\":[\"%s\"]},\"RelyingParty\":\"rp://api.minecraftservices.com/\",\"TokenType\":\"JWT\"}\n"
          .formatted(xblToken);
-      JsonObject json = parse(this.postJson("https://xsts.auth.xboxlive.com/xsts/authorize", body).body());
+      JsonObject json = parse(this.postJson(XSTS_URL, body).body());
       if (json.has("XErr")) {
          throw new RuntimeException("Erreur XSTS: " + json.get("XErr").getAsLong());
       } else {
@@ -177,12 +174,12 @@ public class MicrosoftAuthFlow {
 
    private String authenticateMinecraft(String xstsToken, String userHash) throws IOException, InterruptedException {
       String body = "{\"identityToken\":\"XBL3.0 x=%s;%s\"}\n".formatted(userHash, xstsToken);
-      return parse(this.postJson("https://api.minecraftservices.com/authentication/login_with_xbox", body).body()).get("access_token").getAsString();
+      return parse(this.postJson(MC_AUTH_URL, body).body()).get("access_token").getAsString();
    }
 
    private AccountEntry fetchProfile(String mcToken, String refreshToken) throws IOException, InterruptedException {
       HttpRequest req = HttpRequest.newBuilder()
-         .uri(URI.create("https://api.minecraftservices.com/minecraft/profile"))
+         .uri(URI.create(MC_PROF_URL))
          .header("Authorization", "Bearer " + mcToken)
          .GET()
          .build();
@@ -245,8 +242,8 @@ public class MicrosoftAuthFlow {
       try {
          MessageDigest md = MessageDigest.getInstance("SHA-256");
          return Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest(verifier.getBytes(StandardCharsets.US_ASCII)));
-      } catch (Exception var2) {
-         throw new RuntimeException(var2);
+      } catch (Exception ex) {
+         throw new RuntimeException(ex);
       }
    }
 

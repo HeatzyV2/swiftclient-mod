@@ -75,7 +75,7 @@ public final class RpcManager {
             if (mc.getSingleplayerServer() != null) {
                try {
                   worldName = mc.getSingleplayerServer().getWorldData().getLevelName();
-               } catch (Throwable var6) {
+               } catch (Throwable ignored) {
                }
             }
 

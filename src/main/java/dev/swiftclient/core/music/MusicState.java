@@ -189,7 +189,7 @@ public final class MusicState {
    private static long lng(JsonObject j, String k) {
       try {
          return j.has(k) && !j.get(k).isJsonNull() ? j.get(k).getAsLong() : 0L;
-      } catch (Throwable var3) {
+      } catch (Throwable ignored) {
          return 0L;
       }
    }

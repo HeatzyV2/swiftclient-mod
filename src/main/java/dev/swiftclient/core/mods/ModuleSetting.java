@@ -227,7 +227,7 @@ public final class ModuleSetting {
             }
 
             this.save();
-         } catch (Exception var3) {
+         } catch (Exception ignored) {
          }
       }
    }
@@ -250,7 +250,7 @@ public final class ModuleSetting {
                default:
                   this.value = Double.parseDouble(v);
             }
-         } catch (Throwable var2) {
+         } catch (Throwable ignored) {
          }
       }
    }
@@ -264,7 +264,7 @@ public final class ModuleSetting {
                default -> Double.toString(this.value);
             };
             Platform.game().setConfig(this.key, v);
-         } catch (Throwable var2) {
+         } catch (Throwable ignored) {
          }
       }
    }

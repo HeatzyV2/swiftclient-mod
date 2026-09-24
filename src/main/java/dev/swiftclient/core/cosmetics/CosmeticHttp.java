@@ -99,11 +99,11 @@ public final class CosmeticHttp {
             }
 
             return r;
-         } catch (InterruptedException var4) {
+         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
             return null;
-         } catch (Exception var5) {
-            BACKEND.failure(var5.getClass().getSimpleName());
+         } catch (Exception e) {
+            BACKEND.failure(e.getClass().getSimpleName());
             return null;
          }
       }
@@ -153,11 +153,11 @@ public final class CosmeticHttp {
                      SESSION.failure("join Mojang HTTP " + jr.statusCode());
                      return null;
                   }
-               } catch (InterruptedException var11) {
+               } catch (InterruptedException ignored) {
                   Thread.currentThread().interrupt();
                   return null;
-               } catch (Exception var12) {
-                  SESSION.failure("join Mojang " + var12.getClass().getSimpleName());
+               } catch (Exception ex) {
+                  SESSION.failure("join Mojang " + ex.getClass().getSimpleName());
                   return null;
                }
 
@@ -181,7 +181,7 @@ public final class CosmeticHttp {
                      SESSION.success();
                      LOG.info("Session backend ouverte");
                      return token;
-                  } catch (Exception var10) {
+                  } catch (Exception ignored) {
                      SESSION.failure("reponse login illisible");
                      return null;
                   }
@@ -249,7 +249,7 @@ public final class CosmeticHttp {
 
             return out;
          }
-      } catch (Exception var6) {
+      } catch (Exception ignored) {
          return null;
       }
    }
@@ -274,7 +274,7 @@ public final class CosmeticHttp {
 
             return out;
          }
-      } catch (Exception var6) {
+      } catch (Exception ignored) {
          return Map.of();
       }
    }
@@ -322,7 +322,7 @@ public final class CosmeticHttp {
          } else {
             return false;
          }
-      } catch (Exception var3) {
+      } catch (Exception ignored) {
          return false;
       }
    }
@@ -335,7 +335,7 @@ public final class CosmeticHttp {
             HttpResponse<String> r = send(get(url("/api/cosmetics/catalog"), null, 8L), BodyHandlers.ofString());
             return !ok(r) ? new JsonArray() : JsonParser.parseString(r.body()).getAsJsonArray();
          }
-      } catch (Exception var1) {
+      } catch (Exception ignored) {
          return new JsonArray();
       }
    }
@@ -353,7 +353,7 @@ public final class CosmeticHttp {
                return j.has("slots") && j.get("slots").isJsonArray() ? j.getAsJsonArray("slots") : new JsonArray();
             }
          }
-      } catch (Exception var2) {
+      } catch (Exception ignored) {
          return new JsonArray();
       }
    }
@@ -371,7 +371,7 @@ public final class CosmeticHttp {
                return el.isJsonArray() ? el.getAsJsonArray() : new JsonArray();
             }
          }
-      } catch (Exception var2) {
+      } catch (Exception ignored) {
          return new JsonArray();
       }
    }
@@ -395,7 +395,7 @@ public final class CosmeticHttp {
             HttpResponse<String> r = send(get(url("/api/cosmetics/pet-model/" + id), t, 20L), BodyHandlers.ofString());
             return !ok(r) ? null : JsonParser.parseString(r.body()).getAsJsonObject();
          }
-      } catch (Exception var3) {
+      } catch (Exception ignored) {
          return null;
       }
    }
@@ -413,7 +413,7 @@ public final class CosmeticHttp {
             HttpResponse<String> r = send(get(url("/api/cosmetics/owned/" + Platform.game().getUuid()), t, 8L), BodyHandlers.ofString());
             return !ok(r) ? null : JsonParser.parseString(r.body()).getAsJsonObject();
          }
-      } catch (Exception var2) {
+      } catch (Exception ignored) {
          return null;
       }
    }
@@ -432,7 +432,7 @@ public final class CosmeticHttp {
          } else {
             return -1;
          }
-      } catch (Exception var3) {
+      } catch (Exception ignored) {
          return -1;
       }
    }
@@ -477,7 +477,7 @@ public final class CosmeticHttp {
          } else {
             return null;
          }
-      } catch (Exception var3) {
+      } catch (Exception ignored) {
          return null;
       }
    }
@@ -501,7 +501,7 @@ public final class CosmeticHttp {
          } else {
             return false;
          }
-      } catch (Exception var4) {
+      } catch (Exception ignored) {
          return false;
       }
    }
@@ -518,7 +518,7 @@ public final class CosmeticHttp {
          } else {
             return false;
          }
-      } catch (Exception var2) {
+      } catch (Exception ignored) {
          return false;
       }
    }
@@ -533,7 +533,7 @@ public final class CosmeticHttp {
          } else {
             return null;
          }
-      } catch (Exception var2) {
+      } catch (Exception ignored) {
          return null;
       }
    }

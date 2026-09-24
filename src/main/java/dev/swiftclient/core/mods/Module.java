@@ -110,14 +110,14 @@ public abstract class Module {
    void load() {
       try {
          this.enabled = !"0".equals(Platform.game().getConfig("mod." + this.id + ".enabled", this.defEnabled ? "1" : "0"));
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
       }
    }
 
    private void save() {
       try {
          Platform.game().setConfig("mod." + this.id + ".enabled", this.enabled ? "1" : "0");
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
       }
    }
 }

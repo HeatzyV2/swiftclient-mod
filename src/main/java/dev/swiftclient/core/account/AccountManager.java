@@ -41,7 +41,7 @@ public final class AccountManager {
                }
             }
          }
-      } catch (Throwable var4) {
+      } catch (Throwable ignored) {
       }
 
       LOG.info("{} compte(s) charge(s)", this.accounts.size());
@@ -119,8 +119,8 @@ public final class AccountManager {
                   this.switchTo(entry);
                   onDone.accept(true);
                });
-            } catch (Exception var4) {
-               LOG.warn("Rafraichissement du token echoue, bascule directe : {}", var4.getMessage());
+            } catch (Exception e) {
+               LOG.warn("Rafraichissement du token echoue, bascule directe : {}", e.getMessage());
                Platform.game().runOnGameThread(() -> {
                   this.switchTo(entry);
                   onDone.accept(false);

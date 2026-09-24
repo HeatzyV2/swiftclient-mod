@@ -81,11 +81,11 @@ public final class SpotifyManager {
 
             try {
                expiresAt = Long.parseLong(cfg("spotify.expiresAt"));
-            } catch (Throwable var1) {
+            } catch (Throwable ignored) {
             }
 
             authorized = !accessToken.isBlank() && !refreshToken.isBlank();
-         } catch (Throwable var2) {
+         } catch (Throwable ignored) {
          }
 
          ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -116,7 +116,7 @@ public final class SpotifyManager {
          }
 
          pb.start();
-      } catch (Throwable var3) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -186,7 +186,7 @@ public final class SpotifyManager {
                }
             );
             server.start();
-         } catch (Throwable var1) {
+         } catch (Throwable ignored) {
             server = null;
          }
       }
@@ -196,7 +196,7 @@ public final class SpotifyManager {
       if (server != null) {
          try {
             server.stop(0);
-         } catch (Throwable var1) {
+         } catch (Throwable ignored) {
          }
 
          server = null;
@@ -233,7 +233,7 @@ public final class SpotifyManager {
          } else {
             return false;
          }
-      } catch (Throwable var5) {
+      } catch (Throwable ignored) {
          return false;
       }
    }
@@ -258,7 +258,7 @@ public final class SpotifyManager {
             setCfg("spotify.accessToken", accessToken);
             setCfg("spotify.refreshToken", refreshToken);
             setCfg("spotify.expiresAt", Long.toString(expiresAt));
-         } catch (Throwable var2) {
+         } catch (Throwable ignored) {
          }
       }
    }
@@ -266,7 +266,7 @@ public final class SpotifyManager {
    private static void pollSafe() {
       try {
          poll();
-      } catch (Throwable var1) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -388,7 +388,7 @@ public final class SpotifyManager {
          }
 
          Platform.game().loadImage("spotify/next", png, (k, h) -> nextArtHandle = h);
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -442,7 +442,7 @@ public final class SpotifyManager {
             if (i > 0) {
                try {
                   m.put(URLDecoder.decode(p.substring(0, i), StandardCharsets.UTF_8), URLDecoder.decode(p.substring(i + 1), StandardCharsets.UTF_8));
-               } catch (Throwable var8) {
+               } catch (Throwable ignored) {
                }
             }
          }
@@ -462,7 +462,7 @@ public final class SpotifyManager {
          try (OutputStream os = ex.getResponseBody()) {
             os.write(b);
          }
-      } catch (Throwable var9) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -470,7 +470,7 @@ public final class SpotifyManager {
       try {
          String v = Platform.game().getConfig(k, "");
          return v == null ? "" : v;
-      } catch (Throwable var2) {
+      } catch (Throwable ignored) {
          return "";
       }
    }
@@ -478,7 +478,7 @@ public final class SpotifyManager {
    private static void setCfg(String k, String v) {
       try {
          Platform.game().setConfig(k, v);
-      } catch (Throwable var3) {
+      } catch (Throwable ignored) {
       }
    }
 
@@ -489,7 +489,7 @@ public final class SpotifyManager {
    private static void sleep(long ms) {
       try {
          Thread.sleep(ms);
-      } catch (InterruptedException var3) {
+      } catch (InterruptedException ignored) {
       }
    }
 
