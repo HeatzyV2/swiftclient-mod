@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.core.theme.ThemeManager;
 import dev.swiftclient.render.SafeCubeMapTexture;
@@ -59,7 +60,7 @@ public abstract class GuiRendererMixin {
             return true;
          }
       } catch (Exception var5) {
-         System.out.println("[SwiftClient] panorama " + location + " non applique : " + var5);
+         Log.get("Theme").warn("Panorama {} non applique", location, var5);
          return false;
       }
    }

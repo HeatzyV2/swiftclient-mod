@@ -1,5 +1,7 @@
 package dev.swiftclient.ui;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
 
 public final class FakeWorldFactory {
+   private static final Logger LOG = Log.get("Ui");
    private static RemotePlayer fakePlayer;
 
    private FakeWorldFactory() {
@@ -41,7 +44,7 @@ public final class FakeWorldFactory {
             try {
                fakePlayer = create();
             } catch (Throwable var1) {
-               System.err.println("[SwiftClient] FakeWorldFactory failed: " + var1.getClass().getSimpleName() + " " + var1.getMessage());
+               LOG.warn("Creation du monde factice impossible", var1);
             }
 
             return fakePlayer;
@@ -59,10 +62,9 @@ public final class FakeWorldFactory {
          List<RegistryLookup<?>> base = builtin.listRegistries().toList();
          Frozen loaded = (Frozen)RegistryDataLoader.load(rm, base, RegistryDataLoader.WORLDGEN_REGISTRIES, Runnable::run).join();
          RegistryCache.set(loaded, null);
-         System.out.println("[SwiftClient] Registries pré-chargées depuis datapack vanilla");
+         LOG.debug("Registres pre-charges depuis le datapack vanilla");
       } catch (Throwable var13) {
-         System.err.println("[SwiftClient] tryLoadVanillaRegistries failed: " + var13.getClass().getSimpleName() + " " + var13.getMessage());
-         var13.printStackTrace();
+         LOG.warn("Pre-chargement des registres vanilla impossible", var13);
       } finally {
          if (rm != null) {
             try {

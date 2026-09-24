@@ -1,5 +1,7 @@
 package dev.swiftclient.core.music;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import dev.swiftclient.core.cosmetics.Backoff;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -16,6 +18,7 @@ import java.nio.file.Path;
  * "Now playing" module is enabled ({@link #setActive}), and exits on its own if the game dies.
  */
 public final class WindowsSmtc {
+   private static final Logger LOG = Log.get("Music");
    private static final Object LOCK = new Object();
    /** Throttles respawns if PowerShell keeps dying (missing WinRT, blocked by policy...). */
    private static final Backoff RESTART = new Backoff("Now Playing SMTC", 5000L, 300000L);
@@ -78,7 +81,7 @@ public final class WindowsSmtc {
             Runtime.getRuntime().addShutdownHook(new Thread(WindowsSmtc::shutdown, "swiftclient-smtc-shutdown"));
          }
 
-         System.out.println("[SwiftClient] Now Playing SMTC demarre (pid " + p.pid() + ")");
+         LOG.info("Lecteur SMTC demarre (pid {})", p.pid());
       } catch (Throwable t) {
          process = null;
          RESTART.failure(t.getClass().getSimpleName() + ": " + t.getMessage());
@@ -90,7 +93,7 @@ public final class WindowsSmtc {
       process = null;
       if (p != null) {
          p.destroy();
-         System.out.println("[SwiftClient] Now Playing SMTC arrete");
+         LOG.info("Lecteur SMTC arrete");
       }
    }
 

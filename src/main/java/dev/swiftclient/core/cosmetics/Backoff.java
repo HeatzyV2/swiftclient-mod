@@ -1,10 +1,13 @@
 package dev.swiftclient.core.cosmetics;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 /**
  * Exponential backoff gate: after each consecutive failure the next attempt is pushed back
  * (base, 2x base, 4x base ... capped). A success resets it.
  */
 public final class Backoff {
+   private static final Logger LOG = Log.get("Backoff");
    private final String name;
    private final long baseMs;
    private final long capMs;
@@ -23,7 +26,7 @@ public final class Backoff {
 
    public synchronized void success() {
       if (this.failures > 0) {
-         System.out.println("[SwiftClient] " + this.name + " : OK apres " + this.failures + " echec(s)");
+         LOG.info("{} : OK apres {} echec(s)", this.name, this.failures);
       }
 
       this.failures = 0;
@@ -38,7 +41,7 @@ public final class Backoff {
       }
 
       this.nextAllowedAt = System.currentTimeMillis() + delay;
-      System.out.println("[SwiftClient] " + this.name + " : echec #" + this.failures + " (" + why + "), nouvel essai dans " + delay / 1000L + " s");
+      LOG.warn("{} : echec #{} ({}), nouvel essai dans {} s", this.name, this.failures, why, delay / 1000L);
    }
 
    public synchronized int failures() {

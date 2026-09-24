@@ -1,5 +1,7 @@
 package dev.swiftclient.pet;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import dev.swiftclient.core.cosmetics.PetState;
@@ -20,6 +22,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.phys.Vec3;
 
 public class PetManager {
+   private static final Logger LOG = Log.get("Pet");
    public static final PetManager INSTANCE = new PetManager();
    private final Map<UUID, GeckoPet> pets = new HashMap<>();
    private final Map<String, GeckoPetRenderer> renderers = new HashMap<>();
@@ -53,7 +56,7 @@ public class PetManager {
                      pet = new GeckoPet(def.id, def.loopAnim);
                      pet.resetTo(player.position().add(0.0, 1.0, 0.0));
                      this.pets.put(uuid, pet);
-                     System.out.println("[SwiftClient/Pet] +pet " + petId + " pour " + uuid);
+                     LOG.debug("Familier {} pour {}", petId, uuid);
                   }
 
                   pet.tick(player);
@@ -72,7 +75,7 @@ public class PetManager {
       if (!this.pets.isEmpty() && cameraState != null) {
          if (!this.loggedRender) {
             this.loggedRender = true;
-            System.out.println("[SwiftClient/Pet] rendu de " + this.pets.size() + " pet(s)");
+            LOG.debug("Rendu de {} familier(s)", this.pets.size());
          }
 
          Vec3 camPos = cameraState.pos;

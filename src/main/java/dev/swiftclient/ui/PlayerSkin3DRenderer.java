@@ -1,5 +1,7 @@
 package dev.swiftclient.ui;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import java.lang.reflect.Field;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -9,6 +11,7 @@ import net.minecraft.world.entity.player.PlayerSkin;
 import org.lwjgl.glfw.GLFW;
 
 public final class PlayerSkin3DRenderer {
+   private static final Logger LOG = Log.get("Ui");
    private static PlayerSkinWidget widget;
    private static int currentW = -1;
    private static int currentH = -1;
@@ -76,7 +79,7 @@ public final class PlayerSkin3DRenderer {
             widget.extractRenderState(ctx, mouseX, mouseY, delta);
             return true;
          } catch (Throwable var16) {
-            System.err.println("[SwiftClient] PlayerSkinWidget render failed: " + var16.getClass().getSimpleName() + " " + var16.getMessage());
+            LOG.warn("Rendu du skin 3D impossible", var16);
             return false;
          }
       }

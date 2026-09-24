@@ -1,5 +1,7 @@
 package dev.swiftclient.core;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 
@@ -8,6 +10,7 @@ import net.minecraft.client.Options;
  * Strip exclusive mode so MC uses borderless fullscreen; keep F11 from dumping a tiny window.
  */
 public final class DisplayModeFix {
+   private static final Logger LOG = Log.get("Display");
    private static boolean applied;
    private static Boolean lastFs;
 
@@ -34,7 +37,7 @@ public final class DisplayModeFix {
                   win.toggleFullScreen();
                }
             } catch (Throwable t) {
-               System.err.println("[SwiftClient] DisplayModeFix reapply: " + t.getMessage());
+               LOG.warn("Bascule plein ecran sans bordure impossible", t);
             }
          }
          lastFs = mc.getWindow().isFullscreen();

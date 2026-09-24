@@ -1,5 +1,7 @@
 package dev.swiftclient.relay;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import dev.swiftclient.core.relay.RelayClient;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -10,6 +12,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameType;
 
 public class InviteManager {
+   private static final Logger LOG = Log.get("Relay");
    private static final String RELAY_HOST = "127.0.0.1";
    private static RelayClient activeRelay;
    private static int activePublicPort = -1;
@@ -57,7 +60,7 @@ public class InviteManager {
                activePublicPort = port;
                result.complete(adresse(port));
             }, err -> {
-               System.err.println("[Host] relais : " + err);
+               LOG.warn("Relais : {}", err);
                if (!result.isDone()) {
                   result.completeExceptionally(new RuntimeException("the Swift Client relay can't be reached right now"));
                }

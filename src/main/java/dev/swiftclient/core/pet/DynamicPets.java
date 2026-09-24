@@ -1,5 +1,7 @@
 package dev.swiftclient.core.pet;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.google.gson.JsonObject;
 import dev.swiftclient.core.cosmetics.CosmeticHttp;
 import java.util.Base64;
@@ -10,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class DynamicPets {
+   private static final Logger LOG = Log.get("Pet");
    private static volatile DynamicPets.Sink sink;
    private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
       Thread t = new Thread(r, "swiftclient-dynpets");
@@ -48,15 +51,15 @@ public final class DynamicPets {
                      if (s != null) {
                         s.inject(key, geo, anim, playerSkin ? null : tex);
                         PetRegistry.register(new PetRegistry.PetDef(key, loop, playerSkin));
-                        System.out.println("[SwiftClient/Pet] modèle servi chargé : " + petId + " (loop=" + loop + ")");
+                        LOG.debug("Modele de familier charge : {} (loop={})", petId, loop);
                         return;
                      }
 
                      FAILED.add(key);
-                     System.out.println("[SwiftClient/Pet] pas de Sink geckolib (version)");
+                     LOG.warn("Aucun chargeur GeckoLib enregistre");
                   } catch (Exception var12) {
                      FAILED.add(key);
-                     System.out.println("[SwiftClient/Pet] échec chargement modèle servi " + petId + " : " + var12.getMessage());
+                     LOG.warn("Chargement du modele de familier {} echoue", petId, var12);
                      return;
                   } finally {
                      LOADING.remove(key);

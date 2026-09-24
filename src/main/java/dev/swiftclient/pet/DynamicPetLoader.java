@@ -1,5 +1,7 @@
 package dev.swiftclient.pet;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.geckolib.cache.animation.BakedAnimations;
 import com.geckolib.cache.model.BakedGeoModel;
 import com.geckolib.loading.loader.GeckoLibGsonLoader;
@@ -13,6 +15,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 
 public final class DynamicPetLoader implements DynamicPets.Sink {
+   private static final Logger LOG = Log.get("Pet");
    @Override
    public void inject(String petIdLower, String geoJson, String animJson, byte[] texturePng) {
       GeckoLibGsonLoader loader = new GeckoLibGsonLoader();
@@ -31,7 +34,7 @@ public final class DynamicPetLoader implements DynamicPets.Sink {
          try {
             img = NativeImage.read(texturePng);
          } catch (Exception var11) {
-            System.out.println("[SwiftClient/Pet] texture illisible pour " + petIdLower + " : " + var11.getMessage());
+            LOG.warn("Texture de familier illisible pour {}", petIdLower, var11);
             return;
          }
 

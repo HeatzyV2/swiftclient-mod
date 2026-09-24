@@ -1,5 +1,7 @@
 package dev.swiftclient.core.mods;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public final class Profiles {
+   private static final Logger LOG = Log.get("Profiles");
    private static final String FICHIER = "swiftclient-profiles.json";
    public static final String DEFAUT = "Default";
    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -166,7 +169,7 @@ public final class Profiles {
                }
             }
          } catch (Exception var12) {
-            System.out.println("[SwiftClient] profils illisibles, repli sur Default : " + var12);
+            LOG.error("Profils illisibles, repli sur Default (copie dans .bak)", var12);
             PROFILS.clear();
 
             try {
@@ -203,7 +206,7 @@ public final class Profiles {
             Files.move(tmp, f, StandardCopyOption.REPLACE_EXISTING);
          }
       } catch (Exception var5) {
-         System.out.println("[SwiftClient] profils non enregistres : " + var5);
+         LOG.error("Profils non enregistres", var5);
       }
    }
 }

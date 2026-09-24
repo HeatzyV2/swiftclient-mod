@@ -1,5 +1,7 @@
 package dev.swiftclient.core.cosmetics;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public final class CosmeticHttp {
+   private static final Logger LOG = Log.get("Backend");
    /** Production backend. Override with {@code -Dswiftclient.api=...} or {@code SWIFTCLIENT_API}; "off" disables it. */
    private static final String DEFAULT_API = "http://151.240.30.3:10049";
    private static final String API = resolveApi();
@@ -54,7 +57,7 @@ public final class CosmeticHttp {
       }
 
       if ("off".equalsIgnoreCase(v.trim())) {
-         System.out.println("[SwiftClient] backend desactive : cosmetiques, badges et heartbeat coupes");
+         LOG.info("Backend desactive : cosmetiques, badges et heartbeat coupes");
          return null;
       } else {
          v = v.trim();
@@ -63,10 +66,10 @@ public final class CosmeticHttp {
          }
 
          if (!v.startsWith("https://") && !v.startsWith("http://")) {
-            System.out.println("[SwiftClient] swiftclient.api invalide (http/https attendu) : " + v);
+            LOG.warn("swiftclient.api invalide (http/https attendu) : {}", v);
             return null;
          } else {
-            System.out.println("[SwiftClient] backend : " + v);
+            LOG.info("Backend : {}", v);
             return v;
          }
       }
@@ -176,7 +179,7 @@ public final class CosmeticHttp {
                      tokenExp = j.has("expiresAt") ? j.get("expiresAt").getAsLong() : now + 3600000L;
                      tokenUuid = uuid;
                      SESSION.success();
-                     System.out.println("[SwiftClient/Cape] session OK (auth réussie)");
+                     LOG.info("Session backend ouverte");
                      return token;
                   } catch (Exception var10) {
                      SESSION.failure("reponse login illisible");

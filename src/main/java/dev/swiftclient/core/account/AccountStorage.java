@@ -1,5 +1,7 @@
 package dev.swiftclient.core.account;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import dev.swiftclient.core.platform.Platform;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AccountStorage {
+   private static final Logger LOG = Log.get("Account");
    private final Path path;
 
    public AccountStorage() {
@@ -38,7 +41,7 @@ public class AccountStorage {
                }
             }
          } catch (IOException var7) {
-            System.err.println("[SwiftClient/Account] Load failed: " + var7.getMessage());
+            LOG.error("Lecture des comptes impossible", var7);
          }
 
          return list;
@@ -56,7 +59,7 @@ public class AccountStorage {
             }
          }
       } catch (IOException var7) {
-         System.err.println("[SwiftClient/Account] Save failed: " + var7.getMessage());
+         LOG.error("Enregistrement des comptes impossible", var7);
       }
    }
 }

@@ -1,5 +1,7 @@
 package dev.swiftclient.rpc;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.rpc.DiscordIpc;
@@ -12,6 +14,7 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.resources.language.I18n;
 
 public final class RpcManager {
+   private static final Logger LOG = Log.get("Discord");
    /** Discord Application ID (Swift Client). */
    private static final String CLIENT_ID = "1552313392608448634";
    private static final String LARGE_IMG = "logo";
@@ -28,10 +31,10 @@ public final class RpcManager {
    public static void init() {
       new Thread(() -> {
          if (ipc.connect()) {
-            System.out.println("[SwiftClient] Discord RPC connecté");
+            LOG.info("Discord RPC connecte");
             update(Minecraft.getInstance());
          } else {
-            System.out.println("[SwiftClient] Discord RPC indisponible (Discord pas lancé ?)");
+            LOG.info("Discord RPC indisponible (Discord non lance ?)");
          }
       }, "SwiftClient-RPC-Connect").start();
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> {

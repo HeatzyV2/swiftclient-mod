@@ -1,5 +1,7 @@
 package dev.swiftclient.core.account;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import dev.swiftclient.core.platform.Platform;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public final class AccountManager {
+   private static final Logger LOG = Log.get("Account");
    private static final AccountManager INSTANCE = new AccountManager();
    private final List<AccountEntry> accounts = new ArrayList<>();
    private final AccountStorage storage = new AccountStorage();
@@ -41,7 +44,7 @@ public final class AccountManager {
       } catch (Throwable var4) {
       }
 
-      System.out.println("[SwiftClient/Account] " + this.accounts.size() + " comptes chargés.");
+      LOG.info("{} compte(s) charge(s)", this.accounts.size());
    }
 
    public void save() {
@@ -83,7 +86,7 @@ public final class AccountManager {
          .exceptionally(ex -> {
             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
             Platform.game().runOnGameThread(() -> {
-               System.err.println("[SwiftClient/Account] MSA login failed: " + cause.getMessage());
+               LOG.warn("Connexion Microsoft echouee : {}", cause.getMessage());
                onStatus.accept("Erreur : " + cause.getMessage());
                onDone.accept(null);
             });
@@ -95,9 +98,9 @@ public final class AccountManager {
       boolean ok = Platform.game().applySession(entry.getUsername(), entry.getUuid(), entry.isMicrosoft() ? entry.getAccessToken() : "");
       if (ok) {
          this.active = entry;
-         System.out.println("[SwiftClient/Account] Session swappée → " + entry.getUsername() + " (profileKeys reset)");
+         LOG.info("Session basculee sur {}", entry.getUsername());
       } else {
-         System.err.println("[SwiftClient/Account] Switch failed pour " + entry.getUsername());
+         LOG.warn("Bascule de session echouee pour {}", entry.getUsername());
       }
 
       return ok;
@@ -117,7 +120,7 @@ public final class AccountManager {
                   onDone.accept(true);
                });
             } catch (Exception var4) {
-               System.err.println("[SwiftClient/Account] Refresh failed, fallback direct switch: " + var4.getMessage());
+               LOG.warn("Rafraichissement du token echoue, bascule directe : {}", var4.getMessage());
                Platform.game().runOnGameThread(() -> {
                   this.switchTo(entry);
                   onDone.accept(false);

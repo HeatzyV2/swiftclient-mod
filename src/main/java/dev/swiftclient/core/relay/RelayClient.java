@@ -1,5 +1,7 @@
 package dev.swiftclient.core.relay;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class RelayClient {
+   private static final Logger LOG = Log.get("Relay");
    private static final String RELAY_HOST = "127.0.0.1";
    private static final int RELAY_PORT = 7777;
    private static final int CONNECT_TIMEOUT_MS = 8000;
@@ -69,7 +72,7 @@ public class RelayClient {
          while ((line = in.readLine()) != null) {
             if (line.startsWith("PORT ")) {
                int port = Integer.parseInt(line.substring(5).trim());
-               System.out.println("[Relay] session " + this.sessionId + " → port " + port);
+               LOG.info("Session relais {} -> port {}", this.sessionId, port);
                this.onPortAllocated.accept(port);
             } else if (line.startsWith("NEW ")) {
                int connId = Integer.parseInt(line.substring(4).trim());
@@ -109,7 +112,7 @@ public class RelayClient {
          lanSock.setTcpNoDelay(true);
          pipe(dataSock, lanSock);
       } catch (Throwable var8) {
-         System.err.println("[Relay] data conn " + connId + " fail : " + var8.getMessage());
+         LOG.warn("Connexion relais {} echouee : {}", connId, var8.getMessage());
 
          try {
             if (dataSock != null) {

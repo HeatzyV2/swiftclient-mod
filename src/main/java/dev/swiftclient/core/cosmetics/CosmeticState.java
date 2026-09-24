@@ -1,5 +1,7 @@
 package dev.swiftclient.core.cosmetics;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.swiftclient.core.platform.Platform;
@@ -13,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class CosmeticState {
+   private static final Logger LOG = Log.get("Cape");
    private static final long REFRESH_MS = 30000L;
    private static final long REFRESH_SELF_MS = 3000L;
    private static final Map<String, int[]> META = new ConcurrentHashMap<>();
@@ -131,7 +134,7 @@ public final class CosmeticState {
 
                QUERIED.put(u, now);
                if (old != null && !old.equals(val)) {
-                  System.out.println("[SwiftClient/Cape] cape de " + key + " : '" + old + "' → '" + val + "'");
+                  LOG.debug("Cape de {} : {} -> {}", key, old, val);
                }
             }
          }
@@ -219,36 +222,23 @@ public final class CosmeticState {
             () -> {
                byte[] png = capeId.startsWith("mojang:") ? CosmeticHttp.rawTexture(capeId.substring("mojang:".length())) : CosmeticHttp.texture(capeId);
                if (png == null) {
-                  System.out.println("[SwiftClient/Cape] texture " + capeId + " introuvable (null)");
+                  LOG.warn("Texture de cape {} introuvable", capeId);
                   LOADING.remove(capeId);
                } else {
-                  System.out.println("[SwiftClient/Cape] texture " + capeId + " téléchargée (" + png.length + " octets), découpe…");
+                  LOG.debug("Texture de cape {} telechargee ({} octets)", capeId, png.length);
                   int[] m = META.get(capeId);
                   int frameW = m != null ? m[2] : 0;
                   int frameH = m != null ? m[3] : 0;
                   int[] size = pngSize(png);
                   if (size != null && size[0] % 2 == 0 && size[1] % (size[0] / 2) == 0 && (frameW != size[0] || frameH != size[0] / 2)) {
-                     System.out
-                        .println(
-                           "[SwiftClient/Cape] "
-                              + capeId
-                              + " : méta "
-                              + frameW
-                              + "x"
-                              + frameH
-                              + " incohérente avec la planche "
-                              + size[0]
-                              + "x"
-                              + size[1]
-                              + ", on suit l'image"
-                        );
+                     LOG.debug("Cape {} : meta {}x{} incoherente avec la planche {}x{}, on suit l'image", capeId, frameW, frameH, size[0], size[1]);
                      frameW = 0;
                      frameH = 0;
                   }
 
                   Platform.game().loadCapeFrames(capeId, png, frameW, frameH, (id, handles) -> {
                      FRAMES.put(id, handles);
-                     System.out.println("[SwiftClient/Cape] " + id + " prête : " + handles.length + " frames enregistrées");
+                     LOG.debug("Cape {} prete : {} frame(s)", id, handles.length);
                   });
                }
             }

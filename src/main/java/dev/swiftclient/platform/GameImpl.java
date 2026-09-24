@@ -1,5 +1,7 @@
 package dev.swiftclient.platform;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import com.mojang.authlib.minecraft.UserApiService;
 import com.mojang.blaze3d.platform.NativeImage;
 import dev.swiftclient.core.account.AccountEntry;
@@ -39,6 +41,7 @@ import net.minecraft.sounds.SoundEvents;
 import dev.swiftclient.core.ui.SwiftSounds;
 
 public final class GameImpl implements Game {
+   private static final Logger LOG = Log.get("Account");
    private static final Map<String, Boolean> ELYTRA_ZONE = new ConcurrentHashMap<>();
 
    private Minecraft mc() {
@@ -199,7 +202,7 @@ public final class GameImpl implements Game {
          acc.swiftclient$setProfileKeyPairManager(ProfileKeyPairManager.EMPTY_KEY_MANAGER);
          return true;
       } catch (Exception var8) {
-         System.err.println("[SwiftClient/Account] applySession failed: " + var8);
+         LOG.error("Application de la session impossible", var8);
          return false;
       }
    }

@@ -1,5 +1,7 @@
 package dev.swiftclient.ui;
 
+import dev.swiftclient.core.log.Log;
+import org.slf4j.Logger;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 
 public class SkinRenderer {
+   private static final Logger LOG = Log.get("Ui");
    private static Identifier cachedTexture;
    private static Object cachedSkinTexturesObj;
    private static long cachedAt = 0L;
@@ -54,11 +57,11 @@ public class SkinRenderer {
                if (id != null) {
                   cachedTexture = id;
                   cachedAt = System.currentTimeMillis();
-                  System.out.println("[SwiftClient] Skin chargée : " + id);
+                  LOG.debug("Skin chargee : {}", id);
                }
             }));
          } catch (Throwable var3) {
-            var3.printStackTrace();
+            LOG.warn("Chargement du skin impossible", var3);
          }
 
          return cachedTexture;

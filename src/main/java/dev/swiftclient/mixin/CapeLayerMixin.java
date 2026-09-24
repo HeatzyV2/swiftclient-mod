@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.core.log.Log;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.swiftclient.core.cosmetics.CosmeticState;
 import dev.swiftclient.core.mods.CapeSim;
@@ -50,7 +51,7 @@ public abstract class CapeLayerMixin {
    )
    private void swiftclient$customCape(PoseStack pose, SubmitNodeCollector collector, int light, AvatarRenderState state, float f1, float f2, CallbackInfo ci) {
       if (swiftclient$firstFire.compareAndSet(false, true)) {
-         System.out.println("[SwiftClient/Cape] mixin CapeLayer ACTIF (le rendu de cape est intercepté)");
+         Log.get("Cape").debug("Rendu de cape intercepte");
       }
 
       if (!state.isInvisible) {
@@ -64,7 +65,7 @@ public abstract class CapeLayerMixin {
                      if (capeId != null) {
                         if (CosmeticState.frameFor(player.getUUID(), capeId) instanceof Identifier frame) {
                            if (swiftclient$logged.add(player.getUUID() + ":" + capeId)) {
-                              System.out.println("[SwiftClient/Cape] rendu de la cape " + capeId + " pour " + player.getName().getString());
+                              Log.get("Cape").debug("Rendu de la cape {} pour {}", capeId, player.getName().getString());
                            }
 
                            pose.pushPose();
@@ -86,14 +87,7 @@ public abstract class CapeLayerMixin {
                   }
                } else {
                   if (swiftclient$firstResolve.compareAndSet(false, true)) {
-                     System.out
-                        .println(
-                           "[SwiftClient/Cape] résolution joueur ÉCHOUÉE : state.id="
-                              + state.id
-                              + " → entity="
-                              + (e == null ? "null" : e.getClass().getSimpleName())
-                              + " (l'UUID via entity id ne marche pas ici)"
-                        );
+                     Log.get("Cape").warn("Resolution du joueur impossible pour le rendu de cape : state.id={} entity={}", state.id, e == null ? "null" : e.getClass().getSimpleName());
                   }
                }
             }
