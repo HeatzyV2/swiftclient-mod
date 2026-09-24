@@ -73,7 +73,7 @@ public final class NavRowWidget implements CoreWidget {
       c.text(text, dx + (w - tw) / 2, y + (h - c.lineHeight()) / 2 + 1, mulAlpha(col, a), false);
    }
 
-   /** Solo CTA — blue speed bar (not LightClient pill). */
+   /** Solo CTA — blue speed bar. */
    private void drawSpeedBar(Canvas c, int x, int y, int w, int h, boolean hovered, float a) {
       int bg = hovered ? ACCENT : -1606712586;
       int yy = y + 2;

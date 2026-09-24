@@ -1,11 +1,11 @@
 package dev.swiftclient.freelook;
 
 public interface CameraOverriddenEntity {
-   float lightclient$getCamPitch();
+   float swiftclient$getCamPitch();
 
-   float lightclient$getCamYaw();
+   float swiftclient$getCamYaw();
 
-   void lightclient$setCamPitch(float var1);
+   void swiftclient$setCamPitch(float var1);
 
-   void lightclient$setCamYaw(float var1);
+   void swiftclient$setCamYaw(float var1);
 }

@@ -108,7 +108,7 @@ public final class HudClient {
             fov.set(savedFov);
             savedFov = null;
          } else {
-            ((SimpleOptionAccessor)(Object)fov).lightclient$setRaw((int)Math.round(ZoomState.courant()));
+            ((SimpleOptionAccessor)(Object)fov).swiftclient$setRaw((int)Math.round(ZoomState.courant()));
          }
       }
    }
@@ -126,7 +126,7 @@ public final class HudClient {
          }
 
          ModuleSetting lvl = ModuleManager.byId("fullbright").setting("level");
-         ((SimpleOptionAccessor)(Object)gamma).lightclient$setRaw(Shaders.gammaFullBright(lvl != null ? lvl.value() : 100.0));
+         ((SimpleOptionAccessor)(Object)gamma).swiftclient$setRaw(Shaders.gammaFullBright(lvl != null ? lvl.value() : 100.0));
       } else if (savedGamma != null) {
          gamma.set(savedGamma);
          savedGamma = null;

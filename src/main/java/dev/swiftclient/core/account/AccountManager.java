@@ -41,7 +41,7 @@ public final class AccountManager {
       } catch (Throwable var4) {
       }
 
-      System.out.println("[LC-Account] " + this.accounts.size() + " comptes chargés.");
+      System.out.println("[SwiftClient/Account] " + this.accounts.size() + " comptes chargés.");
    }
 
    public void save() {
@@ -83,7 +83,7 @@ public final class AccountManager {
          .exceptionally(ex -> {
             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
             Platform.game().runOnGameThread(() -> {
-               System.err.println("[LC-Account] MSA login failed: " + cause.getMessage());
+               System.err.println("[SwiftClient/Account] MSA login failed: " + cause.getMessage());
                onStatus.accept("Erreur : " + cause.getMessage());
                onDone.accept(null);
             });
@@ -95,9 +95,9 @@ public final class AccountManager {
       boolean ok = Platform.game().applySession(entry.getUsername(), entry.getUuid(), entry.isMicrosoft() ? entry.getAccessToken() : "");
       if (ok) {
          this.active = entry;
-         System.out.println("[LC-Account] Session swappée → " + entry.getUsername() + " (profileKeys reset)");
+         System.out.println("[SwiftClient/Account] Session swappée → " + entry.getUsername() + " (profileKeys reset)");
       } else {
-         System.err.println("[LC-Account] Switch failed pour " + entry.getUsername());
+         System.err.println("[SwiftClient/Account] Switch failed pour " + entry.getUsername());
       }
 
       return ok;
@@ -117,7 +117,7 @@ public final class AccountManager {
                   onDone.accept(true);
                });
             } catch (Exception var4) {
-               System.err.println("[LC-Account] Refresh failed, fallback direct switch: " + var4.getMessage());
+               System.err.println("[SwiftClient/Account] Refresh failed, fallback direct switch: " + var4.getMessage());
                Platform.game().runOnGameThread(() -> {
                   this.switchTo(entry);
                   onDone.accept(false);

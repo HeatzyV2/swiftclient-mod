@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin({OnlineServerEntry.class})
 public interface OnlineServerEntryInvoker {
    @Invoker("<init>")
-   static OnlineServerEntry lightclient$create(ServerSelectionList list, JoinMultiplayerScreen screen, ServerData data) {
+   static OnlineServerEntry swiftclient$create(ServerSelectionList list, JoinMultiplayerScreen screen, ServerData data) {
       throw new AssertionError();
    }
 }

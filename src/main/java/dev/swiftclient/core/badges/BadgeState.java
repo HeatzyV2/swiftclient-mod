@@ -62,15 +62,15 @@ public final class BadgeState {
       return switch (var1) {
          case "staff" -> -1096636;
          case "partner" -> -4160260;
-         case "light_plus" -> -10934;
+         case "swift_plus" -> -10934;
          case "early_access" -> -11870592;
          case "bug_hunter" -> -680437;
          default -> -1;
       };
    }
 
-   public static boolean isLightPlus(UUID uuid) {
-      return uuid != null && "light_plus".equals(gradeFor(uuid));
+   public static boolean isSwiftPlus(UUID uuid) {
+      return uuid != null && "swift_plus".equals(gradeFor(uuid));
    }
 
    public static boolean selfSwiftPlus() {
@@ -83,7 +83,7 @@ public final class BadgeState {
       return selfSwiftPlus;
    }
 
-   public static void invalidateSelfLightPlus() {
+   public static void invalidateSelfSwiftPlus() {
       selfCheckedAt = 0L;
    }
 

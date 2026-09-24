@@ -38,7 +38,7 @@ public class AccountStorage {
                }
             }
          } catch (IOException var7) {
-            System.err.println("[LC-Account] Load failed: " + var7.getMessage());
+            System.err.println("[SwiftClient/Account] Load failed: " + var7.getMessage());
          }
 
          return list;
@@ -56,7 +56,7 @@ public class AccountStorage {
             }
          }
       } catch (IOException var7) {
-         System.err.println("[LC-Account] Save failed: " + var7.getMessage());
+         System.err.println("[SwiftClient/Account] Save failed: " + var7.getMessage());
       }
    }
 }

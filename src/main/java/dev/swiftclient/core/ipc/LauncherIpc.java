@@ -24,7 +24,7 @@ public final class LauncherIpc {
 
    public static void send(String json) {
       synchronized (BRUT) {
-         BRUT.println("[LC-IPC] " + json);
+         BRUT.println("[SC-IPC] " + json);
          BRUT.flush();
       }
    }

@@ -37,20 +37,20 @@ public abstract class CapeLayerMixin {
    @Final
    private HumanoidModel<AvatarRenderState> model;
    @Unique
-   private static final Set<String> lightclient$logged = ConcurrentHashMap.newKeySet();
+   private static final Set<String> swiftclient$logged = ConcurrentHashMap.newKeySet();
    @Unique
-   private static final AtomicBoolean lightclient$firstFire = new AtomicBoolean(false);
+   private static final AtomicBoolean swiftclient$firstFire = new AtomicBoolean(false);
    @Unique
-   private static final AtomicBoolean lightclient$firstResolve = new AtomicBoolean(false);
+   private static final AtomicBoolean swiftclient$firstResolve = new AtomicBoolean(false);
 
    @Inject(
       method = {"submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V"},
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$customCape(PoseStack pose, SubmitNodeCollector collector, int light, AvatarRenderState state, float f1, float f2, CallbackInfo ci) {
-      if (lightclient$firstFire.compareAndSet(false, true)) {
-         System.out.println("[LC/Cape] mixin CapeLayer ACTIF (le rendu de cape est intercepté)");
+   private void swiftclient$customCape(PoseStack pose, SubmitNodeCollector collector, int light, AvatarRenderState state, float f1, float f2, CallbackInfo ci) {
+      if (swiftclient$firstFire.compareAndSet(false, true)) {
+         System.out.println("[SwiftClient/Cape] mixin CapeLayer ACTIF (le rendu de cape est intercepté)");
       }
 
       if (!state.isInvisible) {
@@ -63,8 +63,8 @@ public abstract class CapeLayerMixin {
                      String capeId = CosmeticState.capeFor(player.getUUID(), player.getGameProfile().name());
                      if (capeId != null) {
                         if (CosmeticState.frameFor(player.getUUID(), capeId) instanceof Identifier frame) {
-                           if (lightclient$logged.add(player.getUUID() + ":" + capeId)) {
-                              System.out.println("[LC/Cape] rendu de la cape " + capeId + " pour " + player.getName().getString());
+                           if (swiftclient$logged.add(player.getUUID() + ":" + capeId)) {
+                              System.out.println("[SwiftClient/Cape] rendu de la cape " + capeId + " pour " + player.getName().getString());
                            }
 
                            pose.pushPose();
@@ -85,10 +85,10 @@ public abstract class CapeLayerMixin {
                      }
                   }
                } else {
-                  if (lightclient$firstResolve.compareAndSet(false, true)) {
+                  if (swiftclient$firstResolve.compareAndSet(false, true)) {
                      System.out
                         .println(
-                           "[LC/Cape] résolution joueur ÉCHOUÉE : state.id="
+                           "[SwiftClient/Cape] résolution joueur ÉCHOUÉE : state.id="
                               + state.id
                               + " → entity="
                               + (e == null ? "null" : e.getClass().getSimpleName())

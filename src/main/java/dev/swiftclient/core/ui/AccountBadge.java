@@ -4,7 +4,7 @@ import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Platform;
 
-/** Minimal top account control — text, no LightClient pill slab. */
+/** Minimal top account control — text only. */
 public final class AccountBadge {
    private static final int CARD_W = 100;
    private static final int CARD_H = 16;

@@ -17,7 +17,7 @@ public class AbstractClientPlayerEntityMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$safePlayerListEntry(CallbackInfoReturnable<PlayerInfo> cir) {
+   private void swiftclient$safePlayerListEntry(CallbackInfoReturnable<PlayerInfo> cir) {
       if (Minecraft.getInstance().getConnection() == null) {
          cir.setReturnValue(null);
       }
@@ -28,7 +28,7 @@ public class AbstractClientPlayerEntityMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$realSkinTextures(CallbackInfoReturnable<PlayerSkin> cir) {
+   private void swiftclient$realSkinTextures(CallbackInfoReturnable<PlayerSkin> cir) {
       if (Minecraft.getInstance().getConnection() == null) {
          Object cached = SkinRenderer.getCachedSkinTexturesObj();
          if (cached != null) {

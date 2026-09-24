@@ -9,7 +9,7 @@ import dev.swiftclient.core.cosmetics.CapeUploadQueue;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Game;
 import dev.swiftclient.core.platform.Lang;
-import dev.swiftclient.core.theme.LcPanorama;
+import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.mixin.MinecraftClientAccessor;
 import dev.swiftclient.relay.InviteManager;
 import java.io.IOException;
@@ -197,19 +197,19 @@ public final class GameImpl implements Game {
          User current = mc.getUser();
          User next = new User(username, uuid, accessToken == null ? "" : accessToken, current.getXuid(), current.getClientId());
          MinecraftClientAccessor acc = (MinecraftClientAccessor)mc;
-         acc.lightclient$setUser(next);
-         acc.lightclient$setUserApiService(UserApiService.OFFLINE);
-         acc.lightclient$setProfileKeyPairManager(ProfileKeyPairManager.EMPTY_KEY_MANAGER);
+         acc.swiftclient$setUser(next);
+         acc.swiftclient$setUserApiService(UserApiService.OFFLINE);
+         acc.swiftclient$setProfileKeyPairManager(ProfileKeyPairManager.EMPTY_KEY_MANAGER);
          return true;
       } catch (Exception var8) {
-         System.err.println("[LC-Account] applySession failed: " + var8);
+         System.err.println("[SwiftClient/Account] applySession failed: " + var8);
          return false;
       }
    }
 
    @Override
    public void applyPanorama(String location) {
-      LcPanorama.apply(location);
+      SwiftPanorama.apply(location);
    }
 
    private static Path configFile() {

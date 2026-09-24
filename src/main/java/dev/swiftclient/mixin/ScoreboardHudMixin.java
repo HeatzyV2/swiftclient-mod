@@ -18,7 +18,7 @@ public class ScoreboardHudMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$ownScoreboard(GuiGraphicsExtractor ctx, DeltaTracker delta, CallbackInfo ci) {
+   private void swiftclient$ownScoreboard(GuiGraphicsExtractor ctx, DeltaTracker delta, CallbackInfo ci) {
       if (ModuleManager.active("hud_scoreboard")) {
          HudData d = HudManager.lastData();
          if (d != null && d.sidebar() != null) {

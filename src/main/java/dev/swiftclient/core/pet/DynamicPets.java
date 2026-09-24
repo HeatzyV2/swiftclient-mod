@@ -48,15 +48,15 @@ public final class DynamicPets {
                      if (s != null) {
                         s.inject(key, geo, anim, playerSkin ? null : tex);
                         PetRegistry.register(new PetRegistry.PetDef(key, loop, playerSkin));
-                        System.out.println("[LC/Pet] modèle servi chargé : " + petId + " (loop=" + loop + ")");
+                        System.out.println("[SwiftClient/Pet] modèle servi chargé : " + petId + " (loop=" + loop + ")");
                         return;
                      }
 
                      FAILED.add(key);
-                     System.out.println("[LC/Pet] pas de Sink geckolib (version)");
+                     System.out.println("[SwiftClient/Pet] pas de Sink geckolib (version)");
                   } catch (Exception var12) {
                      FAILED.add(key);
-                     System.out.println("[LC/Pet] échec chargement modèle servi " + petId + " : " + var12.getMessage());
+                     System.out.println("[SwiftClient/Pet] échec chargement modèle servi " + petId + " : " + var12.getMessage());
                      return;
                   } finally {
                      LOADING.remove(key);

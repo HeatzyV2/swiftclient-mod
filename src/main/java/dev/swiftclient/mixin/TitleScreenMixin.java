@@ -11,7 +11,7 @@ import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.core.screen.AccountScreen;
 import dev.swiftclient.core.screen.LanguageScreen;
 import dev.swiftclient.core.screen.WardrobeScreen;
-import dev.swiftclient.core.theme.LcPanorama;
+import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.core.theme.ThemeManager;
 import dev.swiftclient.core.theme.ThemePopup;
 import dev.swiftclient.core.ui.AccountBadge;
@@ -45,7 +45,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin({TitleScreen.class})
 public abstract class TitleScreenMixin extends Screen {
    @Unique
-   private final ThemePopup lightclient$themePopup = new ThemePopup();
+   private final ThemePopup swiftclient$themePopup = new ThemePopup();
 
    protected TitleScreenMixin(Component title) {
       super(title);
@@ -67,7 +67,7 @@ public abstract class TitleScreenMixin extends Screen {
          target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;text(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V"
       )}
    )
-   private void lightclient$customVersion(GuiGraphicsExtractor context, Font renderer, String text, int x, int y, int color, Operation<Void> original) {
+   private void swiftclient$customVersion(GuiGraphicsExtractor context, Font renderer, String text, int x, int y, int color, Operation<Void> original) {
       if (text.startsWith("Minecraft ")) {
          int slash = text.indexOf(47);
          String versionPart = slash >= 0 ? text.substring(0, slash) : text;
@@ -85,7 +85,7 @@ public abstract class TitleScreenMixin extends Screen {
          target = "Lcom/mojang/realmsclient/gui/screens/RealmsNotificationsScreen;extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V"
       )}
    )
-   private void lightclient$skipRealmsNotif(
+   private void swiftclient$skipRealmsNotif(
       RealmsNotificationsScreen self, GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta, Operation<Void> original
    ) {
    }
@@ -97,26 +97,26 @@ public abstract class TitleScreenMixin extends Screen {
          target = "Lnet/minecraft/client/gui/screens/TitleScreen;addRenderableWidget(Lnet/minecraft/client/gui/components/events/GuiEventListener;)Lnet/minecraft/client/gui/components/events/GuiEventListener;"
       )}
    )
-   private GuiEventListener lightclient$skipAllVanillaWidgets(TitleScreen self, GuiEventListener element, Operation<GuiEventListener> original) {
+   private GuiEventListener swiftclient$skipAllVanillaWidgets(TitleScreen self, GuiEventListener element, Operation<GuiEventListener> original) {
       return ModuleManager.active("vanillaui") ? (GuiEventListener)original.call(new Object[]{self, element}) : element;
    }
 
    @Unique
-   private int lightclient$railX = 0;
+   private int swiftclient$railX = 0;
    @Unique
-   private int lightclient$railW = 220;
+   private int swiftclient$railW = 220;
    @Unique
-   private int lightclient$layoutTop = 28;
+   private int swiftclient$layoutTop = 28;
    @Unique
-   private int lightclient$logoSize = 52;
+   private int swiftclient$logoSize = 52;
 
    @Unique
-   private void lightclient$computeLayout() {
+   private void swiftclient$computeLayout() {
       int marginL = ModCompat.essentialLoaded() ? 170 : 24;
       int marginR = ModCompat.essentialLoaded() ? 64 : 24;
       int usable = Math.max(160, this.width - marginL - marginR);
-      this.lightclient$railW = Math.min(220, usable);
-      this.lightclient$railX = marginL + (usable - this.lightclient$railW) / 2;
+      this.swiftclient$railW = Math.min(220, usable);
+      this.swiftclient$railX = marginL + (usable - this.swiftclient$railW) / 2;
 
       int topPad = 18;
       int bottomPad = 28;
@@ -147,56 +147,56 @@ public abstract class TitleScreenMixin extends Screen {
 
       // Bias upward: small top breathing room, never pin Quit to the bezel
       int slack = Math.max(0, avail - need);
-      this.lightclient$layoutTop = topPad + Math.min(slack / 4, 24);
-      this.lightclient$logoSize = logo;
-      this.lightclient$afterLogo = afterLogo;
-      this.lightclient$ctaH = ctaH;
-      this.lightclient$afterCta = afterCta;
-      this.lightclient$rowH = rowH;
-      this.lightclient$gap = gap;
-      this.lightclient$afterRealms = afterRealms;
+      this.swiftclient$layoutTop = topPad + Math.min(slack / 4, 24);
+      this.swiftclient$logoSize = logo;
+      this.swiftclient$afterLogo = afterLogo;
+      this.swiftclient$ctaH = ctaH;
+      this.swiftclient$afterCta = afterCta;
+      this.swiftclient$rowH = rowH;
+      this.swiftclient$gap = gap;
+      this.swiftclient$afterRealms = afterRealms;
    }
 
    @Unique
-   private int lightclient$afterLogo = 30;
+   private int swiftclient$afterLogo = 30;
    @Unique
-   private int lightclient$ctaH = 32;
+   private int swiftclient$ctaH = 32;
    @Unique
-   private int lightclient$afterCta = 10;
+   private int swiftclient$afterCta = 10;
    @Unique
-   private int lightclient$rowH = 22;
+   private int swiftclient$rowH = 22;
    @Unique
-   private int lightclient$gap = 3;
+   private int swiftclient$gap = 3;
    @Unique
-   private int lightclient$afterRealms = 12;
+   private int swiftclient$afterRealms = 12;
 
    @Inject(
       method = {"init"},
       at = {@At("TAIL")}
    )
-   private void lightclient$addCustomUi(CallbackInfo ci) {
-      LcPanorama.ensurePersistedApplied();
+   private void swiftclient$addCustomUi(CallbackInfo ci) {
+      SwiftPanorama.ensurePersistedApplied();
       if (ModuleManager.active("vanillaui")) {
          return;
       }
 
-      this.lightclient$computeLayout();
+      this.swiftclient$computeLayout();
       SwiftIntro.start();
 
       TitleScreen self = (TitleScreen)(Object)this;
       Minecraft mc = Minecraft.getInstance();
 
-      int railX = this.lightclient$railX;
-      int railW = this.lightclient$railW;
-      int logo = this.lightclient$logoSize;
-      int y = this.lightclient$layoutTop;
+      int railX = this.swiftclient$railX;
+      int railW = this.swiftclient$railW;
+      int logo = this.swiftclient$logoSize;
+      int y = this.swiftclient$layoutTop;
 
       this.addRenderableWidget(new LogoButton(railX + (railW - logo) / 2, y, logo));
-      y += logo + this.lightclient$afterLogo;
+      y += logo + this.swiftclient$afterLogo;
 
-      int rowH = this.lightclient$rowH;
-      int gap = this.lightclient$gap;
-      int ctaH = this.lightclient$ctaH;
+      int rowH = this.swiftclient$rowH;
+      int gap = this.swiftclient$gap;
+      int ctaH = this.swiftclient$ctaH;
       int idx = 0;
 
       this.addRenderableWidget(
@@ -209,7 +209,7 @@ public abstract class TitleScreenMixin extends Screen {
             new NavRowWidget(() -> tr("menu.singleplayer"), () -> mc.setScreenAndShow(new SelectWorldScreen(self)), true, idx++)
          )
       );
-      y += ctaH + this.lightclient$afterCta;
+      y += ctaH + this.swiftclient$afterCta;
 
       this.addRenderableWidget(
          new CanvasWidget(
@@ -282,7 +282,7 @@ public abstract class TitleScreenMixin extends Screen {
             new NavRowWidget(() -> tr("menu.online"), () -> mc.setScreenAndShow(new RealmsMainScreen(self)), false, idx++)
          )
       );
-      y += rowH + this.lightclient$afterRealms;
+      y += rowH + this.swiftclient$afterRealms;
       this.addRenderableWidget(
          new CanvasWidget(
             railX + (railW - 70) / 2,
@@ -299,14 +299,14 @@ public abstract class TitleScreenMixin extends Screen {
       method = {"extractRenderState"},
       at = {@At("RETURN")}
    )
-   private void lightclient$drawSkinPanel(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+   private void swiftclient$drawSkinPanel(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
       CanvasImpl c = new CanvasImpl(ctx);
       SwiftIntro.tickSounds();
       if (!ModuleManager.active("vanillaui")) {
-         int railX = this.lightclient$railX;
-         int railW = this.lightclient$railW;
-         int logo = this.lightclient$logoSize;
-         int brandY = this.lightclient$layoutTop + logo + Math.max(6, this.lightclient$afterLogo / 3);
+         int railX = this.swiftclient$railX;
+         int railW = this.swiftclient$railW;
+         int logo = this.swiftclient$logoSize;
+         int brandY = this.swiftclient$layoutTop + logo + Math.max(6, this.swiftclient$afterLogo / 3);
          float ba = SwiftIntro.brandAlpha();
          if (ba > 0.02F) {
             String swift = tr("swift.brand.swift");
@@ -323,7 +323,7 @@ public abstract class TitleScreenMixin extends Screen {
          float sa = SwiftIntro.streakAlpha();
          if (sa > 0.02F) {
             int logoCx = railX + railW / 2 + SwiftIntro.logoOffsetX();
-            int logoCy = this.lightclient$layoutTop + logo / 2;
+            int logoCy = this.swiftclient$layoutTop + logo / 2;
             int streakA = Math.round(180 * sa) << 24;
             int col = -12877066 & 16777215 | streakA;
             for (int i = 0; i < 5; i++) {
@@ -339,7 +339,7 @@ public abstract class TitleScreenMixin extends Screen {
          AccountBadge.render(c, this.width, mouseX, mouseY);
          ThemeBadge.render(c, this.width, mouseX, mouseY);
       }
-      this.lightclient$themePopup.draw(c, this.width, mouseX, mouseY);
+      this.swiftclient$themePopup.draw(c, this.width, mouseX, mouseY);
       ThemeManager.tick();
       ThemeManager.drawCurtain(c, this.width, this.height);
    }
@@ -349,14 +349,14 @@ public abstract class TitleScreenMixin extends Screen {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$openAccountSwitcher(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+   private void swiftclient$openAccountSwitcher(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
       if (!ModCompat.essentialLoaded() && AccountBadge.isOnBadge(this.width, click.x(), click.y())) {
          Minecraft.getInstance().setScreenAndShow(new CoreScreenHost(new AccountScreen(), (TitleScreen)(Object)this));
          cir.setReturnValue(true);
       } else if (!ModCompat.essentialLoaded() && ThemeBadge.isOnBadge(this.width, click.x(), click.y())) {
-         this.lightclient$themePopup.toggle();
+         this.swiftclient$themePopup.toggle();
          cir.setReturnValue(true);
-      } else if (this.lightclient$themePopup.isOpen() && this.lightclient$themePopup.clickAt(this.width, click.x(), click.y())) {
+      } else if (this.swiftclient$themePopup.isOpen() && this.swiftclient$themePopup.clickAt(this.width, click.x(), click.y())) {
          cir.setReturnValue(true);
       }
    }

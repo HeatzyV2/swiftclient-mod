@@ -10,7 +10,7 @@ import net.minecraft.client.resources.language.I18n;
 
 /**
  * Profiles — Swift DA: left name rail + right detail pane.
- * No LightClient icon slabs / bordered hero cards.
+ * No icon slabs / bordered hero cards.
  */
 public class ProfilesScreen extends UiScreen {
    private static final int ACCENT = -12877066;

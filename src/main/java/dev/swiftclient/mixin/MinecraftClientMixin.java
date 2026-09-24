@@ -11,7 +11,7 @@ public abstract class MinecraftClientMixin {
       method = {"createTitle"},
       at = {@At("RETURN")}
    )
-   private String lightclient$rebrandWindowTitle(String original) {
+   private String swiftclient$rebrandWindowTitle(String original) {
       return original.startsWith("Minecraft ") ? "Swift Client " + original.substring("Minecraft ".length()) : original;
    }
 }

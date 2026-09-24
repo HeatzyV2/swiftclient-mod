@@ -21,7 +21,7 @@ public abstract class OnlineServerEntryMixin {
       method = {"extractContent"},
       at = {@At("TAIL")}
    )
-   private void lightclient$partnerStar(GuiGraphicsExtractor ctx, int a, int b, boolean hovered, float delta, CallbackInfo ci) {
+   private void swiftclient$partnerStar(GuiGraphicsExtractor ctx, int a, int b, boolean hovered, float delta, CallbackInfo ci) {
       if (PartnerServers.isPinnedAddress(this.getServerData().ip)) {
          OnlineServerEntry self = (OnlineServerEntry)(Object)this;
          Font font = Minecraft.getInstance().font;

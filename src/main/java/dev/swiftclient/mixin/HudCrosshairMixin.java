@@ -19,7 +19,7 @@ public class HudCrosshairMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$customCrosshair(GuiGraphicsExtractor ctx, DeltaTracker deltaTracker, CallbackInfo ci) {
+   private void swiftclient$customCrosshair(GuiGraphicsExtractor ctx, DeltaTracker deltaTracker, CallbackInfo ci) {
       if (ModuleManager.active("crosshair")) {
          Minecraft mc = Minecraft.getInstance();
          int cx = mc.getWindow().getGuiScaledWidth() / 2;

@@ -12,13 +12,13 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface MinecraftClientAccessor {
    @Mutable
    @Accessor("user")
-   void lightclient$setUser(User var1);
+   void swiftclient$setUser(User var1);
 
    @Mutable
    @Accessor("profileKeyPairManager")
-   void lightclient$setProfileKeyPairManager(ProfileKeyPairManager var1);
+   void swiftclient$setProfileKeyPairManager(ProfileKeyPairManager var1);
 
    @Mutable
    @Accessor("userApiService")
-   void lightclient$setUserApiService(UserApiService var1);
+   void swiftclient$setUserApiService(UserApiService var1);
 }

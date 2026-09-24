@@ -2,11 +2,11 @@ package dev.swiftclient.core.theme;
 
 import java.util.function.Predicate;
 
-public final class LcPanorama {
+public final class SwiftPanorama {
    private static Predicate<String> swapper;
    private static boolean persistedApplied;
 
-   private LcPanorama() {
+   private SwiftPanorama() {
    }
 
    public static void bind(Predicate<String> s) {

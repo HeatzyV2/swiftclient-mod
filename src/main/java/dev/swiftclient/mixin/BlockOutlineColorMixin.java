@@ -15,7 +15,7 @@ public abstract class BlockOutlineColorMixin {
       ordinal = 0,
       require = 0
    )
-   private int lightclient$outlineColor(int color) {
+   private int swiftclient$outlineColor(int color) {
       return BlockOverlayState.enabled() ? BlockOverlayState.argb() : color;
    }
 }

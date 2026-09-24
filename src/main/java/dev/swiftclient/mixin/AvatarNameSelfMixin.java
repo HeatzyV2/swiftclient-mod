@@ -16,7 +16,7 @@ public abstract class AvatarNameSelfMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$showOwnNameInThirdPerson(Avatar avatar, double distSq, CallbackInfoReturnable<Boolean> cir) {
+   private void swiftclient$showOwnNameInThirdPerson(Avatar avatar, double distSq, CallbackInfoReturnable<Boolean> cir) {
       if (Nametag.showOwnName()) {
          Minecraft mc = Minecraft.getInstance();
          if (avatar == mc.player && mc.player != null && !mc.options.getCameraType().isFirstPerson()) {

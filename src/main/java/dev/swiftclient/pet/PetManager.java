@@ -53,7 +53,7 @@ public class PetManager {
                      pet = new GeckoPet(def.id, def.loopAnim);
                      pet.resetTo(player.position().add(0.0, 1.0, 0.0));
                      this.pets.put(uuid, pet);
-                     System.out.println("[LC/Pet] +pet " + petId + " pour " + uuid);
+                     System.out.println("[SwiftClient/Pet] +pet " + petId + " pour " + uuid);
                   }
 
                   pet.tick(player);
@@ -72,7 +72,7 @@ public class PetManager {
       if (!this.pets.isEmpty() && cameraState != null) {
          if (!this.loggedRender) {
             this.loggedRender = true;
-            System.out.println("[LC/Pet] rendu de " + this.pets.size() + " pet(s)");
+            System.out.println("[SwiftClient/Pet] rendu de " + this.pets.size() + " pet(s)");
          }
 
          Vec3 camPos = cameraState.pos;

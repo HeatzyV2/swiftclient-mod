@@ -1,6 +1,6 @@
 package dev.swiftclient.mixin;
 
-import dev.swiftclient.core.theme.LcPanorama;
+import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.core.theme.ThemeManager;
 import dev.swiftclient.render.SafeCubeMapTexture;
 import net.minecraft.client.Minecraft;
@@ -27,27 +27,27 @@ public abstract class GuiRendererMixin {
       method = {"<init>"},
       at = {@At("TAIL")}
    )
-   private void lightclient$bind(CallbackInfo ci) {
-      LcPanorama.bind(this::lightclient$swap);
+   private void swiftclient$bind(CallbackInfo ci) {
+      SwiftPanorama.bind(this::swiftclient$swap);
    }
 
    @Inject(
       method = {"registerPanoramaTextures"},
       at = {@At("TAIL")}
    )
-   private void lightclient$applyThemeAtLoad(TextureManager tm, CallbackInfo ci) {
+   private void swiftclient$applyThemeAtLoad(TextureManager tm, CallbackInfo ci) {
       try {
          String loc = ThemeManager.currentPanorama();
          if (loc != null && !loc.isBlank()) {
-            this.lightclient$swap(loc);
+            this.swiftclient$swap(loc);
          }
       } catch (Throwable var4) {
       }
    }
 
-   private boolean lightclient$swap(String location) {
+   private boolean swiftclient$swap(String location) {
       try {
-         Identifier id = lightclient$id(location);
+         Identifier id = swiftclient$id(location);
          Minecraft mc = Minecraft.getInstance();
          SafeCubeMapTexture tex = new SafeCubeMapTexture(id);
          tex.apply(tex.loadContents(mc.getResourceManager()));
@@ -64,7 +64,7 @@ public abstract class GuiRendererMixin {
       }
    }
 
-   private static Identifier lightclient$id(String s) {
+   private static Identifier swiftclient$id(String s) {
       int c = s.indexOf(58);
       return c < 0 ? Identifier.withDefaultNamespace(s) : Identifier.fromNamespaceAndPath(s.substring(0, c), s.substring(c + 1));
    }

@@ -18,7 +18,7 @@ public class GameRendererBlurMixin {
       method = {"renderLevel"},
       at = {@At("TAIL")}
    )
-   private void lightclient$guiBlur(DeltaTracker deltaTracker, CallbackInfo ci) {
+   private void swiftclient$guiBlur(DeltaTracker deltaTracker, CallbackInfo ci) {
       Minecraft mc = Minecraft.getInstance();
       if (mc.gui.screen() != null && ModuleManager.active("gui_blur")) {
          Module m = ModuleManager.byId("gui_blur");

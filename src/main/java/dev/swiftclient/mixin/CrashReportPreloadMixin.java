@@ -14,7 +14,7 @@ public abstract class CrashReportPreloadMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private static void lightclient$skipDummyReport(CallbackInfo ci) {
+   private static void swiftclient$skipDummyReport(CallbackInfo ci) {
       MemoryReserve.allocate();
       ci.cancel();
    }

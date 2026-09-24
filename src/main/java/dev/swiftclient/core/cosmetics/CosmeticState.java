@@ -131,7 +131,7 @@ public final class CosmeticState {
 
                QUERIED.put(u, now);
                if (old != null && !old.equals(val)) {
-                  System.out.println("[LC/Cape] cape de " + key + " : '" + old + "' → '" + val + "'");
+                  System.out.println("[SwiftClient/Cape] cape de " + key + " : '" + old + "' → '" + val + "'");
                }
             }
          }
@@ -219,10 +219,10 @@ public final class CosmeticState {
             () -> {
                byte[] png = capeId.startsWith("mojang:") ? CosmeticHttp.rawTexture(capeId.substring("mojang:".length())) : CosmeticHttp.texture(capeId);
                if (png == null) {
-                  System.out.println("[LC/Cape] texture " + capeId + " introuvable (null)");
+                  System.out.println("[SwiftClient/Cape] texture " + capeId + " introuvable (null)");
                   LOADING.remove(capeId);
                } else {
-                  System.out.println("[LC/Cape] texture " + capeId + " téléchargée (" + png.length + " octets), découpe…");
+                  System.out.println("[SwiftClient/Cape] texture " + capeId + " téléchargée (" + png.length + " octets), découpe…");
                   int[] m = META.get(capeId);
                   int frameW = m != null ? m[2] : 0;
                   int frameH = m != null ? m[3] : 0;
@@ -230,7 +230,7 @@ public final class CosmeticState {
                   if (size != null && size[0] % 2 == 0 && size[1] % (size[0] / 2) == 0 && (frameW != size[0] || frameH != size[0] / 2)) {
                      System.out
                         .println(
-                           "[LC/Cape] "
+                           "[SwiftClient/Cape] "
                               + capeId
                               + " : méta "
                               + frameW
@@ -248,7 +248,7 @@ public final class CosmeticState {
 
                   Platform.game().loadCapeFrames(capeId, png, frameW, frameH, (id, handles) -> {
                      FRAMES.put(id, handles);
-                     System.out.println("[LC/Cape] " + id + " prête : " + handles.length + " frames enregistrées");
+                     System.out.println("[SwiftClient/Cape] " + id + " prête : " + handles.length + " frames enregistrées");
                   });
                }
             }

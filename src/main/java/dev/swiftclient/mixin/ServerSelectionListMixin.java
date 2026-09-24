@@ -37,7 +37,7 @@ public abstract class ServerSelectionListMixin {
          shift = Shift.BEFORE
       )}
    )
-   private void lightclient$injectPartners(ServerList list, CallbackInfo ci) {
+   private void swiftclient$injectPartners(ServerList list, CallbackInfo ci) {
       ServerSelectionList self = (ServerSelectionList)(Object)this;
       List<PartnerServer> partners = PartnerServers.all();
       Set<String> pinned = new HashSet<>();
@@ -51,7 +51,7 @@ public abstract class ServerSelectionListMixin {
       for (int i = partners.size() - 1; i >= 0; i--) {
          PartnerServer p = partners.get(i);
          ServerData data = new ServerData(p.name(), p.address(), Type.OTHER);
-         this.onlineServers.add(0, OnlineServerEntryInvoker.lightclient$create(self, this.screen, data));
+         this.onlineServers.add(0, OnlineServerEntryInvoker.swiftclient$create(self, this.screen, data));
       }
    }
 }

@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin({Camera.class})
 public abstract class FreelookCameraMixin {
    @Unique
-   private boolean lightclient$firstTime = true;
+   private boolean swiftclient$firstTime = true;
    @Shadow
    private Entity entity;
 
@@ -33,18 +33,18 @@ public abstract class FreelookCameraMixin {
          shift = Shift.AFTER
       )}
    )
-   private void lightclient$freelookAlign(float partialTick, CallbackInfo ci) {
+   private void swiftclient$freelookAlign(float partialTick, CallbackInfo ci) {
       if (Freelook.active && this.entity instanceof LocalPlayer) {
          CameraOverriddenEntity o = (CameraOverriddenEntity)this.entity;
-         if (this.lightclient$firstTime && Minecraft.getInstance().player != null) {
-            o.lightclient$setCamPitch(Minecraft.getInstance().player.getXRot());
-            o.lightclient$setCamYaw(Minecraft.getInstance().player.getYRot());
-            this.lightclient$firstTime = false;
+         if (this.swiftclient$firstTime && Minecraft.getInstance().player != null) {
+            o.swiftclient$setCamPitch(Minecraft.getInstance().player.getXRot());
+            o.swiftclient$setCamYaw(Minecraft.getInstance().player.getYRot());
+            this.swiftclient$firstTime = false;
          }
 
-         this.setRotation(o.lightclient$getCamYaw(), o.lightclient$getCamPitch());
+         this.setRotation(o.swiftclient$getCamYaw(), o.swiftclient$getCamPitch());
       } else if (this.entity instanceof LocalPlayer) {
-         this.lightclient$firstTime = true;
+         this.swiftclient$firstTime = true;
       }
    }
 }

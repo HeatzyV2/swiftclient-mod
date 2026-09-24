@@ -14,7 +14,7 @@ public class MouseHandlerZoomMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void lightclient$zoomScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
+   private void swiftclient$zoomScroll(long window, double horizontal, double vertical, CallbackInfo ci) {
       if (ZoomState.scroll(vertical)) {
          ci.cancel();
       }

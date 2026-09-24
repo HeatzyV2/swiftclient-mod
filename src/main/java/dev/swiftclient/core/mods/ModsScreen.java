@@ -546,7 +546,7 @@ public final class ModsScreen extends UiScreen {
       return false;
    }
 
-   /** Swift DA: compact text row — no LightClient icon slabs. */
+   /** Swift DA: compact text row. */
    private void drawModRow(Canvas c, Module m, int x, int y, int w, int mouseX, int mouseY) {
       boolean on = m.isEnabled();
       boolean hover = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + MOD_ROW_H

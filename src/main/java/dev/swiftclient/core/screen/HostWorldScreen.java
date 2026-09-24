@@ -426,7 +426,7 @@ public class HostWorldScreen extends UiScreen {
 
    private void inviter(SocialApi.Friend f) {
       this.invites.add(f.uuid());
-      SocialApi.sendDM(f.uuid(), "lc-invite://" + this.adresse).thenAccept(ok -> {
+      SocialApi.sendDM(f.uuid(), "swift-invite://" + this.adresse).thenAccept(ok -> {
          if (Boolean.TRUE.equals(ok)) {
             this.pose("Invite sent to " + f.username());
          } else {

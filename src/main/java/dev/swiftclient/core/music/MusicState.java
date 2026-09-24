@@ -56,9 +56,9 @@ public final class MusicState {
       }
    }
 
-   /** Optional launcher bridge: {@code -Dswiftclient.nowPlayingFile=} (legacy lightclient name still accepted). */
+   /** Optional launcher bridge: {@code -Dswiftclient.nowPlayingFile=}. */
    private static Path resolveNowPlayingFile() {
-      for (String key : new String[]{"swiftclient.nowPlayingFile", "lightclient.nowPlayingFile"}) {
+      for (String key : new String[]{"swiftclient.nowPlayingFile"}) {
          String path = System.getProperty(key);
          if (path != null && !path.isBlank()) {
             return Path.of(path);

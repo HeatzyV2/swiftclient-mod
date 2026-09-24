@@ -7,10 +7,10 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.FontDescription.Resource;
 import net.minecraft.resources.Identifier;
 
-public final class LcBadge {
+public final class SwiftBadge {
    private static final FontDescription FONT = new Resource(Identifier.fromNamespaceAndPath("swiftclient", "badge"));
 
-   private LcBadge() {
+   private SwiftBadge() {
    }
 
    public static Component prefix(String grade) {

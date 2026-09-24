@@ -31,10 +31,10 @@ public abstract class GameMenuScreenMixin extends Screen {
    private static final int SKIN_W = 90;
    private static final int SKIN_H = 130;
    private static final int SKIN_GAP = 14;
-   private int lightclient$minX = 0;
-   private int lightclient$minY = 0;
-   private int lightclient$maxY = 0;
-   private boolean lightclient$hasBtns = false;
+   private int swiftclient$minX = 0;
+   private int swiftclient$minY = 0;
+   private int swiftclient$maxY = 0;
+   private boolean swiftclient$hasBtns = false;
 
    protected GameMenuScreenMixin(Component title) {
       super(title);
@@ -44,7 +44,7 @@ public abstract class GameMenuScreenMixin extends Screen {
       method = {"init"},
       at = {@At("TAIL")}
    )
-   private void lightclient$customUI(CallbackInfo ci) {
+   private void swiftclient$customUI(CallbackInfo ci) {
       if (!ModuleManager.active("vanillaui")) {
          PauseScreen self = (PauseScreen)(Object)this;
          Minecraft mc = Minecraft.getInstance();
@@ -62,11 +62,11 @@ public abstract class GameMenuScreenMixin extends Screen {
          List<Button> integrated = new ArrayList<>();
 
          for (Button b : candidates) {
-            boolean take = !flooded || VanillaPauseKeys.shouldRestyle(lightclient$key(b.getMessage()), b.getMessage().getString());
+            boolean take = !flooded || VanillaPauseKeys.shouldRestyle(swiftclient$key(b.getMessage()), b.getMessage().getString());
             if (take) {
                Button btn = b;
                msgs.add(b.getMessage());
-               acts.add(() -> ((ButtonWidgetAccessor)btn).lightclient$getOnPress().onPress(btn));
+               acts.add(() -> ((ButtonWidgetAccessor)btn).swiftclient$getOnPress().onPress(btn));
                integrated.add(btn);
             }
          }
@@ -75,8 +75,8 @@ public abstract class GameMenuScreenMixin extends Screen {
             this.removeWidget(bx);
          }
 
-         this.lightclient$layout(msgs, acts);
-         this.lightclient$rangerLesRestes();
+         this.swiftclient$layout(msgs, acts);
+         this.swiftclient$rangerLesRestes();
 
          // Text links under pause stack — no emoji icon dock
          boolean solo = mc.getSingleplayerServer() != null;
@@ -135,8 +135,8 @@ public abstract class GameMenuScreenMixin extends Screen {
       }
    }
 
-   private void lightclient$rangerLesRestes() {
-      if (this.lightclient$hasBtns) {
+   private void swiftclient$rangerLesRestes() {
+      if (this.swiftclient$hasBtns) {
          for (GuiEventListener e : List.copyOf(this.children())) {
             if (e instanceof AbstractWidget w && !(w instanceof CanvasWidget)) {
                this.removeWidget(w);
@@ -145,13 +145,13 @@ public abstract class GameMenuScreenMixin extends Screen {
       }
    }
 
-   private static String lightclient$key(Component t) {
+   private static String swiftclient$key(Component t) {
       return t.getContents() instanceof TranslatableContents tc ? tc.getKey() : null;
    }
 
-   private void lightclient$layout(List<Component> msgs, List<Runnable> acts) {
+   private void swiftclient$layout(List<Component> msgs, List<Runnable> acts) {
       int n = msgs.size();
-      this.lightclient$hasBtns = n > 0;
+      this.swiftclient$hasBtns = n > 0;
       if (n != 0) {
          int fullW = 220;
          int halfW = 106;
@@ -192,9 +192,9 @@ public abstract class GameMenuScreenMixin extends Screen {
             this.addRenderableWidget(new CanvasWidget(x, y, w, bh, msg, new LabelButtonWidget(msg::getString, act)));
          }
 
-         this.lightclient$minX = leftX;
-         this.lightclient$minY = y0;
-         this.lightclient$maxY = n >= 2 ? yLast + bh : y0 + bh;
+         this.swiftclient$minX = leftX;
+         this.swiftclient$minY = y0;
+         this.swiftclient$maxY = n >= 2 ? yLast + bh : y0 + bh;
       }
    }
 }

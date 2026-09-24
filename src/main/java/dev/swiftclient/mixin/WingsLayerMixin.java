@@ -20,7 +20,7 @@ public class WingsLayerMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private static void lightclient$capeSurElytra(HumanoidRenderState state, CallbackInfoReturnable<Identifier> cir) {
+   private static void swiftclient$capeSurElytra(HumanoidRenderState state, CallbackInfoReturnable<Identifier> cir) {
       if (state instanceof AvatarRenderState avatar) {
          ClientLevel level = Minecraft.getInstance().level;
          if (level != null) {

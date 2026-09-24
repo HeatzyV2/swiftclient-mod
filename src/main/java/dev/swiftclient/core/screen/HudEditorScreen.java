@@ -267,7 +267,7 @@ public final class HudEditorScreen extends UiScreen {
 
    private void drawBar(Canvas c, int mouseX, int mouseY) {
       this.btns.clear();
-      // Left text rail — matches Swift title/sidebar DA (not LightClient top pill bar)
+      // Left text rail — matches Swift title/sidebar DA
       int railW = 108;
       int x0 = 10;
       int y0 = 12;

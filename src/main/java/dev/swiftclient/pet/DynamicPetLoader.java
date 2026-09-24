@@ -31,7 +31,7 @@ public final class DynamicPetLoader implements DynamicPets.Sink {
          try {
             img = NativeImage.read(texturePng);
          } catch (Exception var11) {
-            System.out.println("[LC/Pet] texture illisible pour " + petIdLower + " : " + var11.getMessage());
+            System.out.println("[SwiftClient/Pet] texture illisible pour " + petIdLower + " : " + var11.getMessage());
             return;
          }
 

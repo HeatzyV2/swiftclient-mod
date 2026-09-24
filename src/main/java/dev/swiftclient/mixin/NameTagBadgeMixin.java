@@ -1,7 +1,7 @@
 package dev.swiftclient.mixin;
 
 import dev.swiftclient.core.badges.BadgeState;
-import dev.swiftclient.render.LcBadge;
+import dev.swiftclient.render.SwiftBadge;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.network.chat.Component;
@@ -18,11 +18,11 @@ public abstract class NameTagBadgeMixin {
       at = {@At("RETURN")},
       cancellable = true
    )
-   private void lightclient$badgeNameTag(Entity entity, CallbackInfoReturnable<Component> cir) {
+   private void swiftclient$badgeNameTag(Entity entity, CallbackInfoReturnable<Component> cir) {
       if (cir.getReturnValue() != null) {
          if (entity instanceof AbstractClientPlayer p) {
             String grade = BadgeState.gradeFor(p.getUUID(), p.getGameProfile().name());
-            Component badge = LcBadge.prefix(grade);
+            Component badge = SwiftBadge.prefix(grade);
             if (badge != null) {
                cir.setReturnValue(Component.empty().append(badge).append((Component)cir.getReturnValue()));
             }

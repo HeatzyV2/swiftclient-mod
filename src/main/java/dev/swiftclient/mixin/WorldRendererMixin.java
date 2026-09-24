@@ -17,7 +17,7 @@ public abstract class WorldRendererMixin {
       method = {"submitEntities"},
       at = {@At("TAIL")}
    )
-   private void lightclient$submitPet(PoseStack poseStack, LevelRenderState state, SubmitNodeCollector collector, CallbackInfo ci) {
+   private void swiftclient$submitPet(PoseStack poseStack, LevelRenderState state, SubmitNodeCollector collector, CallbackInfo ci) {
       float tickProgress = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
       PetManager.INSTANCE.renderInWorld(poseStack, collector, state.cameraRenderState, tickProgress);
    }

@@ -22,7 +22,7 @@ public abstract class JoinMultiplayerScreenMixin {
       method = {"onSelectedChange"},
       at = {@At("TAIL")}
    )
-   private void lightclient$lockPartnerEdit(CallbackInfo ci) {
+   private void swiftclient$lockPartnerEdit(CallbackInfo ci) {
       if (this.serverSelectionList.getSelected() instanceof OnlineServerEntry entry && PartnerServers.isPinnedAddress(entry.getServerData().ip)) {
          this.editButton.active = false;
       }
@@ -32,7 +32,7 @@ public abstract class JoinMultiplayerScreenMixin {
       method = {"deleteCallback"},
       at = {@At("HEAD")}
    )
-   private void lightclient$hidePartnerOnDelete(boolean confirmed, CallbackInfo ci) {
+   private void swiftclient$hidePartnerOnDelete(boolean confirmed, CallbackInfo ci) {
       if (confirmed) {
          if (this.serverSelectionList.getSelected() instanceof OnlineServerEntry entry) {
             String ip = entry.getServerData().ip;

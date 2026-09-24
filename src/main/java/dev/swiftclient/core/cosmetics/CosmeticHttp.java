@@ -24,10 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public final class CosmeticHttp {
-   /**
-    * Swift Client backend base URL. Nothing is contacted unless it is set, via
-    * {@code -Dswiftclient.api=https://...} or the {@code SWIFTCLIENT_API} environment variable.
-    */
+   /** Production backend. Override with {@code -Dswiftclient.api=...} or {@code SWIFTCLIENT_API}; "off" disables it. */
+   private static final String DEFAULT_API = "http://151.240.30.3:10049";
    private static final String API = resolveApi();
    private static final String MOJANG_JOIN = "https://sessionserver.mojang.com/session/minecraft/join";
    private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8L)).build();
@@ -52,7 +50,11 @@ public final class CosmeticHttp {
       }
 
       if (v == null || v.isBlank()) {
-         System.out.println("[SwiftClient] backend non configure : cosmetiques, badges et heartbeat desactives");
+         v = DEFAULT_API;
+      }
+
+      if ("off".equalsIgnoreCase(v.trim())) {
+         System.out.println("[SwiftClient] backend desactive : cosmetiques, badges et heartbeat coupes");
          return null;
       } else {
          v = v.trim();
@@ -174,7 +176,7 @@ public final class CosmeticHttp {
                      tokenExp = j.has("expiresAt") ? j.get("expiresAt").getAsLong() : now + 3600000L;
                      tokenUuid = uuid;
                      SESSION.success();
-                     System.out.println("[LC/Cape] session OK (auth réussie)");
+                     System.out.println("[SwiftClient/Cape] session OK (auth réussie)");
                      return token;
                   } catch (Exception var10) {
                      SESSION.failure("reponse login illisible");
