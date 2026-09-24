@@ -36,11 +36,11 @@ import java.util.concurrent.TimeUnit;
 public final class SpotifyManager {
    private static final int PORT = 8888;
    /**
-    * Swift Client's own Spotify app (PKCE, no secret): players just click "Connect". Set it here or with
-    * {@code -Dswiftclient.spotifyClientId=}. While empty, the setup page asks for the player's own Client ID
+    * Swift Client's own Spotify app (PKCE, no secret): players just click "Connect". Overridable with
+    * {@code -Dswiftclient.spotifyClientId=}; set to empty, the setup page asks for the player's own Client ID
     * (still PKCE, never a secret).
     */
-   private static final String SWIFT_CLIENT_ID = System.getProperty("swiftclient.spotifyClientId", "");
+   private static final String SWIFT_CLIENT_ID = System.getProperty("swiftclient.spotifyClientId", "81dcb1e5f6b74c7295a45d17cb14a3d9");
    public static final String REDIRECT_URI = "http://127.0.0.1:8888/callback";
    private static final String SCOPE = "user-read-playback-state user-read-currently-playing";
    private static volatile String clientId = "";
