@@ -48,8 +48,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // Bundled performance mods: shipped inside the jar and loaded by runClient too.
-    ['sodium', 'lithium', 'immediatelyfast', 'ferrite-core'].each { slug ->
+    // Bundled mods, shipped inside the jar and loaded by runClient too: performance, and ViaFabricPlus
+    // so a Swift instance joins servers of other versions (1.8 to the current one).
+    ['sodium', 'lithium', 'immediatelyfast', 'ferrite-core', 'viafabricplus'].each { slug ->
         def v = project.property("${slug.replace('-', '')}_version")
         runtimeOnly "maven.modrinth:${slug}:${v}"
         include "maven.modrinth:${slug}:${v}"
@@ -104,7 +105,7 @@ loom {
             if (project.hasProperty('auditMixins')) {
                 vmArg '-Dswiftclient.auditMixins=true'
             }
-            // ./gradlew runClient -PdevOpen=mods : opens the mods menu over the title screen
+            // ./gradlew runClient -PdevOpen=mods (or multiplayer) : opens that screen over the title screen
             if (project.hasProperty('devOpen')) {
                 vmArg "-Dswiftclient.devOpen=${project.property('devOpen')}"
             }

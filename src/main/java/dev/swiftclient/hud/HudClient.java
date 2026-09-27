@@ -51,7 +51,8 @@ public final class HudClient {
       );
    }
 
-   private static final boolean DEV_OPEN_MODS = "mods".equals(System.getProperty("swiftclient.devOpen"));
+   /** Development: -Dswiftclient.devOpen=mods|multiplayer opens that screen over the title screen once. */
+   private static final String DEV_OPEN = System.getProperty("swiftclient.devOpen");
    private static boolean devOpened;
 
    public static void init() {
@@ -65,10 +66,13 @@ public final class HudClient {
          ModuleManager.start();
          CapeUploadQueue.drain(8);
 
-         // Development: -Dswiftclient.devOpen=mods opens the mods menu over the title screen once
-         if (DEV_OPEN_MODS && !devOpened && mc.gui.screen() instanceof net.minecraft.client.gui.screens.TitleScreen) {
+         if (DEV_OPEN != null && !devOpened && mc.gui.screen() instanceof net.minecraft.client.gui.screens.TitleScreen title) {
             devOpened = true;
-            mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), mc.gui.screen()));
+            if (DEV_OPEN.equals("multiplayer")) {
+               mc.setScreenAndShow(new net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen(title));
+            } else {
+               mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), title));
+            }
          }
 
          while (SwiftKeys.MENU.consumeClick()) {
