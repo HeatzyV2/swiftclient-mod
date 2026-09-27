@@ -41,7 +41,19 @@ public final class ModsScreen extends UiScreen {
    private static final int NAV_HOVER = 352321535;
    private static final int NAV_ACTIVE = 587202559;
    private static final int GOLD = -12877066;
-   private static final float PANEL_R = 0.0F; // no rounded grey LC slab
+   private static final float PANEL_R = 10.0F;
+   // Slabs: dark rounded blocks with a hairline border (Swift take on the Lunar layout)
+   private static final int SLAB = 0xF20E1116; // panel
+   private static final int SLAB_BORDER = 0x1AFFFFFF;
+   private static final int TILE = 0xFF171A21; // module card, a step above the panel
+   private static final int TILE_HOV = 0xFF1C2029;
+   private static final int BTN = 0xFF22262E; // options button
+   private static final int BTN_HOV = 0xFF2B303A;
+   private static final int OFF_BG = 0xFF1F2229; // disabled bar
+   private static final int OFF_TEXT = 0xFF8A93A0;
+   private static final int ACCENT_HOV = 0xFF5B9BFF;
+   private static final int RAIL = 0xFF0B0D12;
+   private static final int ACCENT_SOFT = 0x333B82F6; // accent @ 20%
    private static final float CARD_R = 8.0F;
    private static final float PILL_R = 6.0F;
    private static final int S_MODS = 0;
@@ -89,8 +101,9 @@ public final class ModsScreen extends UiScreen {
    private static final float RATIO = 2.0F;
    private static final int HEADER_H = 34;
    private static final int CHIPS_H = 26;
-   private static final int MOD_ROW_H = 30;
-   private static final int MOD_ROW_GAP = 2;
+   private static final int CARD_MIN_W = 104;
+   private static final int TILE_H = 100;
+   private static final int TILE_GAP = 8;
    private static final int GAP = 10;
    private static final int CARD_H = 64;
    private boolean titresVisibles = true;
@@ -159,7 +172,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int sideW() {
-      return Math.max(168, Math.min(210, Math.round(this.panelW() * 0.24F)));
+      return Math.max(128, Math.min(190, Math.round(this.panelW() * 0.22F)));
    }
 
    private int sideX() {
@@ -194,16 +207,34 @@ public final class ModsScreen extends UiScreen {
       return this.gridRight() - this.gridLeft();
    }
 
-   private int rowStride() {
-      return MOD_ROW_H + MOD_ROW_GAP;
+   private int columns() {
+      return Math.max(1, Math.min(5, (this.gridW() + TILE_GAP) / (CARD_MIN_W + TILE_GAP)));
    }
 
-   private int rowY(int i) {
-      return this.gridTop() + i * this.rowStride() - this.grille.px();
+   private int cardW() {
+      int cols = this.columns();
+      return (this.gridW() - (cols - 1) * TILE_GAP) / cols;
    }
 
-   private int[] rowRect(int i) {
-      return new int[]{this.gridLeft(), this.rowY(i), this.gridW(), MOD_ROW_H};
+   /** Card i: x, y, w, h (y already scrolled). */
+   private int[] cardRect(int i) {
+      int cols = this.columns();
+      int w = this.cardW();
+      int col = i % cols;
+      int row = i / cols;
+      return new int[]{this.gridLeft() + col * (w + TILE_GAP), this.gridTop() + row * (TILE_H + TILE_GAP) - this.grille.px(), w, TILE_H};
+   }
+
+   private static int[] optionsRect(int[] card) {
+      return new int[]{card[0] + 6, card[1] + 58, card[2] - 12 - 20, 16};
+   }
+
+   private static int[] gearRect(int[] card) {
+      return new int[]{card[0] + card[2] - 6 - 18, card[1] + 58, 18, 16};
+   }
+
+   private static int[] toggleRect(int[] card) {
+      return new int[]{card[0] + 6, card[1] + 78, card[2] - 12, 16};
    }
 
    private int[] closeRect() {
@@ -259,7 +290,8 @@ public final class ModsScreen extends UiScreen {
 
    private void recomputeScroll() {
       int n = this.filtered().size();
-      int content = Math.max(0, n * this.rowStride() - MOD_ROW_GAP);
+      int rows = (n + this.columns() - 1) / this.columns();
+      int content = Math.max(0, rows * (TILE_H + TILE_GAP) - TILE_GAP);
       this.grille.contenu(content, this.gridBottom() - this.gridTop());
    }
 
@@ -275,11 +307,9 @@ public final class ModsScreen extends UiScreen {
       int py = this.panelY();
       int pw = this.panelW();
       int ph = this.panelH();
-      // Swift shell: ink rail only — content floats, no LC grey glass slab
-      c.fill(px, py, px + this.sideW(), py + ph, RAIL_INK);
-      c.fill(px, py, px + 2, py + ph, ACCENT);
-      // hairline between rail and content
-      c.fill(this.contentX(), py + 12, this.contentX() + 1, py + ph - 12, ACCENT_DIM);
+      // Swift shell: one dark slab, the rail is an inset slab on its left
+      c.card(px, py, pw, ph, SLAB, SLAB_BORDER, 1, PANEL_R);
+      c.card(px + 6, py + 6, this.sideW() - 10, ph - 12, RAIL, SLAB_BORDER, 1, 8.0F);
 
       this.drawSidebar(c, mouseX, mouseY);
       int[] xr = this.closeRect();
@@ -302,9 +332,9 @@ public final class ModsScreen extends UiScreen {
             List<Module> mods = this.filtered();
 
             for (int i = 0; i < mods.size(); i++) {
-               int[] r = this.rowRect(i);
+               int[] r = this.cardRect(i);
                if (r[1] + r[3] >= this.gridTop() && r[1] <= this.gridBottom()) {
-                  this.drawModRow(c, mods.get(i), r[0], r[1], r[2], mouseX, mouseY);
+                  this.drawModCard(c, mods.get(i), r, mouseX, mouseY);
                }
             }
 
@@ -369,11 +399,10 @@ public final class ModsScreen extends UiScreen {
    private void drawSearch(Canvas c, int mouseX, int mouseY) {
       int[] r = this.searchRect();
       boolean over = in(mouseX, mouseY, r);
-      // Underline field — no grey LC search pill
-      int line = this.searchFocused ? ACCENT : (over ? ACCENT_DIM : FAINT);
-      c.fill(r[0], r[1] + r[3] - 1, r[0] + r[2], r[1] + r[3], line);
-      int tx = r[0] + 2;
-      int maxW = r[2] - 4;
+      c.card(r[0], r[1], r[2], r[3], TILE, this.searchFocused ? ACCENT : (over ? ACCENT_DIM : SLAB_BORDER), 1, 5.0F);
+      c.icon("zoom", r[0] + 6, r[1] + (r[3] - 9) / 2, 9, FAINT);
+      int tx = r[0] + 20;
+      int maxW = r[2] - 24;
       String shown = this.query.isEmpty() && !this.searchFocused ? Tr.of("swift.mods.search") : this.query;
       int col = this.query.isEmpty() && !this.searchFocused ? FAINT : TEXT;
       c.text(trunc(c, shown, maxW), tx, r[1] + (r[3] - c.lineHeight()) / 2, col, false);
@@ -389,7 +418,7 @@ public final class ModsScreen extends UiScreen {
    private void buildNav() {
       this.navHits.clear();
       int y = this.panelY() + 56;
-      int dispo = this.accountCardY() - 8 - y;
+      int dispo = this.accountCardY() - 40 - y;
       int items = 0;
       int headers = 0;
 
@@ -455,30 +484,37 @@ public final class ModsScreen extends UiScreen {
             c.text(label.toUpperCase(Locale.ROOT), x + 18, hit.y() + hit.h() - 10, FAINT, false);
          } else {
             boolean actif = n.section() == this.currentSection;
-            boolean over = mouseX >= x + 10 && mouseX < x + w - 8 && mouseY >= hit.y() && mouseY < hit.y() + hit.h() - 2;
-            int ih = hit.h() - 2;
-            if (actif) {
-               c.fill(x + 10, hit.y() + 4, x + 12, hit.y() + ih - 4, ACCENT);
-            } else if (over) {
-               c.fill(x + 10, hit.y() + 4, x + 12, hit.y() + ih - 4, ACCENT_DIM);
+            boolean over = mouseX >= x + 12 && mouseX < x + w - 10 && mouseY >= hit.y() && mouseY < hit.y() + hit.h() - 2;
+            int ih = hit.h() - 3;
+            int bx = x + 12;
+            int bw = w - 22;
+            c.card(bx, hit.y(), bw, ih, actif ? ACCENT_SOFT : (over ? TILE_HOV : TILE), actif ? ACCENT : SLAB_BORDER, 1, 5.0F);
+            int col = actif || over ? TEXT : DIM;
+            int is = Math.min(10, ih - 6);
+            int tx = bx + 8;
+            if (n.icon() != null && is >= 7) {
+               c.icon(n.icon(), tx, hit.y() + (ih - is) / 2, is, actif ? ACCENT : col);
+               tx += is + 6;
             }
 
-            int col = actif || over ? TEXT : DIM;
-            c.text(trunc(c, label, w - 40), x + 22, hit.y() + (ih - 8) / 2, col, false);
-            if (over || actif) {
-               c.text("›", x + w - 22, hit.y() + (ih - 8) / 2, ACCENT, false);
-            }
+            c.text(trunc(c, label, bx + bw - 6 - tx), tx, hit.y() + (ih - 8) / 2, col, false);
          }
       }
 
+      int[] hud = this.editHudRect();
+      boolean hudOver = in(mouseX, mouseY, hud);
+      c.card(hud[0], hud[1], hud[2], hud[3], hudOver ? ACCENT_HOV : ACCENT, hudOver ? -1 : 0, hudOver ? 1 : 0, 5.0F);
+      spacedCentered(c, Tr.of("swift.menu.edit_hud").toUpperCase(Locale.ROOT), hud[0] + hud[2] / 2, hud[1] + (hud[3] - 8) / 2, TEXT, hud[2] - 8);
       this.drawAccountCard(c, x, w, mouseX, mouseY);
+   }
+
+   private int[] editHudRect() {
+      return new int[]{this.sideX() + 12, this.accountCardY() - 32, this.sideW() - 22, 18};
    }
 
    private void drawAccountCard(Canvas c, int x, int w, int mouseX, int mouseY) {
       int cy = this.accountCardY();
       int chH = 32;
-      // Text-only footer — no grey LC account pill
-      c.fill(x + 18, cy - 10, x + w - 14, cy - 9, ACCENT_DIM);
       Optional<AccountEntry> acc = AccountManager.get().getActive();
       String uname = acc.<String>map(a -> a.getUsername()).orElseGet(() -> {
          try {
@@ -521,59 +557,123 @@ public final class ModsScreen extends UiScreen {
 
    private void drawCategoryTabs(Canvas c, int mouseX, int mouseY) {
       this.tabHits.clear();
+      List<String> labels = new ArrayList<>();
+      List<String> values = new ArrayList<>();
+      labels.add(Tr.of("swift.mods.all"));
+      values.add(null);
+      for (String cat : this.categories()) {
+         labels.add(Module.categoryLabel(cat));
+         values.add(cat);
+      }
+
+      // Tighter chips when they do not fit: tracked capitals, then plain capitals, then less padding
+      this.chipPad = 16;
+      this.chipTracked = true;
+      if (this.chipsWidth(c, labels) > this.gridW()) {
+         this.chipTracked = false;
+      }
+      if (this.chipsWidth(c, labels) > this.gridW()) {
+         this.chipPad = 8;
+      }
+
       int x = this.gridLeft();
       int y = this.chipsY();
-      x = this.chip(c, Tr.of("swift.mods.all"), null, x, y, mouseX, mouseY, this.category == null);
-
-      for (String cat : this.categories()) {
-         x = this.chip(c, Module.categoryLabel(cat), cat, x, y, mouseX, mouseY, cat.equals(this.category));
+      c.pushScissor(this.gridLeft(), y - 1, this.gridW(), 20);
+      for (int i = 0; i < labels.size(); i++) {
+         String v = values.get(i);
+         x = this.chip(c, labels.get(i), v, x, y, mouseX, mouseY, v == null ? this.category == null : v.equals(this.category));
       }
+      c.popScissor();
+      this.chipPad = 16;
+      this.chipTracked = true;
+   }
+
+   private int chipPad = 16;
+   private boolean chipTracked = true;
+
+   private int chipsWidth(Canvas c, List<String> labels) {
+      int w = 0;
+      for (String l : labels) {
+         String caps = l.toUpperCase(Locale.ROOT);
+         w += (this.chipTracked ? spacedWidth(c, caps) : c.textWidth(caps)) + this.chipPad + 6;
+      }
+      return w - 6;
    }
 
    private int chip(Canvas c, String label, String value, int x, int y, int mouseX, int mouseY, boolean active) {
-      int w = c.textWidth(label) + 4;
+      String caps = label.toUpperCase(Locale.ROOT);
+      int w = (this.chipTracked ? spacedWidth(c, caps) : c.textWidth(caps)) + this.chipPad;
       int h = 18;
-      this.tabHits.add(new ModsScreen.TabHit(x, w + 8, value));
-      boolean over = in(mouseX, mouseY, new int[]{x, y, w + 8, h});
-      int col = active ? ACCENT : (over ? -1 : -6644317);
-      c.text(label, x + 2, y + (h - 8) / 2, col, false);
-      if (active) {
-         c.fill(x + 2, y + h - 2, x + 2 + w, y + h - 1, ACCENT);
+      this.tabHits.add(new ModsScreen.TabHit(x, w, value));
+      boolean over = in(mouseX, mouseY, new int[]{x, y, w, h});
+      c.card(x, y, w, h, active ? ACCENT : (over ? TILE_HOV : TILE), active ? 0 : (over ? ACCENT_DIM : SLAB_BORDER), active ? 0 : 1, 5.0F);
+      int col = active || over ? TEXT : DIM;
+      if (this.chipTracked) {
+         spacedCentered(c, caps, x + w / 2, y + (h - 8) / 2, col, w);
+      } else {
+         c.centeredText(caps, x + w / 2, y + (h - 8) / 2, col, false);
       }
-      return x + w + 14;
+      return x + w + 6;
    }
 
    private static boolean lockedM(Module m) {
       return false;
    }
 
-   /** Swift DA: compact text row. */
-   private void drawModRow(Canvas c, Module m, int x, int y, int w, int mouseX, int mouseY) {
+   /** Module card: icon, name, Options + gear, Enabled/Disabled bar. */
+   private void drawModCard(Canvas c, Module m, int[] r, int mouseX, int mouseY) {
       boolean on = m.isEnabled();
-      boolean hover = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + MOD_ROW_H
-         && mouseY >= this.gridTop() && mouseY <= this.gridBottom();
-      if (hover) {
-         c.fill(x, y + MOD_ROW_H - 1, x + w, y + MOD_ROW_H, ACCENT_DIM);
-      }
-      if (on) {
-         c.fill(x, y + 6, x + 2, y + MOD_ROW_H - 6, ACCENT);
-      } else if (hover) {
-         c.fill(x, y + 6, x + 2, y + MOD_ROW_H - 6, 872415231);
+      boolean inGrid = mouseY >= this.gridTop() && mouseY <= this.gridBottom();
+      boolean hover = inGrid && in(mouseX, mouseY, r);
+      c.card(r[0], r[1], r[2], r[3], hover ? TILE_HOV : TILE, hover ? ACCENT_DIM : SLAB_BORDER, 1, CARD_R);
+
+      int is = 24;
+      c.icon(m.icon == null ? "mods" : m.icon, r[0] + (r[2] - is) / 2, r[1] + 10, is, on ? TEXT : DIM);
+      c.centeredText(trunc(c, m.displayName(), r[2] - 10), r[0] + r[2] / 2, r[1] + 42, on ? TEXT : DIM, false);
+
+      // Options + gear
+      int[] o = optionsRect(r);
+      int[] g = gearRect(r);
+      boolean has = m.hasSettings();
+      boolean oOver = has && inGrid && (in(mouseX, mouseY, o) || in(mouseX, mouseY, g));
+      c.card(o[0], o[1], o[2], o[3], oOver ? BTN_HOV : BTN, SLAB_BORDER, 1, 4.0F);
+      c.card(g[0], g[1], g[2], g[3], oOver ? BTN_HOV : BTN, SLAB_BORDER, 1, 4.0F);
+      int oc = has ? (oOver ? TEXT : DIM) : FAINT;
+      spacedCentered(c, Tr.of("swift.mods.options").toUpperCase(Locale.ROOT), o[0] + o[2] / 2, o[1] + (o[3] - 8) / 2, oc, o[2] - 6);
+      c.icon("gear", g[0] + (g[2] - 10) / 2, g[1] + (g[3] - 10) / 2, 10, oc);
+
+      // Enabled / disabled bar
+      int[] t = toggleRect(r);
+      boolean tOver = inGrid && in(mouseX, mouseY, t);
+      int bg = on ? (tOver ? ACCENT_HOV : ACCENT) : (tOver ? BTN_HOV : OFF_BG);
+      c.card(t[0], t[1], t[2], t[3], bg, on ? 0 : SLAB_BORDER, on ? 0 : 1, 4.0F);
+      String label = (on ? Tr.of("swift.mods.enabled") : Tr.of("swift.mods.disabled")).toUpperCase(Locale.ROOT);
+      spacedCentered(c, label, t[0] + t[2] / 2, t[1] + (t[3] - 8) / 2, on ? TEXT : OFF_TEXT, t[2] - 6);
+   }
+
+   private static final int LETTER_SPACING = 1;
+
+   private static int spacedWidth(Canvas c, String s) {
+      int w = 0;
+      for (int i = 0; i < s.length(); i++) {
+         w += c.textWidth(String.valueOf(s.charAt(i)));
       }
 
-      int tx = x + 12;
-      int nameCol = on || hover ? -1 : -6644317;
-      String name = trunc(c, m.displayName(), w - 80);
-      c.text(name, tx, y + 7, nameCol, false);
+      return w + Math.max(0, s.length() - 1) * LETTER_SPACING;
+   }
 
-      String etat = on ? Tr.of("swift.mods.on") : Tr.of("swift.mods.off");
-      int etatCol = on ? ACCENT : -10394518;
-      int etatW = c.textWidth(etat);
-      int gearW = m.hasSettings() ? 28 : 0;
-      c.text(etat, x + w - gearW - etatW - 8, y + 7, etatCol, false);
-      if (m.hasSettings()) {
-         boolean gh = mouseX >= x + w - 24 && mouseX < x + w && mouseY >= y && mouseY < y + MOD_ROW_H;
-         c.text("›", x + w - 16, y + 7, gh ? ACCENT : -10394518, false);
+   /** Capitals with a little tracking, like the Lunar slabs; plain text when it would not fit. */
+   private static void spacedCentered(Canvas c, String s, int cx, int y, int argb, int maxW) {
+      if (spacedWidth(c, s) > maxW) {
+         c.centeredText(trunc(c, s, maxW), cx, y, argb, false);
+         return;
+      }
+
+      int x = cx - spacedWidth(c, s) / 2;
+      for (int i = 0; i < s.length(); i++) {
+         String ch = String.valueOf(s.charAt(i));
+         c.text(ch, x, y, argb, false);
+         x += c.textWidth(ch) + LETTER_SPACING;
       }
    }
 
@@ -881,6 +981,11 @@ public final class ModsScreen extends UiScreen {
                   }
                }
 
+               if (in((int)mx, (int)my, this.editHudRect())) {
+                  this.onNav(1);
+                  return true;
+               }
+
                int cy = this.accountCardY();
                if (my >= cy && my < cy + 32) {
                   this.onNav(4);
@@ -984,10 +1089,10 @@ public final class ModsScreen extends UiScreen {
                      List<Module> mods = this.filtered();
 
                      for (int i = 0; i < mods.size(); i++) {
-                        int[] r = this.rowRect(i);
-                        if (!(mx < r[0]) && !(mx >= r[0] + r[2]) && !(my < r[1]) && !(my >= r[1] + r[3])) {
+                        int[] r = this.cardRect(i);
+                        if (in((int)mx, (int)my, r)) {
                            Module m = mods.get(i);
-                           if (m.hasSettings() && mx >= r[0] + r[2] - 28) {
+                           if (m.hasSettings() && (in((int)mx, (int)my, optionsRect(r)) || in((int)mx, (int)my, gearRect(r)))) {
                               this.openSettings(m);
                               return true;
                            }
@@ -1152,7 +1257,7 @@ public final class ModsScreen extends UiScreen {
          this.reglages.cran(amount, 26.0);
          return true;
       } else {
-         this.grille.cran(amount, 26.0);
+         this.grille.cran(amount, TILE_H / 2.0);
          return true;
       }
    }

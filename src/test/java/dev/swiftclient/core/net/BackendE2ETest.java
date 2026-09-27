@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 class BackendE2ETest {
    private static final String API = System.getProperty("swiftclient.e2e.api");
    private static final String RELAY = System.getProperty("swiftclient.e2e.relay", "");
+   private static final String GATEWAY = System.getProperty("swiftclient.e2e.gateway", "");
    private static final int MOJANG_PORT = 18555;
    /** serverId -> "name uuid" of the player who joined with it. */
    private static final Map<String, String> JOINS = new ConcurrentHashMap<>();
@@ -157,14 +158,43 @@ class BackendE2ETest {
       assertEquals(401, Backend.post("/api/auth/minecraft", forged, false).status());
    }
 
+   /** Minecraft handshake packet for `host` (protocol 775, next state 1 = status, 2 = login). */
+   private static byte[] handshake(String host, int nextState) {
+      java.io.ByteArrayOutputStream body = new java.io.ByteArrayOutputStream();
+      body.write(0x00);
+      writeVarInt(body, 775);
+      byte[] h = host.getBytes(StandardCharsets.UTF_8);
+      writeVarInt(body, h.length);
+      body.writeBytes(h);
+      body.write(0x63);
+      body.write(0xDD);
+      writeVarInt(body, nextState);
+      java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+      writeVarInt(out, body.size());
+      out.writeBytes(body.toByteArray());
+      return out.toByteArray();
+   }
+
+   private static void writeVarInt(java.io.ByteArrayOutputStream out, int v) {
+      while ((v & ~0x7F) != 0) {
+         out.write(v & 0x7F | 0x80);
+         v >>>= 7;
+      }
+
+      out.write(v);
+   }
+
    @Test
-   void hostedWorldIsReachableThroughTheRelay() throws Exception {
-      assumeTrue(!RELAY.isBlank(), "no -Pe2eRelay");
+   void hostedWorldIsReachableAtPlayerNameAddress() throws Exception {
+      assumeTrue(!RELAY.isBlank() && !GATEWAY.isBlank(), "no -Pe2eRelay / -Pe2eGateway");
       JsonElement info = Backend.get("/api/relay", false).json();
       assertEquals(Endpoints.relayPort(), info.getAsJsonObject().get("port").getAsInt(), "relay announced by the backend");
+      String domain = info.getAsJsonObject().get("domain").getAsString();
       playAs(ALICE);
+      assertNotNull(Backend.session(), "the gateway name comes from the Mojang-confirmed account");
 
       try (ServerSocket lan = new ServerSocket(0)) {
+         // The "world": echoes everything, so the player gets back its handshake then its bytes
          Thread echo = new Thread(() -> {
             try (Socket s = lan.accept()) {
                s.getInputStream().transferTo(s.getOutputStream());
@@ -173,18 +203,40 @@ class BackendE2ETest {
          });
          echo.setDaemon(true);
          echo.start();
-         CompletableFuture<Integer> port = new CompletableFuture<>();
-         RelayClient relay = new RelayClient(lan.getLocalPort(), port::complete, e -> port.completeExceptionally(new IOException(e)));
+         CompletableFuture<String> address = new CompletableFuture<>();
+         RelayClient relay = new RelayClient(lan.getLocalPort(), address::complete, e -> address.completeExceptionally(new IOException(e)));
          relay.start();
 
-         try (Socket player = new Socket(Endpoints.relayHost(), await(port))) {
-            player.setSoTimeout(10000);
-            OutputStream out = player.getOutputStream();
-            out.write("hello relay".getBytes(StandardCharsets.UTF_8));
-            out.flush();
-            InputStream in = player.getInputStream();
-            byte[] back = in.readNBytes(11);
-            assertEquals("hello relay", new String(back, StandardCharsets.UTF_8));
+         try {
+            String expected = ALICE[1].toLowerCase(java.util.Locale.ROOT) + "." + domain;
+            assertEquals(expected, await(address), "address shown to the host");
+            String gwHost = GATEWAY.substring(0, GATEWAY.lastIndexOf(':'));
+            int gwPort = Integer.parseInt(GATEWAY.substring(GATEWAY.lastIndexOf(':') + 1));
+
+            // A player types "Alice….domain" (any case, trailing dot) and lands in the world
+            try (Socket player = new Socket(gwHost, gwPort)) {
+               player.setSoTimeout(10000);
+               byte[] hs = handshake(ALICE[1] + "." + domain.toUpperCase(java.util.Locale.ROOT) + ".", 2);
+               OutputStream out = player.getOutputStream();
+               out.write(hs);
+               out.write("hello relay".getBytes(StandardCharsets.UTF_8));
+               out.flush();
+               byte[] back = player.getInputStream().readNBytes(hs.length + 11);
+               assertEquals("hello relay", new String(back, hs.length, 11, StandardCharsets.UTF_8));
+               assertEquals(java.util.Arrays.toString(hs), java.util.Arrays.toString(java.util.Arrays.copyOf(back, hs.length)), "handshake forwarded as sent");
+            }
+
+            // Nobody hosts under this name: the server list shows why
+            try (Socket ping = new Socket(gwHost, gwPort)) {
+               ping.setSoTimeout(10000);
+               OutputStream out = ping.getOutputStream();
+               out.write(handshake("nobody-here." + domain, 1));
+               out.write(new byte[]{1, 0}); // status request
+               out.write(new byte[]{9, 1, 0, 0, 0, 0, 0, 0, 0, 42}); // ping: the server answers pong and closes
+               out.flush();
+               byte[] reply = ping.getInputStream().readAllBytes();
+               assertTrue(new String(reply, StandardCharsets.UTF_8).contains("Aucun monde"), new String(reply, StandardCharsets.UTF_8));
+            }
          } finally {
             relay.stop();
          }

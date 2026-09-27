@@ -16,7 +16,7 @@ import net.minecraft.world.level.GameType;
 public class InviteManager {
    private static final Logger LOG = Log.get("Relay");
    private static RelayClient activeRelay;
-   private static int activePublicPort = -1;
+   private static String activeAddress;
    private static int activeLanPort = -1;
 
    public static CompletableFuture<String> startSession(String modeJeu, String difficulte, boolean triche) {
@@ -28,8 +28,8 @@ public class InviteManager {
       } else if (Endpoints.relay() == null) {
          result.completeExceptionally(new IllegalStateException(Tr.of("swift.host.err.no_relay")));
          return result;
-      } else if (activeRelay != null && activeRelay.isAlive() && activePublicPort > 0) {
-         result.complete(adresse(activePublicPort));
+      } else if (activeRelay != null && activeRelay.isAlive() && activeAddress != null) {
+         result.complete(activeAddress);
          return result;
       } else {
          int freePort;
@@ -59,9 +59,9 @@ public class InviteManager {
                default -> Difficulty.NORMAL;
             };
             server.execute(() -> server.setDifficulty(diff, true));
-            activeRelay = new RelayClient(activeLanPort, port -> {
-               activePublicPort = port;
-               result.complete(adresse(port));
+            activeRelay = new RelayClient(activeLanPort, address -> {
+               activeAddress = address;
+               result.complete(address);
             }, err -> {
                LOG.warn("Relais : {}", err);
                if (!result.isDone()) {
@@ -80,7 +80,7 @@ public class InviteManager {
          activeRelay = null;
       }
 
-      activePublicPort = -1;
+      activeAddress = null;
       activeLanPort = -1;
    }
 
@@ -90,10 +90,6 @@ public class InviteManager {
          stop();
       }
 
-      return activeRelay != null && activeRelay.isAlive() && activePublicPort > 0 ? adresse(activePublicPort) : null;
-   }
-
-   private static String adresse(int port) {
-      return Endpoints.relayHost() + ":" + port;
+      return activeRelay != null && activeRelay.isAlive() ? activeAddress : null;
    }
 }

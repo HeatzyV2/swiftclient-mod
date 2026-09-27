@@ -22,15 +22,16 @@ public class RelayClient {
    private static final int CONNECT_TIMEOUT_MS = 8000;
    private final String sessionId;
    private final int lanPort;
-   private final Consumer<Integer> onPortAllocated;
+   /** Receives the address players join: "name.swiftclient.fr" through the gateway, else "host:port". */
+   private final Consumer<String> onAddress;
    private final Consumer<String> onError;
    private final AtomicBoolean alive = new AtomicBoolean(false);
    private Socket controlSock;
 
-   public RelayClient(int lanPort, Consumer<Integer> onPortAllocated, Consumer<String> onError) {
+   public RelayClient(int lanPort, Consumer<String> onAddress, Consumer<String> onError) {
       this.sessionId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
       this.lanPort = lanPort;
-      this.onPortAllocated = onPortAllocated;
+      this.onAddress = onAddress;
       this.onError = onError;
    }
 
@@ -76,11 +77,20 @@ public class RelayClient {
          out.flush();
 
          String line;
+         String gatewayHost = null;
          while ((line = in.readLine()) != null) {
-            if (line.startsWith("PORT ")) {
+            if (line.startsWith("HOST ")) {
+               gatewayHost = line.substring(5).trim();
+            } else if (line.startsWith("PORT ")) {
                int port = Integer.parseInt(line.substring(5).trim());
-               LOG.info("Session relais {} -> port {}", this.sessionId, port);
-               this.onPortAllocated.accept(port);
+               String address = gatewayHost != null && !gatewayHost.isEmpty() ? gatewayHost : port > 0 ? Endpoints.relayHost() + ":" + port : null;
+               LOG.info("Session relais {} -> {}", this.sessionId, address);
+               if (address == null) {
+                  this.onError.accept("no public address");
+                  break;
+               }
+
+               this.onAddress.accept(address);
             } else if (line.startsWith("NEW ")) {
                int connId = Integer.parseInt(line.substring(4).trim());
                new Thread(() -> this.handleNewClient(connId), "SwiftClient-Relay-Data-" + connId).start();

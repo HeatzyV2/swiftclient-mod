@@ -51,6 +51,9 @@ public final class HudClient {
       );
    }
 
+   private static final boolean DEV_OPEN_MODS = "mods".equals(System.getProperty("swiftclient.devOpen"));
+   private static boolean devOpened;
+
    public static void init() {
       SwiftKeys.register();
       if (CosmeticHttp.backendConfigured()) {
@@ -61,6 +64,12 @@ public final class HudClient {
          // First tick: options and window exist, modules that start enabled can apply themselves.
          ModuleManager.start();
          CapeUploadQueue.drain(8);
+
+         // Development: -Dswiftclient.devOpen=mods opens the mods menu over the title screen once
+         if (DEV_OPEN_MODS && !devOpened && mc.gui.screen() instanceof net.minecraft.client.gui.screens.TitleScreen) {
+            devOpened = true;
+            mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), mc.gui.screen()));
+         }
 
          while (SwiftKeys.MENU.consumeClick()) {
             if (mc.gui.screen() == null && mc.player != null) {

@@ -62,11 +62,12 @@ test {
     if (project.hasProperty('langDump')) {
         systemProperty 'swiftclient.langDump', project.property('langDump')
     }
-    // ./gradlew test --tests '*BackendE2ETest*' -Pe2eApi=http://127.0.0.1:8787 -Pe2eRelay=127.0.0.1:18600
+    // ./gradlew test --tests '*BackendE2ETest*' -Pe2eApi=http://127.0.0.1:8787 -Pe2eRelay=127.0.0.1:18600 -Pe2eGateway=127.0.0.1:18610
     // runs the mod against a real backend started with MOJANG_SESSION_URL=http://127.0.0.1:18555
     if (project.hasProperty('e2eApi')) {
         systemProperty 'swiftclient.e2e.api', project.property('e2eApi')
         systemProperty 'swiftclient.e2e.relay', project.findProperty('e2eRelay') ?: ''
+        systemProperty 'swiftclient.e2e.gateway', project.findProperty('e2eGateway') ?: ''
         outputs.upToDateWhen { false }
     }
 }
@@ -102,6 +103,10 @@ loom {
             // ./gradlew runClient -PauditMixins : applies every mixin at startup (see SwiftClient)
             if (project.hasProperty('auditMixins')) {
                 vmArg '-Dswiftclient.auditMixins=true'
+            }
+            // ./gradlew runClient -PdevOpen=mods : opens the mods menu over the title screen
+            if (project.hasProperty('devOpen')) {
+                vmArg "-Dswiftclient.devOpen=${project.property('devOpen')}"
             }
         }
     }
