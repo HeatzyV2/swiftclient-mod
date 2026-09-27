@@ -101,9 +101,9 @@ public final class ModsScreen extends UiScreen {
    private static final float RATIO = 2.0F;
    private static final int HEADER_H = 34;
    private static final int CHIPS_H = 26;
-   private static final int CARD_MIN_W = 104;
-   private static final int TILE_H = 100;
-   private static final int TILE_GAP = 8;
+   private static final int CARD_MIN_W = 76;
+   private static final int TILE_H = 57;
+   private static final int TILE_GAP = 6;
    private static final int GAP = 10;
    private static final int CARD_H = 64;
    private boolean titresVisibles = true;
@@ -133,6 +133,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private void setEmbedded(UiScreen s, int section) {
+      this.contentChanged();
       this.embedded = s;
       this.currentSection = section;
       this.settingsFor = null;
@@ -143,6 +144,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private void embedBack() {
+      this.contentChanged();
       this.embedded = null;
       this.currentSection = 0;
    }
@@ -208,7 +210,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int columns() {
-      return Math.max(1, Math.min(5, (this.gridW() + TILE_GAP) / (CARD_MIN_W + TILE_GAP)));
+      return Math.max(1, Math.min(7, (this.gridW() + TILE_GAP) / (CARD_MIN_W + TILE_GAP)));
    }
 
    private int cardW() {
@@ -225,16 +227,12 @@ public final class ModsScreen extends UiScreen {
       return new int[]{this.gridLeft() + col * (w + TILE_GAP), this.gridTop() + row * (TILE_H + TILE_GAP) - this.grille.px(), w, TILE_H};
    }
 
-   private static int[] optionsRect(int[] card) {
-      return new int[]{card[0] + 6, card[1] + 58, card[2] - 12 - 20, 16};
-   }
-
    private static int[] gearRect(int[] card) {
-      return new int[]{card[0] + card[2] - 6 - 18, card[1] + 58, 18, 16};
+      return new int[]{card[0] + card[2] - 5 - 14, card[1] + card[3] - 5 - 14, 14, 14};
    }
 
    private static int[] toggleRect(int[] card) {
-      return new int[]{card[0] + 6, card[1] + 78, card[2] - 12, 16};
+      return new int[]{card[0] + 5, card[1] + card[3] - 5 - 14, card[2] - 10 - 16, 14};
    }
 
    private int[] closeRect() {
@@ -295,23 +293,91 @@ public final class ModsScreen extends UiScreen {
       this.grille.contenu(content, this.gridBottom() - this.gridTop());
    }
 
+   // --- Motion: everything eases toward its target at a fixed rate, whatever the frame rate ---
+
+   private final java.util.Map<String, Float> anim = new java.util.HashMap<>();
+   private long lastFrame;
+   private float frameDt = 1.0F / 60.0F;
+   private final long openedAt = System.nanoTime();
+   private long contentChangedAt = System.nanoTime();
+   private float chipHiX = -1.0F;
+   private float chipHiW;
+   private float navHiY = -1.0F;
+
+   /** Moves the value `key` toward `target` (exponential ease, `rate` per second) and returns it. */
+   private float ease(String key, float target, float rate) {
+      Float v = this.anim.get(key);
+      float cur = v == null ? target : v;
+      cur += (target - cur) * (1.0F - (float)Math.exp(-rate * this.frameDt));
+      if (Math.abs(target - cur) < 0.002F) {
+         cur = target;
+      }
+
+      this.anim.put(key, cur);
+      return cur;
+   }
+
+   private static float approach(float cur, float target, float rate, float dt) {
+      if (cur < -0.5F) {
+         return target;
+      }
+
+      float n = cur + (target - cur) * (1.0F - (float)Math.exp(-rate * dt));
+      return Math.abs(target - n) < 0.3F ? target : n;
+   }
+
+   /** 0 -> 1 over `ms` since `since`, ease-out cubic. */
+   private static float intro(long since, float ms) {
+      float t = Math.min(1.0F, (System.nanoTime() - since) / 1.0E6F / ms);
+      float u = 1.0F - t;
+      return 1.0F - u * u * u;
+   }
+
+   private void contentChanged() {
+      this.contentChangedAt = System.nanoTime();
+   }
+
+   private static int lerpArgb(int a, int b, float t) {
+      t = t < 0.0F ? 0.0F : Math.min(t, 1.0F);
+      int aa = a >>> 24, ar = a >> 16 & 0xFF, ag = a >> 8 & 0xFF, ab = a & 0xFF;
+      int ba = b >>> 24, br = b >> 16 & 0xFF, bg = b >> 8 & 0xFF, bb = b & 0xFF;
+      return Math.round(aa + (ba - aa) * t) << 24 | Math.round(ar + (br - ar) * t) << 16 | Math.round(ag + (bg - ag) * t) << 8 | Math.round(ab + (bb - ab) * t);
+   }
+
+   private static int withAlpha(int argb, float k) {
+      return Math.round((argb >>> 24) * Math.max(0.0F, Math.min(1.0F, k))) << 24 | argb & 0xFFFFFF;
+   }
+
    @Override
    public void draw(Canvas c, int mouseX, int mouseY, float delta) {
+      long now = System.nanoTime();
+      this.frameDt = this.lastFrame == 0L ? 1.0F / 60.0F : Math.min(0.1F, (now - this.lastFrame) / 1.0E9F);
+      this.lastFrame = now;
       this.caret++;
       this.recomputeScroll();
       this.grille.anime();
       this.reglages.anime();
-      // Dim world — no grey fog overlay
-      c.fill(0, 0, this.width, this.height, OVERLAY);
+      float open = intro(this.openedAt, 240.0F);
+      c.fill(0, 0, this.width, this.height, withAlpha(OVERLAY, open));
       int px = this.panelX();
       int py = this.panelY();
       int pw = this.panelW();
       int ph = this.panelH();
+      boolean scaled = open < 1.0F;
+      if (scaled) {
+         c.pushScale(px + pw / 2, py + ph / 2, 0.96F + 0.04F * open);
+      }
+
       // Swift shell: one dark slab, the rail is an inset slab on its left
       c.card(px, py, pw, ph, SLAB, SLAB_BORDER, 1, PANEL_R);
       c.card(px + 6, py + 6, this.sideW() - 10, ph - 12, RAIL, SLAB_BORDER, 1, 8.0F);
 
       this.drawSidebar(c, mouseX, mouseY);
+      int slide = Math.round((1.0F - intro(this.contentChangedAt, 200.0F)) * 10.0F);
+      if (slide != 0) {
+         c.pushTranslate(slide, 0);
+      }
+
       int[] xr = this.closeRect();
       boolean xh = in(mouseX, mouseY, xr);
       if (this.embedded != null) {
@@ -345,6 +411,14 @@ public final class ModsScreen extends UiScreen {
 
             this.drawScrollbar(c, this.grille, this.gridTop(), this.gridBottom());
          }
+      }
+
+      if (slide != 0) {
+         c.popTranslate();
+      }
+
+      if (scaled) {
+         c.popScale();
       }
    }
 
@@ -418,7 +492,7 @@ public final class ModsScreen extends UiScreen {
    private void buildNav() {
       this.navHits.clear();
       int y = this.panelY() + 56;
-      int dispo = this.accountCardY() - 40 - y;
+      int dispo = this.accountCardY() - 32 - y;
       int items = 0;
       int headers = 0;
 
@@ -430,8 +504,8 @@ public final class ModsScreen extends UiScreen {
          }
       }
 
-      int itemH = 21;
-      int headH = 15;
+      int itemH = 17;
+      int headH = 14;
       int besoin = items * itemH + headers * headH;
       if (besoin > dispo && besoin > 0) {
          float k = (float)dispo / besoin;
@@ -470,6 +544,17 @@ public final class ModsScreen extends UiScreen {
       }
 
       this.buildNav();
+      int bx = x + 12;
+      int bw = w - 22;
+      for (ModsScreen.NavHit hit : this.navHits) {
+         if (!hit.nav().isHeader() && hit.nav().section() == this.currentSection) {
+            this.navHiY = approach(this.navHiY, hit.y(), 16.0F, this.frameDt);
+            int ih = hit.h() - 3;
+            int hy = Math.round(this.navHiY);
+            c.roundRect(bx, hy, bw, ih, 4.0F, ACCENT_SOFT);
+            c.roundRect(bx, hy + 3, 2, ih - 6, 1.0F, ACCENT);
+         }
+      }
 
       for (ModsScreen.NavHit hit : this.navHits) {
          ModsScreen.Nav n = hit.nav();
@@ -484,32 +569,35 @@ public final class ModsScreen extends UiScreen {
             c.text(label.toUpperCase(Locale.ROOT), x + 18, hit.y() + hit.h() - 10, FAINT, false);
          } else {
             boolean actif = n.section() == this.currentSection;
-            boolean over = mouseX >= x + 12 && mouseX < x + w - 10 && mouseY >= hit.y() && mouseY < hit.y() + hit.h() - 2;
+            boolean over = mouseX >= bx && mouseX < bx + bw && mouseY >= hit.y() && mouseY < hit.y() + hit.h() - 2;
             int ih = hit.h() - 3;
-            int bx = x + 12;
-            int bw = w - 22;
-            c.card(bx, hit.y(), bw, ih, actif ? ACCENT_SOFT : (over ? TILE_HOV : TILE), actif ? ACCENT : SLAB_BORDER, 1, 5.0F);
-            int col = actif || over ? TEXT : DIM;
-            int is = Math.min(10, ih - 6);
-            int tx = bx + 8;
-            if (n.icon() != null && is >= 7) {
-               c.icon(n.icon(), tx, hit.y() + (ih - is) / 2, is, actif ? ACCENT : col);
-               tx += is + 6;
+            float hov = this.ease("nav:" + n.section(), over && !actif ? 1.0F : 0.0F, 18.0F);
+            if (hov > 0.01F) {
+               c.roundRect(bx, hit.y(), bw, ih, 4.0F, withAlpha(0x14FFFFFF, hov));
             }
 
-            c.text(trunc(c, label, bx + bw - 6 - tx), tx, hit.y() + (ih - 8) / 2, col, false);
+            int col = actif ? TEXT : lerpArgb(DIM, TEXT, hov);
+            int is = Math.min(9, ih - 4);
+            int tx = bx + 8 + Math.round(hov * 2.0F);
+            if (n.icon() != null && is >= 6) {
+               c.icon(n.icon(), tx, hit.y() + (ih - is) / 2, is, actif ? ACCENT : col);
+               tx += is + 5;
+            }
+
+            c.text(trunc(c, label, bx + bw - 4 - tx), tx, hit.y() + (ih - 8) / 2, col, false);
          }
       }
 
       int[] hud = this.editHudRect();
-      boolean hudOver = in(mouseX, mouseY, hud);
-      c.card(hud[0], hud[1], hud[2], hud[3], hudOver ? ACCENT_HOV : ACCENT, hudOver ? -1 : 0, hudOver ? 1 : 0, 5.0F);
-      spacedCentered(c, Tr.of("swift.menu.edit_hud").toUpperCase(Locale.ROOT), hud[0] + hud[2] / 2, hud[1] + (hud[3] - 8) / 2, TEXT, hud[2] - 8);
+      float hh = this.ease("edithud", in(mouseX, mouseY, hud) ? 1.0F : 0.0F, 18.0F);
+      c.roundRect(hud[0], hud[1], hud[2], hud[3], 4.0F, lerpArgb(ACCENT, ACCENT_HOV, hh));
+      String hudLabel = Tr.of("swift.menu.edit_hud").toUpperCase(Locale.ROOT);
+      c.centeredText(trunc(c, hudLabel, hud[2] - 8), hud[0] + hud[2] / 2, hud[1] + (hud[3] - 8) / 2, TEXT, false);
       this.drawAccountCard(c, x, w, mouseX, mouseY);
    }
 
    private int[] editHudRect() {
-      return new int[]{this.sideX() + 12, this.accountCardY() - 32, this.sideW() - 22, 18};
+      return new int[]{this.sideX() + 12, this.accountCardY() - 26, this.sideW() - 22, 15};
    }
 
    private void drawAccountCard(Canvas c, int x, int w, int mouseX, int mouseY) {
@@ -567,43 +655,76 @@ public final class ModsScreen extends UiScreen {
       }
 
       // Tighter chips when they do not fit: tracked capitals, then plain capitals, then less padding
-      this.chipPad = 16;
+      this.chipPad = 12;
       this.chipTracked = true;
       if (this.chipsWidth(c, labels) > this.gridW()) {
          this.chipTracked = false;
       }
       if (this.chipsWidth(c, labels) > this.gridW()) {
-         this.chipPad = 8;
+         this.chipPad = 6;
       }
 
-      int x = this.gridLeft();
       int y = this.chipsY();
-      c.pushScissor(this.gridLeft(), y - 1, this.gridW(), 20);
+      int h = 15;
+      int x = this.gridLeft();
+      int[] xs = new int[labels.size()];
+      int[] ws = new int[labels.size()];
+      int active = 0;
       for (int i = 0; i < labels.size(); i++) {
+         String caps = labels.get(i).toUpperCase(Locale.ROOT);
+         xs[i] = x;
+         ws[i] = (this.chipTracked ? spacedWidth(c, caps) : c.textWidth(caps)) + this.chipPad;
+         x += ws[i] + 5;
          String v = values.get(i);
-         x = this.chip(c, labels.get(i), v, x, y, mouseX, mouseY, v == null ? this.category == null : v.equals(this.category));
+         if (v == null ? this.category == null : v.equals(this.category)) {
+            active = i;
+         }
       }
+
+      this.chipHiX = approach(this.chipHiX, xs[active], 18.0F, this.frameDt);
+      this.chipHiW = this.chipHiW <= 0.0F ? ws[active] : approach(this.chipHiW, ws[active], 18.0F, this.frameDt);
+      c.pushScissor(this.gridLeft(), y - 1, this.gridW(), h + 2);
+      for (int i = 0; i < labels.size(); i++) {
+         boolean over = in(mouseX, mouseY, new int[]{xs[i], y, ws[i], h});
+         float hov = this.ease("chip:" + i, over ? 1.0F : 0.0F, 18.0F);
+         c.card(xs[i], y, ws[i], h, lerpArgb(TILE, TILE_HOV, hov), lerpArgb(SLAB_BORDER, ACCENT_DIM, hov), 1, 4.0F);
+      }
+
+      c.roundRect(Math.round(this.chipHiX), y, Math.round(this.chipHiW), h, 4.0F, ACCENT);
+      for (int i = 0; i < labels.size(); i++) {
+         String caps = labels.get(i).toUpperCase(Locale.ROOT);
+         this.tabHits.add(new ModsScreen.TabHit(xs[i], ws[i], values.get(i)));
+         boolean onHi = xs[i] + ws[i] / 2 >= this.chipHiX && xs[i] + ws[i] / 2 <= this.chipHiX + this.chipHiW;
+         float hov = this.ease("chip:" + i, in(mouseX, mouseY, new int[]{xs[i], y, ws[i], h}) ? 1.0F : 0.0F, 18.0F);
+         int col = onHi || i == active ? TEXT : lerpArgb(DIM, TEXT, hov);
+         if (this.chipTracked) {
+            spacedCentered(c, caps, xs[i] + ws[i] / 2, y + (h - 8) / 2, col, ws[i]);
+         } else {
+            c.centeredText(caps, xs[i] + ws[i] / 2, y + (h - 8) / 2, col, false);
+         }
+      }
+
       c.popScissor();
-      this.chipPad = 16;
+      this.chipPad = 12;
       this.chipTracked = true;
    }
 
-   private int chipPad = 16;
+   private int chipPad = 12;
    private boolean chipTracked = true;
 
    private int chipsWidth(Canvas c, List<String> labels) {
       int w = 0;
       for (String l : labels) {
          String caps = l.toUpperCase(Locale.ROOT);
-         w += (this.chipTracked ? spacedWidth(c, caps) : c.textWidth(caps)) + this.chipPad + 6;
+         w += (this.chipTracked ? spacedWidth(c, caps) : c.textWidth(caps)) + this.chipPad + 5;
       }
-      return w - 6;
+      return w - 5;
    }
 
    private int chip(Canvas c, String label, String value, int x, int y, int mouseX, int mouseY, boolean active) {
       String caps = label.toUpperCase(Locale.ROOT);
       int w = (this.chipTracked ? spacedWidth(c, caps) : c.textWidth(caps)) + this.chipPad;
-      int h = 18;
+      int h = 15;
       this.tabHits.add(new ModsScreen.TabHit(x, w, value));
       boolean over = in(mouseX, mouseY, new int[]{x, y, w, h});
       c.card(x, y, w, h, active ? ACCENT : (over ? TILE_HOV : TILE), active ? 0 : (over ? ACCENT_DIM : SLAB_BORDER), active ? 0 : 1, 5.0F);
@@ -613,42 +734,50 @@ public final class ModsScreen extends UiScreen {
       } else {
          c.centeredText(caps, x + w / 2, y + (h - 8) / 2, col, false);
       }
-      return x + w + 6;
+      return x + w + 5;
    }
 
    private static boolean lockedM(Module m) {
       return false;
    }
 
-   /** Module card: icon, name, Options + gear, Enabled/Disabled bar. */
+   /** Compact module card: icon, name, then the Enabled/Disabled bar and the settings gear. */
    private void drawModCard(Canvas c, Module m, int[] r, int mouseX, int mouseY) {
       boolean on = m.isEnabled();
       boolean inGrid = mouseY >= this.gridTop() && mouseY <= this.gridBottom();
       boolean hover = inGrid && in(mouseX, mouseY, r);
-      c.card(r[0], r[1], r[2], r[3], hover ? TILE_HOV : TILE, hover ? ACCENT_DIM : SLAB_BORDER, 1, CARD_R);
+      float hov = this.ease("card:" + m.id, hover ? 1.0F : 0.0F, 16.0F);
+      float onT = this.ease("on:" + m.id, on ? 1.0F : 0.0F, 14.0F);
+      int lift = Math.round(hov);
+      int y = r[1] - lift;
+      c.card(r[0], y, r[2], r[3], lerpArgb(TILE, TILE_HOV, hov), lerpArgb(SLAB_BORDER, ACCENT_DIM, hov), 1, 6.0F);
 
-      int is = 24;
-      c.icon(m.icon == null ? "mods" : m.icon, r[0] + (r[2] - is) / 2, r[1] + 10, is, on ? TEXT : DIM);
-      c.centeredText(trunc(c, m.displayName(), r[2] - 10), r[0] + r[2] / 2, r[1] + 42, on ? TEXT : DIM, false);
+      int is = 14;
+      c.icon(m.icon == null ? "mods" : m.icon, r[0] + (r[2] - is) / 2, y + 6, is, lerpArgb(DIM, TEXT, Math.max(onT, hov * 0.6F)));
+      c.centeredText(trunc(c, m.displayName(), r[2] - 8), r[0] + r[2] / 2, y + 23, lerpArgb(DIM, TEXT, Math.max(onT, hov)), false);
 
-      // Options + gear
-      int[] o = optionsRect(r);
-      int[] g = gearRect(r);
-      boolean has = m.hasSettings();
-      boolean oOver = has && inGrid && (in(mouseX, mouseY, o) || in(mouseX, mouseY, g));
-      c.card(o[0], o[1], o[2], o[3], oOver ? BTN_HOV : BTN, SLAB_BORDER, 1, 4.0F);
-      c.card(g[0], g[1], g[2], g[3], oOver ? BTN_HOV : BTN, SLAB_BORDER, 1, 4.0F);
-      int oc = has ? (oOver ? TEXT : DIM) : FAINT;
-      spacedCentered(c, Tr.of("swift.mods.options").toUpperCase(Locale.ROOT), o[0] + o[2] / 2, o[1] + (o[3] - 8) / 2, oc, o[2] - 6);
-      c.icon("gear", g[0] + (g[2] - 10) / 2, g[1] + (g[3] - 10) / 2, 10, oc);
-
-      // Enabled / disabled bar
+      // Enabled bar: the accent sweeps in from the left when switched on
       int[] t = toggleRect(r);
+      t[1] -= lift;
       boolean tOver = inGrid && in(mouseX, mouseY, t);
-      int bg = on ? (tOver ? ACCENT_HOV : ACCENT) : (tOver ? BTN_HOV : OFF_BG);
-      c.card(t[0], t[1], t[2], t[3], bg, on ? 0 : SLAB_BORDER, on ? 0 : 1, 4.0F);
+      float tHov = this.ease("tog:" + m.id, tOver ? 1.0F : 0.0F, 18.0F);
+      c.card(t[0], t[1], t[2], t[3], lerpArgb(OFF_BG, BTN_HOV, tHov), SLAB_BORDER, 1, 3.0F);
+      int fw = Math.round(t[2] * onT);
+      if (fw >= 4) {
+         c.roundRect(t[0], t[1], fw, t[3], 3.0F, lerpArgb(ACCENT, ACCENT_HOV, tHov));
+      }
+
       String label = (on ? Tr.of("swift.mods.enabled") : Tr.of("swift.mods.disabled")).toUpperCase(Locale.ROOT);
-      spacedCentered(c, label, t[0] + t[2] / 2, t[1] + (t[3] - 8) / 2, on ? TEXT : OFF_TEXT, t[2] - 6);
+      c.centeredText(trunc(c, label, t[2] - 4), t[0] + t[2] / 2, t[1] + (t[3] - c.lineHeight()) / 2 + 1, lerpArgb(OFF_TEXT, TEXT, onT), false);
+
+      // Settings gear
+      int[] g = gearRect(r);
+      g[1] -= lift;
+      boolean has = m.hasSettings();
+      boolean gOver = has && inGrid && in(mouseX, mouseY, g);
+      float gHov = this.ease("gear:" + m.id, gOver ? 1.0F : 0.0F, 18.0F);
+      c.card(g[0], g[1], g[2], g[3], lerpArgb(BTN, BTN_HOV, gHov), lerpArgb(SLAB_BORDER, ACCENT_DIM, gHov), 1, 3.0F);
+      c.icon("gear", g[0] + (g[2] - 8) / 2, g[1] + (g[3] - 8) / 2, 8, has ? lerpArgb(DIM, ACCENT, gHov) : FAINT);
    }
 
    private static final int LETTER_SPACING = 1;
@@ -1011,7 +1140,7 @@ public final class ModsScreen extends UiScreen {
                if (onSearch) {
                   return true;
                } else if (this.settingsFor != null) {
-                  if (my >= this.chipsY() && my < this.chipsY() + 18) {
+                  if (my >= this.chipsY() && my < this.chipsY() + 15) {
                      for (ModsScreen.TabHit t : this.tabHits) {
                         if (mx >= t.x() && mx < t.x() + t.w()) {
                            this.settingsGroup = t.value();
@@ -1075,9 +1204,13 @@ public final class ModsScreen extends UiScreen {
 
                   return true;
                } else {
-                  if (my >= this.chipsY() && my < this.chipsY() + 18) {
+                  if (my >= this.chipsY() && my < this.chipsY() + 15) {
                      for (ModsScreen.TabHit txx : this.tabHits) {
                         if (mx >= txx.x() && mx < txx.x() + txx.w()) {
+                           if (!java.util.Objects.equals(this.category, txx.value())) {
+                              this.contentChanged();
+                           }
+
                            this.category = txx.value();
                            this.grille.haut();
                            return true;
@@ -1092,7 +1225,7 @@ public final class ModsScreen extends UiScreen {
                         int[] r = this.cardRect(i);
                         if (in((int)mx, (int)my, r)) {
                            Module m = mods.get(i);
-                           if (m.hasSettings() && (in((int)mx, (int)my, optionsRect(r)) || in((int)mx, (int)my, gearRect(r)))) {
+                           if (m.hasSettings() && in((int)mx, (int)my, gearRect(r))) {
                               this.openSettings(m);
                               return true;
                            }
@@ -1119,6 +1252,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private void openSettings(Module m) {
+      this.contentChanged();
       this.settingsFor = m;
       List<String> g = groupsOf(m);
       this.settingsGroup = g.size() > 1 ? g.get(0) : null;
@@ -1126,6 +1260,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private void closeSettings() {
+      this.contentChanged();
       this.settingsFor = null;
       this.settingsGroup = null;
       this.draggingSetting = null;
