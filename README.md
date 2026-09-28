@@ -28,7 +28,7 @@ ou un autre dossier via `-PdeployDir=<dossier instances>`.
 
 | Propriété JVM | Effet |
 |---|---|
-| `-Dswiftclient.api=<url>` (ou `SWIFTCLIENT_API`) | Backend (défaut : `http://151.240.30.3:10049`, `off` pour le couper) |
+| `-Dswiftclient.api=<url>` (ou `SWIFTCLIENT_API`) | Backend (défaut : `https://api.swiftclient.fr`, `off` pour le couper) |
 | `-Dswiftclient.nowPlayingFile=<fichier>` | Pont « Now Playing » fourni par le launcher |
 | `-Dswiftclient.auditMixins=true` | Applique tous les mixins au premier tick et journalise le résultat |
 

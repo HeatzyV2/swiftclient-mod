@@ -16,7 +16,7 @@ import org.slf4j.Logger;
  */
 public final class Endpoints {
    private static final Logger LOG = Log.get("Net");
-   public static final String DEFAULT_API = "http://151.240.30.3:10049";
+   public static final String DEFAULT_API = "https://api.swiftclient.fr";
    /** Relay control port on the backend host when the backend does not announce one. */
    public static final int DEFAULT_RELAY_PORT = 7777;
    private static volatile String API = resolveApi();
