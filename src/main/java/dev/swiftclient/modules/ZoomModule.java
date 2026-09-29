@@ -18,7 +18,7 @@ public final class ZoomModule extends Module {
    private Integer savedFov;
 
    public ZoomModule() {
-      super("zoom", "Zoom", "Hold the zoom key to zoom in (scroll to adjust).", "Render", "zoom", false);
+      super("zoom", "Zoom", "Hold the zoom key to zoom in (scroll to adjust).", "PvP", "zoom", false);
       this.action("controls", "Zoom key", () -> SwiftKeys.label(SwiftKeys.ZOOM), SwiftKeys::openControls)
          .desc("Change it in Options > Controls > Key Binds, under Swift Client.");
       this.mode = this.cycle("mode", "Mode", new String[]{"Hold", "Toggle"}, 0).desc("Hold the key, or press once to toggle the zoom on and off.");

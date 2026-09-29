@@ -109,6 +109,14 @@ loom {
             if (project.hasProperty('devOpen')) {
                 vmArg "-Dswiftclient.devOpen=${project.property('devOpen')}"
             }
+            // ./gradlew runClient -PquickPlay=<world> : joins that singleplayer world (run/saves) right away
+            if (project.hasProperty('quickPlay')) {
+                programArgs '--quickPlaySingleplayer', project.property('quickPlay').toString()
+            }
+            // ./gradlew runClient -PdevShots : screenshots (run/screenshots) of the world, then of the mods menu
+            if (project.hasProperty('devShots')) {
+                vmArg '-Dswiftclient.devShots=true'
+            }
         }
     }
 }

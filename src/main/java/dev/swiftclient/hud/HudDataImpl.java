@@ -1,6 +1,18 @@
 package dev.swiftclient.hud;
 
 import dev.swiftclient.core.hud.HudData;
+import dev.swiftclient.mixin.BossHealthOverlayAccessor;
+import dev.swiftclient.pvp.CombatTracker;
+import java.util.HashSet;
+import java.util.Set;
+import net.minecraft.client.gui.components.LerpingBossEvent;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Items;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -204,6 +216,158 @@ public final class HudDataImpl implements HudData {
       }
 
       return sb.toString();
+   }
+
+   @Override
+   public int ping() {
+      if (this.p() == null || this.mc.getConnection() == null || this.mc.getSingleplayerServer() != null) {
+         return -1;
+      }
+
+      PlayerInfo info = this.mc.getConnection().getPlayerInfo(this.p().getUUID());
+      return info == null ? -1 : info.getLatency();
+   }
+
+   @Override
+   public float yaw() {
+      return this.p() == null ? 0.0F : this.p().getViewYRot(this.mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
+   }
+
+   @Override
+   public String serverAddress() {
+      if (this.mc.getSingleplayerServer() != null) {
+         return "";
+      }
+
+      ServerData sd = this.mc.getCurrentServer();
+      return sd == null ? "" : sd.ip;
+   }
+
+   @Override
+   public boolean sprinting() {
+      return this.p() != null && this.p().isSprinting();
+   }
+
+   @Override
+   public boolean sneaking() {
+      return this.p() != null && this.p().isShiftKeyDown();
+   }
+
+   @Override
+   public List<HudData.BossBar> bossBars() {
+      List<HudData.BossBar> out = new ArrayList<>();
+      for (LerpingBossEvent e : ((BossHealthOverlayAccessor)this.mc.gui.hud.getBossOverlay()).swiftclient$events().values()) {
+         out.add(new HudData.BossBar(e.getName().getString(), e.getName(), e.getProgress(), e.getColor().ordinal()));
+      }
+
+      return out;
+   }
+
+   /** Default icons of the Item Counter, built on first use (items need the registries). */
+   private static ItemStack[] countIcons;
+
+   private static ItemStack[] countIcons() {
+      if (countIcons == null) {
+         countIcons = new ItemStack[]{
+            new ItemStack(Items.ARROW), new ItemStack(Items.ENDER_PEARL), new ItemStack(Items.GOLDEN_APPLE), new ItemStack(Items.SPLASH_POTION),
+            new ItemStack(Items.TOTEM_OF_UNDYING), new ItemStack(Items.COBBLESTONE)
+         };
+      }
+
+      return countIcons;
+   }
+
+   private static int countKey(ItemStack st) {
+      if (st.is(Items.ARROW) || st.is(Items.TIPPED_ARROW) || st.is(Items.SPECTRAL_ARROW)) {
+         return 0;
+      } else if (st.is(Items.ENDER_PEARL)) {
+         return 1;
+      } else if (st.is(Items.GOLDEN_APPLE) || st.is(Items.ENCHANTED_GOLDEN_APPLE)) {
+         return 2;
+      } else if (st.is(Items.SPLASH_POTION) || st.is(Items.LINGERING_POTION)) {
+         return 3;
+      } else if (st.is(Items.TOTEM_OF_UNDYING)) {
+         return 4;
+      } else {
+         return st.getItem() instanceof BlockItem ? 5 : -1;
+      }
+   }
+
+   @Override
+   public List<HudData.ItemCount> itemCounts() {
+      int[] n = new int[6];
+      ItemStack[] icon = countIcons().clone();
+      if (this.p() != null) {
+         Inventory inv = this.p().getInventory();
+         int biggestBlocks = 0;
+         for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack st = inv.getItem(i);
+            int k = st.isEmpty() ? -1 : countKey(st);
+            if (k >= 0) {
+               n[k] += st.getCount();
+               if (k == 5 && st.getCount() > biggestBlocks) {
+                  biggestBlocks = st.getCount();
+                  icon[5] = st;
+               } else if (k == 3 || k == 2) {
+                  icon[k] = st;
+               }
+            }
+         }
+      }
+
+      List<HudData.ItemCount> out = new ArrayList<>(6);
+      for (int i = 0; i < 6; i++) {
+         out.add(new HudData.ItemCount(HudData.COUNTED_ITEMS.get(i), icon[i], n[i]));
+      }
+
+      return out;
+   }
+
+   @Override
+   public List<HudData.Pickup> pickups() {
+      return PickupTracker.snapshot();
+   }
+
+   @Override
+   public List<HudData.Cooldown> cooldowns() {
+      List<HudData.Cooldown> out = new ArrayList<>();
+      if (this.p() == null) {
+         return out;
+      }
+
+      float partial = this.mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+      Set<Identifier> seen = new HashSet<>();
+      Inventory inv = this.p().getInventory();
+      for (int i = 0; i < inv.getContainerSize(); i++) {
+         ItemStack st = inv.getItem(i);
+         if (!st.isEmpty() && this.p().getCooldowns().isOnCooldown(st) && seen.add(this.p().getCooldowns().getCooldownGroup(st))) {
+            out.add(new HudData.Cooldown(st, this.p().getCooldowns().getCooldownPercent(st, partial)));
+         }
+      }
+
+      return out;
+   }
+
+   @Override
+   public HudData.Combat combat() {
+      return CombatTracker.snapshot();
+   }
+
+   @Override
+   public List<String> resourcePacks() {
+      List<String> out = new ArrayList<>();
+      for (Pack pack : this.mc.getResourcePackRepository().getSelectedPacks()) {
+         if (!pack.isRequired() && !pack.getId().contains("fabric") && !pack.getId().contains("swiftclient")) {
+            out.add(0, pack.getTitle().getString());
+         }
+      }
+
+      return out;
+   }
+
+   @Override
+   public HudData.Minimap minimap(int radius, boolean rotate) {
+      return MinimapRenderer.get(radius, rotate);
    }
 
    @Override

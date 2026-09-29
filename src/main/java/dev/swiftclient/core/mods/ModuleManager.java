@@ -3,23 +3,7 @@ package dev.swiftclient.core.mods;
 import dev.swiftclient.core.hud.HudElement;
 import dev.swiftclient.core.hud.HudManager;
 import dev.swiftclient.core.log.Log;
-import dev.swiftclient.core.mods.modules.ArmorModule;
-import dev.swiftclient.core.mods.modules.BiomeModule;
-import dev.swiftclient.core.mods.modules.BlockOverlayModule;
-import dev.swiftclient.core.mods.modules.CpsModule;
-import dev.swiftclient.core.mods.modules.CrosshairModule;
-import dev.swiftclient.core.mods.modules.DiscordRpcModule;
-import dev.swiftclient.core.mods.modules.FpsModule;
-import dev.swiftclient.core.mods.modules.GuiBlurModule;
-import dev.swiftclient.core.mods.modules.HudModule;
-import dev.swiftclient.core.mods.modules.KeystrokesModule;
-import dev.swiftclient.core.mods.modules.MemoryModule;
-import dev.swiftclient.core.mods.modules.MusicModule;
-import dev.swiftclient.core.mods.modules.ScoreboardModule;
-import dev.swiftclient.core.mods.modules.SpeedModule;
-import dev.swiftclient.core.mods.modules.TabAnimModule;
-import dev.swiftclient.core.mods.modules.VanillaUiModule;
-import dev.swiftclient.core.mods.modules.WiderTabModule;
+import dev.swiftclient.core.mods.modules.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,13 +19,22 @@ public final class ModuleManager {
    private static final Logger LOG = Log.get("Modules");
    private static final List<Module> MODULES = new ArrayList<>();
    private static final Map<Class<?>, Module> BY_CLASS = new HashMap<>();
-   private static final Set<String> DEDICATED_HUD_MODULES = Set.of("music", "fps", "memory", "biome", "speed", "cps", "keystrokes", "armor", "scoreboard");
-   /** Menu order. "@hud" stands for the generic HUD element modules. Unknown ids are appended. */
+   /**
+    * Menu order ("All" view). Deliberately mixed: signature Swift features first, then HUD, PvP and visual
+    * modules interleaved. "@hud" stands for the generic HUD element modules. Unknown ids are appended.
+    */
    private static final List<String> ORDER = List.of(
-      "zoom", "fullbright", "realisticcape", "togglesprint", "togglesneak", "autojump", "vanillaui", "tabanim", "widertab", "blockoverlay", "norain",
-      "@hud", "hud_music", "hud_fps", "hud_memory", "hud_biome", "hud_speed", "hud_cps", "hud_keystrokes", "hud_armor", "hud_scoreboard",
-      "discord_rpc", "crosshair", "freelook", "gui_blur"
+      "friends", "hud_minimap", "waypoints", "motion_blur", "hud_pvpinfo", "hud_combo", "saturation", "freelook", "hud_keystrokes",
+      "item_physics", "hud_direction", "time_changer", "nametags", "hud_cps", "chunk_borders", "zoom", "fog", "hud_reach", "hud_bossbar",
+      "hit_color", "hud_music", "hud_fps", "particles", "snaplook", "worldedit_cui", "old_visuals", "hud_ping", "hud_armor", "uhc_overlay",
+      "hud_itemcounter", "clear_glass", "team_view", "hud_cooldowns", "crosshair", "hud_scoreboard", "weather_changer", "hud_server",
+      "light_overlay", "hitboxes", "hud_notifications", "fullbright", "hud_itemtracker", "items_2d", "hud_tnt", "tab_editor", "chat",
+      "hud_memory", "hide_foliage", "hud_stopwatch", "togglesprint", "togglesneak", "hud_togglestatus", "fire", "hud_playtime",
+      "better_foliage", "nick_hider", "titles", "hud_packs", "blockoverlay", "screenshot", "gui_blur", "hud_speed", "autojump", "@hud",
+      "hud_biome", "mod_menu", "discord_rpc", "vanillaui"
    );
+   /** Category chips, in this order. */
+   public static final List<String> CATEGORIES = List.of("HUD", "PvP", "Visual", "World", "Interface");
    private static final Set<String> HOOKS = Set.of("onEnable", "onDisable", "onTick", "onRender");
    /** "moduleId:phase" already reported, so a module failing every tick logs once. */
    private static final Set<String> REPORTED = ConcurrentHashMap.newKeySet();
@@ -75,8 +68,7 @@ public final class ModuleManager {
 
          for (Module m : List.of(
             new VanillaUiModule(),
-            new TabAnimModule(),
-            new WiderTabModule(),
+            new TabEditorModule(),
             new BlockOverlayModule(),
             new MusicModule(),
             new FpsModule(),
@@ -89,7 +81,25 @@ public final class ModuleManager {
             new ScoreboardModule(),
             new DiscordRpcModule(),
             new CrosshairModule(),
-            new GuiBlurModule()
+            new GuiBlurModule(),
+            new PingModule(),
+            new DirectionModule(),
+            new ServerModule(),
+            new PlaytimeModule(),
+            new ToggleStatusModule(),
+            new ComboModule(),
+            new ReachModule(),
+            new PvpInfoModule(),
+            new BossBarModule(),
+            new CooldownsModule(),
+            new ItemCounterModule(),
+            new ItemTrackerModule(),
+            new PackDisplayModule(),
+            new MinimapModule(),
+            new NotificationsModule(),
+            new TntCountdownModule(),
+            new TitlesModule(),
+            new FriendsModule()
          )) {
             byId.put(m.id, m);
          }
@@ -97,7 +107,7 @@ public final class ModuleManager {
          for (String id : ORDER) {
             if ("@hud".equals(id)) {
                for (HudElement el : HudManager.elements()) {
-                  if (!DEDICATED_HUD_MODULES.contains(el.id)) {
+                  if (!byId.containsKey(el.moduleId()) && byId(el.moduleId()) == null) {
                      register(new HudModule(el));
                   }
                }

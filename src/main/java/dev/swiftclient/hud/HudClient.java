@@ -8,14 +8,11 @@ import dev.swiftclient.core.hud.HudVisibilite;
 import dev.swiftclient.core.mods.ModsScreen;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.input.SwiftKeys;
-import dev.swiftclient.modules.AutoJumpModule;
-import dev.swiftclient.modules.FreelookModule;
-import dev.swiftclient.modules.FullBrightModule;
-import dev.swiftclient.modules.NoRainModule;
-import dev.swiftclient.modules.RealisticCapeModule;
-import dev.swiftclient.modules.ToggleSneakModule;
-import dev.swiftclient.modules.ToggleSprintModule;
-import dev.swiftclient.modules.ZoomModule;
+import dev.swiftclient.core.mods.Module;
+import dev.swiftclient.modules.*;
+import dev.swiftclient.pvp.CombatTracker;
+import dev.swiftclient.world.WorldEditCui;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import dev.swiftclient.platform.CanvasImpl;
 import dev.swiftclient.platform.CoreScreenHost;
 import java.util.List;
@@ -37,26 +34,37 @@ public final class HudClient {
 
    /** Declared first thing at startup: other systems (RPC thread...) may read modules before init(). */
    public static void installModules() {
-      ModuleManager.install(
-         () -> List.of(
-            new ZoomModule(),
-            new FullBrightModule(),
-            new RealisticCapeModule(),
-            new ToggleSprintModule(),
-            new ToggleSneakModule(),
-            new AutoJumpModule(),
-            new NoRainModule(),
-            new FreelookModule()
-         )
-      );
+      ModuleManager.install(PlatformModules::all);
    }
 
    /** Development: -Dswiftclient.devOpen=mods|multiplayer opens that screen over the title screen once. */
    private static final String DEV_OPEN = System.getProperty("swiftclient.devOpen");
    private static boolean devOpened;
+   /** Development: -Dswiftclient.devShots=true takes screenshots of the world then of the mods menu. */
+   private static final boolean DEV_SHOTS = Boolean.getBoolean("swiftclient.devShots");
+   private static int devShotTicks;
+
+   private static void devShots(Minecraft mc) {
+      if (!DEV_SHOTS || mc.player == null) {
+         return;
+      }
+
+      devShotTicks++;
+      if (devShotTicks == 200 || devShotTicks == 300) {
+         net.minecraft.client.Screenshot.grab(mc, false);
+      } else if (devShotTicks == 240) {
+         mc.player.setYRot(mc.player.getYRot() + 90.0F);
+      } else if (devShotTicks == 340) {
+         mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), null));
+      } else if (devShotTicks == 380) {
+         net.minecraft.client.Screenshot.grab(mc, false);
+      }
+   }
 
    public static void init() {
       SwiftKeys.register();
+      WorldEditCui.register();
+      ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(WorldEditCui::handshake));
       if (CosmeticHttp.backendConfigured()) {
          HeartbeatManager.start(() -> Minecraft.getInstance().player != null);
       }
@@ -82,6 +90,9 @@ public final class HudClient {
          }
 
          ModuleManager.tick();
+         devShots(mc);
+         CombatTracker.tick();
+         PickupTracker.tick(ModuleManager.active("hud_itemtracker"));
       });
       HudElementRegistry.attachElementAfter(
          VanillaHudElements.MISC_OVERLAYS, Identifier.fromNamespaceAndPath("swiftclient", "hud"), (graphics, deltaTracker) -> {

@@ -3,17 +3,11 @@ package dev.swiftclient.mixin;
 import dev.swiftclient.core.log.Log;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.swiftclient.core.cosmetics.CosmeticState;
-import dev.swiftclient.core.mods.CapeSim;
-import dev.swiftclient.core.mods.CapeSimManager;
-import dev.swiftclient.core.mods.RealisticCapeState;
-import dev.swiftclient.render.WaveMesh;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -69,16 +63,9 @@ public abstract class CapeLayerMixin {
                            }
 
                            pose.pushPose();
-                           CapeSim sim = RealisticCapeState.active ? CapeSimManager.get(player.getUUID()) : null;
-                           if (sim != null) {
-                              ModelPart buste = ((PlayerModel)((CapeLayer)(Object)this).getParentModel()).body;
-                              float partial = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
-                              collector.submitCustomGeometry(pose, RenderTypes.entitySolid(frame), (p, vc) -> WaveMesh.emit(p, vc, sim, partial, light, buste));
-                           } else {
-                              collector.submitModel(
-                                 this.model, state, pose, RenderTypes.entitySolid(frame), light, OverlayTexture.NO_OVERLAY, state.outlineColor, null
-                              );
-                           }
+                           collector.submitModel(
+                              this.model, state, pose, RenderTypes.entitySolid(frame), light, OverlayTexture.NO_OVERLAY, state.outlineColor, null
+                           );
 
                            pose.popPose();
                            ci.cancel();

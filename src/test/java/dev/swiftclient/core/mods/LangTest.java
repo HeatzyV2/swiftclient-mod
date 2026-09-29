@@ -7,14 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import dev.swiftclient.modules.AutoJumpModule;
-import dev.swiftclient.modules.FreelookModule;
-import dev.swiftclient.modules.FullBrightModule;
-import dev.swiftclient.modules.NoRainModule;
-import dev.swiftclient.modules.RealisticCapeModule;
-import dev.swiftclient.modules.ToggleSneakModule;
-import dev.swiftclient.modules.ToggleSprintModule;
-import dev.swiftclient.modules.ZoomModule;
+import dev.swiftclient.modules.PlatformModules;
 import dev.swiftclient.testing.TestGame;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,12 +45,7 @@ class LangTest {
    static Map<String, String> moduleKeys() {
       TestGame.install();
       ModuleManager.resetForTests();
-      ModuleManager.install(
-         () -> List.of(
-            new ZoomModule(), new FullBrightModule(), new RealisticCapeModule(), new ToggleSprintModule(), new ToggleSneakModule(),
-            new AutoJumpModule(), new NoRainModule(), new FreelookModule()
-         )
-      );
+      ModuleManager.install(PlatformModules::all);
       Map<String, String> keys = new LinkedHashMap<>();
 
       for (Module m : ModuleManager.modules()) {

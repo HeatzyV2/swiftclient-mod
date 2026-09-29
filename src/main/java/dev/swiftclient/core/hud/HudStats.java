@@ -20,6 +20,8 @@ public final class HudStats {
    private static int rightCount;
    private static int prevMask;
    private static int mask;
+   /** When the current world / server session started, 0 while out of a world. */
+   private static long sessionStart;
 
    private HudStats() {
    }
@@ -37,6 +39,12 @@ public final class HudStats {
          fpsSmoothed = fpsSmoothed <= 0.0 ? fps : fpsSmoothed + (fps - fpsSmoothed) * 0.35;
          framesInWindow = 0;
          fpsWindowStart = now;
+      }
+
+      if (d == null || !d.inWorld()) {
+         sessionStart = 0L;
+      } else if (sessionStart == 0L) {
+         sessionStart = System.currentTimeMillis();
       }
 
       if (d != null) {
@@ -104,6 +112,16 @@ public final class HudStats {
       }
 
       return keep;
+   }
+
+   /** Called on disconnect: the next world starts a new session. */
+   public static void resetSession() {
+      sessionStart = 0L;
+   }
+
+   /** Time since joining the current world or server. */
+   public static long sessionMillis() {
+      return sessionStart == 0L ? 0L : System.currentTimeMillis() - sessionStart;
    }
 
    public static int fps() {

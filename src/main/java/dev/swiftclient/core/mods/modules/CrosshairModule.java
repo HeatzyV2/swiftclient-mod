@@ -20,7 +20,7 @@ public final class CrosshairModule extends Module {
    public final ModuleSetting outline;
 
    public CrosshairModule() {
-      super("crosshair", "Crosshair", "Custom crosshair: style, color, size.", "Render", "gear", false);
+      super("crosshair", "Crosshair", "Custom crosshair: style, color, size.", "PvP", "crosshair", false);
       this.style = this.cycle("style", "Style", new String[]{"Cross", "Dot", "Circle", "T", "Custom"}, 0);
       this.color = this.color("color", "Color", -1);
       this.action("edit", "Pixel editor", () -> Tr.of("swift.common.open"), () -> ScreenRequest.open(new CrosshairEditorScreen()));

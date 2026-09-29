@@ -82,6 +82,10 @@ public abstract class Module {
       return this.add(ModuleSetting.cycle(this.id, settingId, label, options, def));
    }
 
+   protected final ModuleSetting text(String settingId, String label, String def, int maxLength) {
+      return this.add(ModuleSetting.text(this.id, settingId, label, def, maxLength));
+   }
+
    protected final ModuleSetting action(String settingId, String label, Supplier<String> buttonLabel, Runnable onClick) {
       return this.add(ModuleSetting.action(this.id, settingId, label, buttonLabel, onClick));
    }

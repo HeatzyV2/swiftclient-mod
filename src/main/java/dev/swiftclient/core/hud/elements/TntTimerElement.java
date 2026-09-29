@@ -6,7 +6,7 @@ import dev.swiftclient.core.hud.HudElement;
 
 public final class TntTimerElement extends HudElement {
    public TntTimerElement() {
-      super("tnt", "TNT timer");
+      super("tnt", "TNT Countdown");
    }
 
    @Override

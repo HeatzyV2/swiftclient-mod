@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 /** Real toggle: while enabled, the vanilla Sneak key switches sneaking on and off (vanilla "Sneak: Toggle"). */
 public final class ToggleSneakModule extends Module {
    public ToggleSneakModule() {
-      super("togglesneak", "Toggle Sneak", "Press the Sneak key once to stay crouched, once more to stand up.", "Movement", "togglesneak", false);
+      super("togglesneak", "Toggle Sneak", "Press the Sneak key once to stay crouched, once more to stand up.", "PvP", "togglesneak", false);
    }
 
    @Override

@@ -6,7 +6,6 @@ import dev.swiftclient.core.badges.BadgeState;
 import dev.swiftclient.core.cosmetics.CosmeticState;
 import dev.swiftclient.core.cosmetics.OfflineNames;
 import dev.swiftclient.core.cosmetics.PetState;
-import dev.swiftclient.core.mods.CapeSimManager;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.music.MusicState;
@@ -54,10 +53,13 @@ public class SwiftClient implements ClientModInitializer {
 
    private static void forgetPlayers() {
       PlayerCache.clear();
-      CapeSimManager.clear();
       BadgeState.clear();
       CosmeticState.clear();
       PetState.clear();
+      dev.swiftclient.core.hud.HudStats.resetSession();
+      dev.swiftclient.pvp.CombatTracker.reset();
+      dev.swiftclient.world.Waypoints.forget();
+      dev.swiftclient.world.WorldEditCui.clear();
    }
 
    public void onInitializeClient() {
@@ -68,6 +70,7 @@ public class SwiftClient implements ClientModInitializer {
       );
       Platform.install(new GameImpl());
       HudClient.installModules();
+      dev.swiftclient.modules.BuiltinPackModule.registerPacks();
       RpcManager.init();
       AccountManager.get().load();
       PetManager.INSTANCE.init();

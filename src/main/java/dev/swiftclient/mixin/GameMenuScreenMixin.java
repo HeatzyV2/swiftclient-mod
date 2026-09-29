@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.modules.ModMenuModule;
 import dev.swiftclient.core.mods.ModsScreen;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.modules.VanillaUiModule;
@@ -79,51 +80,53 @@ public abstract class GameMenuScreenMixin extends Screen {
          this.swiftclient$layout(msgs, acts);
          this.swiftclient$rangerLesRestes();
 
-         // Text links under pause stack — no emoji icon dock
-         boolean solo = mc.getSingleplayerServer() != null;
-         int linkY = this.height - 28;
-         int x = this.width / 2 - 120;
-         this.addRenderableWidget(
-            new CanvasWidget(
-               x,
-               linkY,
-               50,
-               14,
-               Component.translatable("swift.menu.mods"),
-               new TextLinkWidget(() -> tr("swift.menu.mods"), () -> mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), self)))
-            )
-         );
-         this.addRenderableWidget(
-            new CanvasWidget(
-               x + 60,
-               linkY,
-               80,
-               14,
-               Component.translatable("swift.menu.cosmetics"),
-               new TextLinkWidget(() -> tr("swift.menu.cosmetics"), () -> mc.setScreenAndShow(new CoreScreenHost(new WardrobeScreen(), self)))
-            )
-         );
-         this.addRenderableWidget(
-            new CanvasWidget(
-               x + 150,
-               linkY,
-               60,
-               14,
-               Component.translatable("swift.menu.language"),
-               new TextLinkWidget(() -> tr("swift.menu.language"), () -> mc.setScreenAndShow(new CoreScreenHost(new LanguageScreen(), self)))
-            )
-         );
-         if (solo) {
+         if (ModMenuModule.pauseLinks()) {
+            // Text links under pause stack — no emoji icon dock
+            boolean solo = mc.getSingleplayerServer() != null;
+            int linkY = this.height - 28;
+            int x = this.width / 2 - 120;
             this.addRenderableWidget(
                new CanvasWidget(
-                  x + 220,
+                  x,
                   linkY,
                   50,
                   14,
-                  Component.translatable("swift.menu.host"),
-                  new TextLinkWidget(() -> tr("swift.menu.host"), () -> mc.setScreenAndShow(new CoreScreenHost(new HostWorldScreen(), self)))
+                  Component.translatable("swift.menu.mods"),
+                  new TextLinkWidget(() -> tr("swift.menu.mods"), () -> mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), self)))
                )
             );
+            this.addRenderableWidget(
+               new CanvasWidget(
+                  x + 60,
+                  linkY,
+                  80,
+                  14,
+                  Component.translatable("swift.menu.cosmetics"),
+                  new TextLinkWidget(() -> tr("swift.menu.cosmetics"), () -> mc.setScreenAndShow(new CoreScreenHost(new WardrobeScreen(), self)))
+               )
+            );
+            this.addRenderableWidget(
+               new CanvasWidget(
+                  x + 150,
+                  linkY,
+                  60,
+                  14,
+                  Component.translatable("swift.menu.language"),
+                  new TextLinkWidget(() -> tr("swift.menu.language"), () -> mc.setScreenAndShow(new CoreScreenHost(new LanguageScreen(), self)))
+               )
+            );
+            if (solo) {
+               this.addRenderableWidget(
+                  new CanvasWidget(
+                     x + 220,
+                     linkY,
+                     50,
+                     14,
+                     Component.translatable("swift.menu.host"),
+                     new TextLinkWidget(() -> tr("swift.menu.host"), () -> mc.setScreenAndShow(new CoreScreenHost(new HostWorldScreen(), self)))
+                  )
+               );
+            }
          }
       }
    }

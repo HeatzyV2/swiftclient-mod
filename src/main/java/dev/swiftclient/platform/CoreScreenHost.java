@@ -1,7 +1,6 @@
 package dev.swiftclient.platform;
 
 import dev.swiftclient.core.hud.HudManager;
-import dev.swiftclient.core.theme.ThemeManager;
 import dev.swiftclient.core.ui.UiScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -28,10 +27,8 @@ public class CoreScreenHost extends Screen {
 
    public void extractRenderState(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
       CanvasImpl c = new CanvasImpl(ctx);
-      ThemeManager.tick();
       HudManager.setGuiScale(Minecraft.getInstance().getWindow().getGuiScale());
       this.ui.draw(c, mouseX, mouseY, delta);
-      ThemeManager.drawCurtain(c, this.width, this.height);
    }
 
    public boolean mouseClicked(MouseButtonEvent e, boolean doubled) {

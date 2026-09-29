@@ -1,7 +1,7 @@
 package dev.swiftclient.core.hud;
 
 import dev.swiftclient.core.gfx.Canvas;
-import dev.swiftclient.core.hud.elements.ArmorElement;
+import dev.swiftclient.core.hud.elements.*;
 import dev.swiftclient.core.hud.elements.BiomeElement;
 import dev.swiftclient.core.hud.elements.ClockElement;
 import dev.swiftclient.core.hud.elements.CoordsElement;
@@ -49,11 +49,27 @@ public final class HudManager {
       new SpeedElement(),
       new CpsElement(),
       new KeystrokesElement(),
-      new ScoreboardElement()
+      new ScoreboardElement(),
+      new PingElement(),
+      new DirectionElement(),
+      new ServerElement(),
+      new PlaytimeElement(),
+      new StopwatchElement(),
+      new ToggleStatusElement(),
+      new ComboElement(),
+      new ReachElement(),
+      new PvpInfoElement(),
+      new BossBarElement(),
+      new CooldownsElement(),
+      new ItemCounterElement(),
+      new ItemTrackerElement(),
+      new PackDisplayElement(),
+      new MinimapElement(),
+      new NotificationsElement()
    );
    private static final Map<String, HudManager.Def> DEFAULTS = new HashMap<>();
    private static final HudManager.Def FALLBACK = new HudManager.Def(0.02F, 0.02F, 0, 0);
-   private static final List<String> LEFT_STACK = List.of("date", "clock", "days", "coords", "fps", "memory", "biome", "speed");
+   private static final List<String> LEFT_STACK = List.of("date", "clock", "days", "coords", "fps", "memory", "biome", "speed", "ping", "server", "playtime", "stopwatch", "packs");
    private static final Set<String> UNSET = new HashSet<>();
    private static int stackW;
    private static int stackH;
@@ -409,6 +425,22 @@ public final class HudManager {
       DEFAULTS.put("cps", new HudManager.Def(0.99F, 0.62F, 2, 0));
       DEFAULTS.put("keystrokes", new HudManager.Def(0.99F, 0.68F, 2, 0));
       DEFAULTS.put("scoreboard", new HudManager.Def(0.995F, 0.5F, 2, 1));
+      DEFAULTS.put("ping", new HudManager.Def(0.01F, 0.355F, 0, 0));
+      DEFAULTS.put("direction", new HudManager.Def(0.5F, 0.01F, 1, 0));
+      DEFAULTS.put("server", new HudManager.Def(0.01F, 0.39F, 0, 0));
+      DEFAULTS.put("playtime", new HudManager.Def(0.01F, 0.425F, 0, 0));
+      DEFAULTS.put("stopwatch", new HudManager.Def(0.01F, 0.46F, 0, 0));
+      DEFAULTS.put("togglestatus", new HudManager.Def(0.01F, 0.97F, 0, 2));
+      DEFAULTS.put("combo", new HudManager.Def(0.42F, 0.62F, 2, 0));
+      DEFAULTS.put("reach", new HudManager.Def(0.58F, 0.62F, 0, 0));
+      DEFAULTS.put("pvpinfo", new HudManager.Def(0.58F, 0.55F, 0, 0));
+      DEFAULTS.put("bossbar", new HudManager.Def(0.5F, 0.035F, 1, 0));
+      DEFAULTS.put("cooldowns", new HudManager.Def(0.5F, 0.8F, 1, 2));
+      DEFAULTS.put("itemcounter", new HudManager.Def(0.99F, 0.42F, 2, 0));
+      DEFAULTS.put("itemtracker", new HudManager.Def(0.99F, 0.9F, 2, 2));
+      DEFAULTS.put("packs", new HudManager.Def(0.01F, 0.5F, 0, 0));
+      DEFAULTS.put("minimap", new HudManager.Def(0.99F, 0.02F, 2, 0));
+      DEFAULTS.put("notifications", new HudManager.Def(0.5F, 0.13F, 1, 0));
    }
 
    private record Def(float fx, float fy, int ax, int ay) {

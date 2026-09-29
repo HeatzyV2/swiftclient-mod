@@ -7,7 +7,7 @@ import dev.swiftclient.core.mods.ModuleSetting;
 @ConsumedBy({"HudManager"})
 public final class ArmorModule extends Module {
    public ArmorModule() {
-      super("hud_armor", "Armor", "Equipped armor as item icons. Move it in the HUD Editor.", "HUD", "shield", false);
+      super("hud_armor", "Armor Status", "Equipped armor as item icons. Move it in the HUD Editor.", "HUD", "shield", false);
       this.settings
          .add(
             ModuleSetting.cycle("hud_armor", "layout", "Layout", new String[]{"Horizontal", "Vertical"}, 0)

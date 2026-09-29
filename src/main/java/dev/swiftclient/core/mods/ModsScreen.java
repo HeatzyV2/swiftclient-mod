@@ -10,7 +10,6 @@ import dev.swiftclient.core.screen.HostWorldScreen;
 import dev.swiftclient.core.screen.HudEditorScreen;
 import dev.swiftclient.core.screen.LanguageScreen;
 import dev.swiftclient.core.screen.ProfilesScreen;
-import dev.swiftclient.core.screen.ThemeScreen;
 import dev.swiftclient.core.screen.WardrobeScreen;
 import dev.swiftclient.core.ui.Defilement;
 import dev.swiftclient.core.ui.ScreenRequest;
@@ -58,7 +57,6 @@ public final class ModsScreen extends UiScreen {
    private static final float PILL_R = 6.0F;
    private static final int S_MODS = 0;
    private static final int S_HUD = 1;
-   private static final int S_THEMES = 2;
    private static final int S_COSMETICS = 3;
    private static final int S_ACCOUNT = 4;
    private static final int S_LANG = 5;
@@ -71,10 +69,10 @@ public final class ModsScreen extends UiScreen {
       new ModsScreen.Nav(1, "swift.menu.hud", "hud"),
       new ModsScreen.Nav(7, "swift.menu.host", "host"),
       ModsScreen.Nav.header("swift.menu.section.personalization"),
-      new ModsScreen.Nav(2, "swift.menu.themes", "palette"),
       new ModsScreen.Nav(3, "swift.menu.cosmetics", "shirt"),
       new ModsScreen.Nav(5, "swift.menu.language", "globe"),
       ModsScreen.Nav.header("swift.menu.section.account"),
+      new ModsScreen.Nav(8, "swift.menu.friends", "friends"),
       new ModsScreen.Nav(4, "swift.menu.account", "users")
    };
    private final List<ModsScreen.NavHit> navHits = new ArrayList<>();
@@ -83,6 +81,7 @@ public final class ModsScreen extends UiScreen {
    private String settingsGroup;
    private ModuleSetting draggingSetting;
    private ModuleSetting listeningKey;
+   private ModuleSetting editingText;
    private final Defilement reglages = new Defilement();
    private ModuleSetting pickerFor;
    private float pkH;
@@ -261,7 +260,14 @@ public final class ModsScreen extends UiScreen {
          }
       }
 
+      // Fixed chip order; categories outside the list keep their place after it.
+      out.sort((a, b) -> Integer.compare(rank(a), rank(b)));
       return out;
+   }
+
+   private static int rank(String category) {
+      int i = ModuleManager.CATEGORIES.indexOf(category);
+      return i < 0 ? ModuleManager.CATEGORIES.size() : i;
    }
 
    private static List<String> groupsOf(Module m) {
@@ -815,6 +821,7 @@ public final class ModsScreen extends UiScreen {
          case TOGGLE -> 44;
          case COLOR -> 92;
          case ACTION, CYCLE, KEY -> 100;
+         case TEXT -> 130;
          default -> 150;
       };
    }
@@ -829,6 +836,10 @@ public final class ModsScreen extends UiScreen {
 
    private int[] setSwatchRect(ModsScreen.SetRow r) {
       return new int[]{this.gridRight() - 44, this.mid(r, 13), 34, 13};
+   }
+
+   private int[] setTextRect(ModsScreen.SetRow r) {
+      return new int[]{this.gridRight() - 126, this.mid(r, 15), 118, 15};
    }
 
    private int[] setActionRect(ModsScreen.SetRow r) {
@@ -950,6 +961,25 @@ public final class ModsScreen extends UiScreen {
             c.card(b[0], b[1], b[2], b[3], listening ? -12868259 : (over ? -13882063 : -14671580), 872415231, 1, 5.0F);
             String lbl = listening ? Tr.of("swift.mods.press_key") : s.keyName();
             c.centeredText(trunc(c, lbl, b[2] - 8), b[0] + b[2] / 2, b[1] + (b[3] - 8) / 2, -1, false);
+            break;
+         }
+         case TEXT: {
+            int[] b = this.setTextRect(r);
+            boolean editing = this.editingText == s;
+            boolean over = in(mouseX, mouseY, b);
+            c.card(b[0], b[1], b[2], b[3], -15263718, editing ? ACCENT : (over ? ACCENT_DIM : 872415231), 1, 5.0F);
+            String v = s.textValue();
+            String shown = v.isEmpty() && !editing ? Tr.of("swift.mods.text_empty") : v;
+            // Keep the end of the text (where the caret is) visible
+            while (shown.length() > 1 && c.textWidth(shown) > b[2] - 14) {
+               shown = shown.substring(1);
+            }
+
+            c.text(shown, b[0] + 6, b[1] + (b[3] - 8) / 2, v.isEmpty() && !editing ? FAINT : TEXT, false);
+            if (editing && this.caret / 20L % 2L == 0L) {
+               int cx = b[0] + 6 + c.textWidth(shown) + 1;
+               c.fill(cx, b[1] + 3, cx + 1, b[1] + b[3] - 3, TEXT);
+            }
             break;
          }
          default:
@@ -1094,6 +1124,7 @@ public final class ModsScreen extends UiScreen {
          this.back();
          return true;
       } else {
+         this.editingText = null;
          int px = this.panelX();
          int py = this.panelY();
          int pw = this.panelW();
@@ -1191,6 +1222,12 @@ public final class ModsScreen extends UiScreen {
                                  return true;
                               }
                               break;
+                           case TEXT:
+                              if (in((int)mx, (int)my, this.setTextRect(r))) {
+                                 this.editingText = s;
+                                 return true;
+                              }
+                              break;
                            default:
                               int[] tr = this.setSliderTrack(r);
                               if (near(mx, my, tr, 6)) {
@@ -1265,6 +1302,7 @@ public final class ModsScreen extends UiScreen {
       this.settingsGroup = null;
       this.draggingSetting = null;
       this.listeningKey = null;
+      this.editingText = null;
       this.reglages.haut();
    }
 
@@ -1273,8 +1311,6 @@ public final class ModsScreen extends UiScreen {
          this.setEmbedded(null, 0);
       } else if (id == 1) {
          this.open(new HudEditorScreen());
-      } else if (id == 2) {
-         this.setEmbedded(new ThemeScreen(), 2);
       } else if (id == 3) {
          this.setEmbedded(new WardrobeScreen(), 3);
       } else if (id == 5) {
@@ -1283,6 +1319,8 @@ public final class ModsScreen extends UiScreen {
          this.setEmbedded(new HostWorldScreen(), 7);
       } else if (id == 6) {
          this.setEmbedded(new ProfilesScreen(), 6);
+      } else if (id == 8) {
+         this.setEmbedded(new dev.swiftclient.core.screen.FriendsScreen(), 8);
       } else if (id == 4) {
          this.setEmbedded(new AccountScreen(), 4);
       }
@@ -1292,6 +1330,9 @@ public final class ModsScreen extends UiScreen {
    public boolean charTyped(String s) {
       if (this.embedded != null) {
          return this.embedded.charTyped(s);
+      } else if (this.editingText != null) {
+         this.editingText.setText(this.editingText.textValue() + s);
+         return true;
       } else if (!this.searchFocused) {
          return false;
       } else {
@@ -1312,6 +1353,17 @@ public final class ModsScreen extends UiScreen {
          } else {
             return false;
          }
+      } else if (this.editingText != null) {
+         if (keyCode == 259) {
+            String v = this.editingText.textValue();
+            if (!v.isEmpty()) {
+               this.editingText.setText(v.substring(0, v.length() - 1));
+            }
+         } else if (keyCode == 256 || keyCode == 257 || keyCode == 335) {
+            this.editingText = null;
+         }
+
+         return true;
       } else if (this.listeningKey != null) {
          if (keyCode != 256) {
             this.listeningKey.setKey(keyCode);
@@ -1346,7 +1398,7 @@ public final class ModsScreen extends UiScreen {
 
    @Override
    public boolean closeOnEscape() {
-      return this.embedded == null && this.settingsFor == null && this.pickerFor == null && this.listeningKey == null && !this.searchFocused;
+      return this.embedded == null && this.settingsFor == null && this.pickerFor == null && this.listeningKey == null && this.editingText == null && !this.searchFocused;
    }
 
    @Override

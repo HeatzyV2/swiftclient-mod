@@ -17,6 +17,10 @@ public final class SwiftKeys {
    public static KeyMapping MENU;
    public static KeyMapping ZOOM;
    public static KeyMapping FREELOOK;
+   public static KeyMapping SNAPLOOK;
+   public static KeyMapping STOPWATCH;
+   public static KeyMapping STOPWATCH_RESET;
+   public static KeyMapping WAYPOINT;
 
    private SwiftKeys() {
    }
@@ -27,6 +31,10 @@ public final class SwiftKeys {
       FREELOOK = KeyMappingHelper.registerKeyMapping(
          new KeyMapping("key.swiftclient.freelook", legacyKey("mod.freelook.key", GLFW.GLFW_KEY_LEFT_ALT), CATEGORY)
       );
+      SNAPLOOK = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.snaplook", GLFW.GLFW_KEY_H, CATEGORY));
+      STOPWATCH = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch", GLFW.GLFW_KEY_K, CATEGORY));
+      STOPWATCH_RESET = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch_reset", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+      WAYPOINT = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.waypoint", GLFW.GLFW_KEY_J, CATEGORY));
    }
 
    /**

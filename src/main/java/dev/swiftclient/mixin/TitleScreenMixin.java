@@ -13,11 +13,8 @@ import dev.swiftclient.core.screen.AccountScreen;
 import dev.swiftclient.core.screen.LanguageScreen;
 import dev.swiftclient.core.screen.WardrobeScreen;
 import dev.swiftclient.core.theme.SwiftPanorama;
-import dev.swiftclient.core.theme.ThemeManager;
-import dev.swiftclient.core.theme.ThemePopup;
 import dev.swiftclient.core.ui.AccountBadge;
 import dev.swiftclient.core.ui.SwiftIntro;
-import dev.swiftclient.core.ui.ThemeBadge;
 import dev.swiftclient.core.ui.widget.NavRowWidget;
 import dev.swiftclient.core.ui.widget.TextLinkWidget;
 import dev.swiftclient.platform.CanvasImpl;
@@ -45,9 +42,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({TitleScreen.class})
 public abstract class TitleScreenMixin extends Screen {
-   @Unique
-   private final ThemePopup swiftclient$themePopup = new ThemePopup();
-
    protected TitleScreenMixin(Component title) {
       super(title);
    }
@@ -176,7 +170,7 @@ public abstract class TitleScreenMixin extends Screen {
       at = {@At("TAIL")}
    )
    private void swiftclient$addCustomUi(CallbackInfo ci) {
-      SwiftPanorama.ensurePersistedApplied();
+      SwiftPanorama.applyWhenReady();
       if (ModuleManager.get(VanillaUiModule.class).isEnabled()) {
          return;
       }
@@ -338,11 +332,7 @@ public abstract class TitleScreenMixin extends Screen {
 
       if (!ModCompat.essentialLoaded()) {
          AccountBadge.render(c, this.width, mouseX, mouseY);
-         ThemeBadge.render(c, this.width, mouseX, mouseY);
       }
-      this.swiftclient$themePopup.draw(c, this.width, mouseX, mouseY);
-      ThemeManager.tick();
-      ThemeManager.drawCurtain(c, this.width, this.height);
    }
 
    @Inject(
@@ -353,11 +343,6 @@ public abstract class TitleScreenMixin extends Screen {
    private void swiftclient$openAccountSwitcher(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
       if (!ModCompat.essentialLoaded() && AccountBadge.isOnBadge(this.width, click.x(), click.y())) {
          Minecraft.getInstance().setScreenAndShow(new CoreScreenHost(new AccountScreen(), (TitleScreen)(Object)this));
-         cir.setReturnValue(true);
-      } else if (!ModCompat.essentialLoaded() && ThemeBadge.isOnBadge(this.width, click.x(), click.y())) {
-         this.swiftclient$themePopup.toggle();
-         cir.setReturnValue(true);
-      } else if (this.swiftclient$themePopup.isOpen() && this.swiftclient$themePopup.clickAt(this.width, click.x(), click.y())) {
          cir.setReturnValue(true);
       }
    }

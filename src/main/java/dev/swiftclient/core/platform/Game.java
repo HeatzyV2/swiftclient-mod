@@ -44,8 +44,6 @@ public interface Game {
 
    void addAccount(Consumer<String> onStatus);
 
-   void applyPanorama(String location);
-
    String getAccessToken();
 
    String getUuid();

@@ -31,6 +31,8 @@ public final class ModuleSetting {
    private Runnable action;
    private String[] options;
    private String[] optionKeys;
+   private String text = "";
+   private int maxLength = 32;
    private final String key;
    private final String moduleId;
 
@@ -105,6 +107,14 @@ public final class ModuleSetting {
          s.optionKeys[i] = optionKey(options[i]);
       }
 
+      return s.loaded();
+   }
+
+   /** Free text typed by the player (a nickname, a label...), at most {@code maxLength} characters. */
+   public static ModuleSetting text(String moduleId, String id, String name, String def, int maxLength) {
+      ModuleSetting s = new ModuleSetting(moduleId, id, name, ModuleSetting.Type.TEXT, false, 0.0, 0, 0.0, 0.0, 0.0, "");
+      s.text = def == null ? "" : def;
+      s.maxLength = Math.max(1, maxLength);
       return s.loaded();
    }
 
@@ -232,6 +242,20 @@ public final class ModuleSetting {
       }
    }
 
+   public String textValue() {
+      return this.text;
+   }
+
+   public int maxLength() {
+      return this.maxLength;
+   }
+
+   public void setText(String t) {
+      String v = t == null ? "" : t.replaceAll("[\r\n\t]", " ");
+      this.text = v.length() > this.maxLength ? v.substring(0, this.maxLength) : v;
+      this.save();
+   }
+
    public boolean boolValue() {
       return this.bool;
    }
@@ -282,6 +306,7 @@ public final class ModuleSetting {
          case TOGGLE -> this.bool ? "1" : "0";
          case COLOR -> String.format(Locale.ROOT, "#%08X", this.color);
          case CYCLE -> this.cycleKey();
+         case TEXT -> this.text;
          default -> Double.toString(this.value);
       };
    }
@@ -305,6 +330,9 @@ public final class ModuleSetting {
          switch (this.type) {
             case TOGGLE:
                this.bool = "1".equals(v) || "true".equalsIgnoreCase(v);
+               return Decoded.CURRENT;
+            case TEXT:
+               this.text = v.length() > this.maxLength ? v.substring(0, this.maxLength) : v;
                return Decoded.CURRENT;
             case COLOR: {
                boolean current = v.startsWith("#");
@@ -366,6 +394,7 @@ public final class ModuleSetting {
       COLOR,
       ACTION,
       CYCLE,
-      KEY;
+      KEY,
+      TEXT;
    }
 }

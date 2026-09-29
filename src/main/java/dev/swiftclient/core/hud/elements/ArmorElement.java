@@ -13,7 +13,7 @@ public final class ArmorElement extends HudElement {
    private static final int BAR_H = 2;
 
    public ArmorElement() {
-      super("armor", "Armor");
+      super("armor", "Armor Status");
    }
 
    private boolean horizontal() {

@@ -2,6 +2,9 @@ package dev.swiftclient.mixin;
 
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.modules.GuiBlurModule;
+import dev.swiftclient.modules.MotionBlurModule;
+import dev.swiftclient.modules.SaturationModule;
+import dev.swiftclient.renderer.PostFx;
 import dev.swiftclient.renderer.blur.ScreenBlur;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -19,6 +22,15 @@ public class GameRendererBlurMixin {
    )
    private void swiftclient$guiBlur(DeltaTracker deltaTracker, CallbackInfo ci) {
       Minecraft mc = Minecraft.getInstance();
+      // World effects first (Color Saturation, Motion Blur), then the menu blur on top of them.
+      SaturationModule sat = ModuleManager.get(SaturationModule.class);
+      MotionBlurModule motion = ModuleManager.get(MotionBlurModule.class);
+      PostFx.apply(
+         sat.isEnabled() ? (float)(sat.saturation.value() / 100.0) : -1.0F,
+         (float)(sat.contrast.value() / 100.0),
+         (float)(sat.brightness.value() / 100.0),
+         motion.isEnabled() && mc.gui.screen() == null ? (float)(motion.strength.value() / 100.0) : 0.0F
+      );
       GuiBlurModule m = ModuleManager.get(GuiBlurModule.class);
       if (mc.gui.screen() != null && m.isEnabled()) {
          float blur = (float)(m.strength.value() / 100.0 * 28.0);

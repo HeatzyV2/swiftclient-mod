@@ -7,7 +7,7 @@ import java.util.List;
 
 public final class EffectsElement extends HudElement {
    public EffectsElement() {
-      super("effects", "Potion effects");
+      super("effects", "Potion Effects");
    }
 
    @Override

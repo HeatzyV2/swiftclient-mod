@@ -1,6 +1,6 @@
 package dev.swiftclient.mixin;
 
-import dev.swiftclient.core.hud.Nametag;
+import dev.swiftclient.modules.NameTagsModule;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.world.entity.Avatar;
@@ -17,7 +17,7 @@ public abstract class AvatarNameSelfMixin {
       cancellable = true
    )
    private void swiftclient$showOwnNameInThirdPerson(Avatar avatar, double distSq, CallbackInfoReturnable<Boolean> cir) {
-      if (Nametag.showOwnName()) {
+      if (NameTagsModule.showOwn()) {
          Minecraft mc = Minecraft.getInstance();
          if (avatar == mc.player && mc.player != null && !mc.options.getCameraType().isFirstPerson()) {
             cir.setReturnValue(true);

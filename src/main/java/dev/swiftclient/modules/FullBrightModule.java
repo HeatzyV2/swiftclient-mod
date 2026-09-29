@@ -17,7 +17,7 @@ public final class FullBrightModule extends Module {
          "fullbright",
          "FullBright",
          "See in the dark as in broad daylight. Capped under shaders: beyond that the screen turns red.",
-         "Render",
+         "Visual",
          "fullbright",
          false
       );

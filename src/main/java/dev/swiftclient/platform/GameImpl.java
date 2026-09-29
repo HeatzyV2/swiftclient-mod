@@ -12,7 +12,6 @@ import dev.swiftclient.core.cosmetics.CapeUploadQueue;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Game;
 import dev.swiftclient.core.platform.Lang;
-import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.mixin.MinecraftClientAccessor;
 import dev.swiftclient.relay.InviteManager;
 import java.io.IOException;
@@ -212,11 +211,6 @@ public final class GameImpl implements Game {
          LOG.error("Application de la session impossible", e);
          return false;
       }
-   }
-
-   @Override
-   public void applyPanorama(String location) {
-      SwiftPanorama.apply(location);
    }
 
    /** swiftclient.json: read once (or migrated from the older files), written back atomically. */

@@ -31,7 +31,26 @@
     "CrashReportPreloadMixin",
     "BlockOutlineColorMixin",
     "ScoreboardHudMixin",
-    "OptionsSaveMixin"
+    "OptionsSaveMixin",
+    "DebugRendererMixin",
+    "EntityGlowMixin",
+    "EntityTeamColorMixin",
+    "ItemEntityRenderStateMixin",
+    "ItemEntityRendererMixin",
+    "OverlayTextureAccessor",
+    "ItemInHandRendererMixin",
+    "EquipmentLayerRendererMixin",
+    "FogRendererMixin",
+    "ClientClockMixin",
+    "ParticleEngineMixin",
+    "MultiPlayerGameModeMixin",
+    "NameTagStyleMixin",
+    "ScreenEffectRendererMixin",
+    "FontNickMixin",
+    "ScreenshotMixin",
+    "ChatComponentMixin",
+    "BossHealthOverlayAccessor",
+    "HudOverlaysMixin"
   ],
   "injectors": {
     "defaultRequire": 1

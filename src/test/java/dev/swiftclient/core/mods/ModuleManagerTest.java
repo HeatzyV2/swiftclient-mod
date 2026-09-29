@@ -10,14 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.swiftclient.core.mods.modules.CrosshairModule;
 import dev.swiftclient.core.mods.modules.MusicModule;
-import dev.swiftclient.modules.AutoJumpModule;
-import dev.swiftclient.modules.FreelookModule;
-import dev.swiftclient.modules.FullBrightModule;
-import dev.swiftclient.modules.NoRainModule;
-import dev.swiftclient.modules.RealisticCapeModule;
-import dev.swiftclient.modules.ToggleSneakModule;
-import dev.swiftclient.modules.ToggleSprintModule;
-import dev.swiftclient.modules.ZoomModule;
+import dev.swiftclient.modules.PlatformModules;
 import dev.swiftclient.testing.TestGame;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,11 +50,8 @@ class ModuleManagerTest {
 
    @Test
    void everyShippedModuleDeclaresItsBehaviour() {
-      for (Class<?> type : List.of(
-         ZoomModule.class, FullBrightModule.class, RealisticCapeModule.class, ToggleSprintModule.class, ToggleSneakModule.class,
-         AutoJumpModule.class, NoRainModule.class, FreelookModule.class
-      )) {
-         assertNull(ModuleManager.behaviourProblem(type), type.getSimpleName());
+      for (Module m : PlatformModules.all()) {
+         assertNull(ModuleManager.behaviourProblem(m.getClass()), m.getClass().getSimpleName());
       }
 
       // Core modules: building the registry validates each of them.
@@ -176,7 +166,7 @@ class ModuleManagerTest {
       CrosshairModule crosshair = ModuleManager.get(CrosshairModule.class);
       assertSame(crosshair, ModuleManager.byId("crosshair"));
       assertNotNull(crosshair.color);
-      assertThrows(IllegalStateException.class, () -> ModuleManager.get(ZoomModule.class), "platform module not installed in this test");
+      assertThrows(IllegalStateException.class, () -> ModuleManager.get(dev.swiftclient.modules.ZoomModule.class), "platform module not installed in this test");
    }
 
    @Test

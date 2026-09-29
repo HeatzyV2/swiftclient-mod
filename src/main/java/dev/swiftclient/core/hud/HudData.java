@@ -47,6 +47,97 @@ public interface HudData {
       return 0;
    }
 
+   /** Round trip to the server in ms, -1 when unknown (singleplayer, not in the tab list yet). */
+   default int ping() {
+      return -1;
+   }
+
+   /** Camera yaw in degrees, 0 = south, 90 = west (Minecraft convention). */
+   default float yaw() {
+      return 0.0F;
+   }
+
+   /** Address of the server being played on, empty in singleplayer. */
+   default String serverAddress() {
+      return "";
+   }
+
+   default boolean sprinting() {
+      return false;
+   }
+
+   default boolean sneaking() {
+      return false;
+   }
+
+   default List<HudData.BossBar> bossBars() {
+      return List.of();
+   }
+
+   /** Inventory totals, keyed by {@link HudData#COUNTED_ITEMS}. */
+   default List<HudData.ItemCount> itemCounts() {
+      return List.of();
+   }
+
+   /** Items that recently entered or left the inventory, newest first. */
+   default List<HudData.Pickup> pickups() {
+      return List.of();
+   }
+
+   default List<HudData.Cooldown> cooldowns() {
+      return List.of();
+   }
+
+   default HudData.Combat combat() {
+      return HudData.Combat.NONE;
+   }
+
+   /** Enabled resource packs, top of the list first (the one that wins). */
+   default List<String> resourcePacks() {
+      return List.of();
+   }
+
+   /** Minimap texture handle (drawn with {@code Canvas.textureRegion}), refreshed by the call. Null if unavailable. */
+   default HudData.Minimap minimap(int radius, boolean rotate) {
+      return null;
+   }
+
+   /** Keys of {@link #itemCounts()}, in display order. */
+   List<String> COUNTED_ITEMS = List.of("arrows", "pearls", "gapples", "potions", "totems", "blocks");
+
+   public record BossBar(String name, Object nameComponent, float progress, int color) {
+   }
+
+   public record ItemCount(String key, Object stack, int count) {
+   }
+
+   public record Pickup(Object stack, String name, int delta, long timeMs) {
+   }
+
+   public record Cooldown(Object stack, float fraction) {
+   }
+
+   /**
+    * Your last fights: consecutive hits without being hit back ({@code combo}), distance of the last hit
+    * ({@code reach}, -1 before any hit) and who you are fighting ({@code target}, null when nobody).
+    */
+   public record Combat(int combo, double reach, long lastHitMs, HudData.Target target) {
+      public static final HudData.Combat NONE = new HudData.Combat(0, -1.0, 0L, null);
+   }
+
+   public record Target(String name, String uuid, float health, float maxHealth, int armor, double distance, boolean player) {
+   }
+
+   /**
+    * {@code texture} is an image of {@code size} x {@code size} pixels centred on the player (north up, or
+    * facing up when rotated). {@code markers} are other players / waypoints, in pixels from the centre.
+    */
+   public record Minimap(Object texture, int size, List<HudData.MapMarker> markers) {
+   }
+
+   public record MapMarker(float dx, float dy, int color, boolean waypoint) {
+   }
+
    public record Armor(String name, int damage, int maxDamage, Object stack) {
       public Armor(String name, int damage, int maxDamage) {
          this(name, damage, maxDamage, null);
