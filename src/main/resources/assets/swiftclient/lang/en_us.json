@@ -798,5 +798,8 @@
   "key.swiftclient.snaplook": "Snaplook",
   "key.swiftclient.stopwatch": "Stopwatch: start / pause",
   "key.swiftclient.stopwatch_reset": "Stopwatch: reset",
-  "key.swiftclient.waypoint": "Add a waypoint"
+  "key.swiftclient.waypoint": "Add a waypoint",
+  "swift.host.err.no_session": "Your Swift session is not confirmed by Mojang yet: play with a Microsoft account, then retry in a few seconds",
+  "swift.host.err.signin": "The relay did not accept your Swift session: sign in again and retry",
+  "swift.host.err.not_verified": "Hosting needs a Minecraft account confirmed by Mojang (a Microsoft account)"
 }

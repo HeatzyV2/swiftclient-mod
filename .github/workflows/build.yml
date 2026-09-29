@@ -26,3 +26,34 @@ jobs:
           name: swiftclient-mod
           path: build/libs/*.jar
           if-no-files-found: error
+
+  # Every new mod_version pushed on main becomes a GitHub release with its jar. The launcher downloads
+  # the jar of the latest release before each launch, so players get the mod without a launcher update.
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: swiftclient-mod
+          path: dist
+
+      - name: Publish the release if this version is new
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, nothing to publish."
+            exit 0
+          fi
+          JAR="dist/swiftclient-mod-$VERSION.jar"
+          test -f "$JAR"
+          gh release create "$TAG" "$JAR" --title "Swift Client mod $VERSION" --target "$GITHUB_SHA" \
+            --notes "Swift Client mod $VERSION for Minecraft 26.2 (Fabric). Installed automatically by the Swift Client launcher; the jar can also go in any Fabric 26.2 mods folder with Fabric API."

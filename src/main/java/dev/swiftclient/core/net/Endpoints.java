@@ -73,10 +73,9 @@ public final class Endpoints {
          RELAY = relayHost() + ":" + port;
          relayDiscovered = true;
          LOG.info("Relais : {}", RELAY);
-      } else if (r.status() == 404) {
-         // Answered, but the relay is off on this backend: keep the default, do not ask again.
-         relayDiscovered = true;
       }
+      // Relay off (404) or backend unreachable: keep the default and ask again next time, so a relay
+      // switched on later is found without restarting the game.
    }
 
    private static String setting(String property, String env) {

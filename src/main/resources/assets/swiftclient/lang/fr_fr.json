@@ -798,5 +798,8 @@
   "key.swiftclient.snaplook": "Snaplook",
   "key.swiftclient.stopwatch": "Chronomètre : marche / pause",
   "key.swiftclient.stopwatch_reset": "Chronomètre : remise à zéro",
-  "key.swiftclient.waypoint": "Ajouter un waypoint"
+  "key.swiftclient.waypoint": "Ajouter un waypoint",
+  "swift.host.err.no_session": "Ta session Swift n'est pas encore confirmée par Mojang : joue avec un compte Microsoft, puis réessaie dans quelques secondes",
+  "swift.host.err.signin": "Le relais n'a pas accepté ta session Swift : reconnecte-toi puis réessaie",
+  "swift.host.err.not_verified": "Héberger demande un compte Minecraft confirmé par Mojang (compte Microsoft)"
 }

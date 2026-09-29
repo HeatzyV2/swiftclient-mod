@@ -65,12 +65,26 @@ public class InviteManager {
             }, err -> {
                LOG.warn("Relais : {}", err);
                if (!result.isDone()) {
-                  result.completeExceptionally(new RuntimeException(Tr.of("swift.host.err.relay_down")));
+                  result.completeExceptionally(new RuntimeException(reason(err)));
                }
             });
             activeRelay.start();
             return result;
          }
+      }
+   }
+
+   /** What went wrong, for the player: the relay's own refusals get their own sentence. */
+   static String reason(String err) {
+      String e = err == null ? "" : err;
+      if (e.equals("no backend session")) {
+         return Tr.of("swift.host.err.no_session");
+      } else if (e.startsWith("sign in to Swift Client")) {
+         return Tr.of("swift.host.err.signin");
+      } else if (e.startsWith("hosting needs a Minecraft account")) {
+         return Tr.of("swift.host.err.not_verified");
+      } else {
+         return Tr.of("swift.host.err.relay_down") + " (" + e + ")";
       }
    }
 
