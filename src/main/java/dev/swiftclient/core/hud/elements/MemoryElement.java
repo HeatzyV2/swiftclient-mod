@@ -47,14 +47,14 @@ public final class MemoryElement extends HudElement {
       boolean bar = this.opt("bar", true);
       int w = chipW(c, new String[]{t});
       int h = chipH(c, 1) + (bar ? 5 : 0);
-      c.card(x, y, w, h, 1996488704, 587202559, 1, 4.0F);
-      c.text(t, x + 6, y + 4, this.opt("colored", true) ? this.color() : -1, true);
+      plate(c, x, y, w, h);
+      c.text(t, x + 9, y + 4, this.opt("colored", true) ? this.color() : -1, true);
       if (bar) {
          int bw = w - 12;
          int by = y + h - 6;
-         c.fill(x + 6, by, x + 6 + bw, by + 2, 1442840575);
+         c.fill(x + 9, by, x + 9 + bw, by + 2, 1442840575);
          int fill = Math.max(1, Math.round(bw * HudStats.memoryPercent() / 100.0F));
-         c.fill(x + 6, by, x + 6 + fill, by + 2, this.color());
+         c.fill(x + 9, by, x + 9 + fill, by + 2, this.color());
       }
    }
 

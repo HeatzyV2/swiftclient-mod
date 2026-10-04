@@ -153,7 +153,7 @@ public final class ArmorElement extends HudElement {
          int w = this.width(c, d);
          int h = this.height(c, d);
          if (this.background()) {
-            c.card(x, y, w, h, 1996488704, 587202559, 1, 4.0F);
+            plate(c, x, y, w, h);
          }
 
          int ox = x + (this.background() ? 3 : 0);

@@ -151,7 +151,7 @@ public final class HudEditorScreen extends UiScreen {
          if ((!live || !on) && !e.drawsWithoutData()) {
             int bw = Math.round(b[2] / s);
             int bh = Math.round(b[3] / s);
-            c.card(0, 0, bw, bh, on ? -1728053248 : 1711276032, 587202559, 1, 4.0F);
+            c.card(0, 0, bw, bh, on ? 0xE60C0F16 : 0x990C0F16, 0, 0, 3.0F);
             int yy = 4;
 
             for (String str : e.previewLines()) {
@@ -272,14 +272,14 @@ public final class HudEditorScreen extends UiScreen {
       int railW = 108;
       int x0 = 10;
       int y0 = 12;
-      c.card(x0, y0, railW, this.height - 24, BAR_BG, 352321535, 1, 10.0F);
-      c.fill(x0 + 1, y0 + 10, x0 + 3, y0 + 42, SELECT);
-
+      c.card(x0, y0, railW, this.height - 24, 0xF2090C12, 0xFF222B42, 1, 4.0F);
+      dev.swiftclient.core.ui.Px.zip(c, x0 + 8, y0 + 6, 1, false, System.currentTimeMillis());
       String titre = I18n.get("swift.hud.bar_title");
-      c.text(titre, x0 + 12, y0 + 14, SELECT, false);
-      c.text(I18n.get("swift.hud.bar_sub"), x0 + 12, y0 + 28, FAINT, false);
+      c.text(titre.toUpperCase(Locale.ROOT), x0 + 8, y0 + 28, -1, true);
+      dev.swiftclient.core.ui.Px.streak(c, x0 + 8, y0 + 39);
+      c.text(I18n.get("swift.hud.bar_sub"), x0 + 8, y0 + 46, FAINT, false);
 
-      int row = y0 + 48;
+      int row = y0 + 64;
       int rowH = 22;
       String snapL = I18n.get("swift.hud.snap");
       String gridL = I18n.get("swift.hud.grid");
@@ -306,20 +306,7 @@ public final class HudEditorScreen extends UiScreen {
    private void paint(Canvas c, List<HudEditorScreen.Btn> list, int mouseX, int mouseY) {
       for (HudEditorScreen.Btn b : list) {
          boolean hov = b.hit(mouseX, mouseY);
-         boolean compact = b.w() <= 28 || b.label().equals("−") || b.label().equals("+");
-         if (compact) {
-            int bg = b.on() ? SELECT : (hov ? -1441125824 : -1728053248);
-            int border = b.on() || hov ? SELECT : 419430399;
-            c.card(b.x(), b.y(), b.w(), b.h(), bg, border, 1, 5.0F);
-            c.centeredText(b.label(), b.x() + b.w() / 2, b.y() + (b.h() - 8) / 2 + 1, b.on() || hov ? TEXT : DIM, false);
-         } else {
-            if (b.on()) {
-               c.fill(b.x(), b.y() + 4, b.x() + 2, b.y() + b.h() - 4, SELECT);
-            } else if (hov) {
-               c.fill(b.x(), b.y() + 4, b.x() + 2, b.y() + b.h() - 4, 872415231);
-            }
-            c.text(b.label(), b.x() + 10, b.y() + (b.h() - 8) / 2, b.on() || hov ? TEXT : DIM, false);
-         }
+         dev.swiftclient.core.ui.Px.button(c, b.x(), b.y(), b.w(), b.h() - 2, b.label(), hov, b.on());
       }
    }
 

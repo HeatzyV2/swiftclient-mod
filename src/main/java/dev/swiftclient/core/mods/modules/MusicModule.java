@@ -35,28 +35,14 @@ public final class MusicModule extends Module {
                .group("Account")
          );
       this.settings
-         .add(ModuleSetting.toggle("hud_music", "glass", "Glass style", true).desc("Frosted background that blurs the scene behind the panel.").group("Style"));
-      this.settings
          .add(
-            ModuleSetting.slider("hud_music", "blur", "Glass blur", 60.0, 0.0, 100.0, 5.0, "%")
-               .desc("How strongly the scene behind the panel is blurred.")
-               .group("Style")
-         );
-      this.settings
-         .add(
-            ModuleSetting.slider("hud_music", "opacity", "Background opacity", 55.0, 0.0, 100.0, 5.0, "%")
+            ModuleSetting.slider("hud_music", "opacity", "Background opacity", 90.0, 0.0, 100.0, 5.0, "%")
                .desc("How opaque the panel background is.")
-               .group("Style")
-         );
-      this.settings
-         .add(
-            ModuleSetting.slider("hud_music", "bloom", "Bloom", 20.0, 0.0, 100.0, 5.0, "%")
-               .desc("Halo picked from the album artwork, spread around the panel.")
                .group("Style")
          );
       this.settings.add(ModuleSetting.color("hud_music", "col_title", "Title color", -1).desc("Colour of the track title.").group("Colors"));
       this.settings
-         .add(ModuleSetting.color("hud_music", "col_sub", "Artist / time color", -6642766).desc("Colour of the artist and of the times.").group("Colors"));
+         .add(ModuleSetting.color("hud_music", "col_sub", "Artist / time color", 0xFF9AA6BA).desc("Colour of the artist and of the times.").group("Colors"));
       this.settings
          .add(ModuleSetting.color("hud_music", "col_prog", "Progress color", -12868259).desc("Colour of the filled part of the progress bar.").group("Colors"));
       this.settings.add(ModuleSetting.color("hud_music", "col_bg", "Background color", -15987700).desc("Colour of the panel background.").group("Colors"));

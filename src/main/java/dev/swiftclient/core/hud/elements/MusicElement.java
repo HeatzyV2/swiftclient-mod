@@ -6,19 +6,20 @@ import dev.swiftclient.core.hud.HudElement;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.music.MusicState;
 import dev.swiftclient.core.music.SpotifyManager;
+import dev.swiftclient.core.ui.Px;
 
+/**
+ * Now playing, Swift style: a pocket player. A framed cover on the left, the title in sign text, a live
+ * pixel equalizer that dances while a track plays, a segmented progress bar with a square playhead, and
+ * real chunky transport keys. Nothing is rounded, blurred or glowing.
+ */
 public final class MusicElement extends HudElement {
-   private static final int W = 175;
-   private static final int BASE_H = 44;
+   private static final int W = 190;
+   private static final int BASE_H = 48;
    private static final int PAD = 6;
-   private static final int COVER = 32;
-   private static final int PROG_H = 3;
-   private static final int CTRL_H = 14;
+   private static final int COVER = 36;
+   private static final int CTRL_H = 18;
    private static final int NEXT_H = 17;
-   private static final int BORDER_SOLID = 352321535;
-   private static final int BORDER_GLASS = 872415231;
-   private static final int COVER_TOP = -14013910;
-   private static final int COVER_BOT = -15461356;
 
    public MusicElement() {
       super("music", "Now playing");
@@ -40,9 +41,8 @@ public final class MusicElement extends HudElement {
 
    @Override
    public int width(Canvas c, HudData d) {
-      // Always reserve space when the module is on — otherwise the editor/HUD
-      // treat the element as missing (0×0) until a track is detected.
-      return this.moduleOn() || MusicState.hasMusic() ? 175 : 0;
+      // Always reserve space when the module is on, otherwise the editor treats the element as missing.
+      return this.moduleOn() || MusicState.hasMusic() ? W : 0;
    }
 
    @Override
@@ -50,7 +50,7 @@ public final class MusicElement extends HudElement {
       if (!this.moduleOn() && !MusicState.hasMusic()) {
          return 0;
       }
-      return 44 + (this.opt("controls", false) ? 14 : 0) + (this.opt("nextsong", false) && SpotifyManager.hasNext() ? 17 : 0);
+      return BASE_H + (this.opt("controls", false) ? CTRL_H : 0) + (this.opt("nextsong", false) && SpotifyManager.hasNext() ? NEXT_H : 0);
    }
 
    @Override
@@ -61,154 +61,150 @@ public final class MusicElement extends HudElement {
       // Kick the SMTC / Spotify pollers even before the first track arrives.
       MusicState.hasMusic();
 
-      if (!MusicState.hasMusic()) {
-         this.drawPlaceholder(c, x, y);
+      boolean has = MusicState.hasMusic();
+      boolean cover = this.opt("cover", true);
+      boolean showArtist = this.opt("artist", true);
+      boolean showBar = has && this.opt("progress", true) && MusicState.durationMs() > 0L;
+      boolean showTime = has && this.opt("time", true) && MusicState.durationMs() > 0L;
+      boolean showCtrl = has && this.opt("controls", false);
+      boolean showNext = has && this.opt("nextsong", false) && SpotifyManager.hasNext();
+      int opacity = clamp255((int)Math.round(this.optValue("opacity", 90.0) / 100.0 * 255.0));
+      int cTitle = this.optColor("col_title", -1);
+      int cSub = this.optColor("col_sub", 0xFF9AA6BA);
+      int cProg = this.optColor("col_prog", Px.ACCENT);
+      int cBg = this.optColor("col_bg", 0xFF0C0F16);
+      int bg = Math.max(opacity, 0x80) << 24 | cBg & 0xFFFFFF;
+      int h = BASE_H + (showCtrl ? CTRL_H : 0) + (showNext ? NEXT_H : 0);
+      boolean playing = has && MusicState.playing();
+
+      // The player body: ink outline, solid side, accent cap on top
+      c.card(x, y, W, h, bg, 0xFF222B42, 1, 4.0F);
+      c.fill(x + 3, y + 2, x + W - 3, y + 4, cProg);
+
+      int textX = x + PAD;
+      int top = y + 8;
+      if (cover) {
+         int cx = x + PAD;
+         int cy = top;
+         Object art = MusicState.artHandle();
+         c.fill(cx - 1, cy - 1, cx + COVER + 1, cy + COVER + 1, Px.INK);
+         c.fill(cx, cy, cx + COVER, cy + COVER, 0xFFFFFFFF);
+         if (art != null && has) {
+            c.textureRegion(art, cx + 1, cy + 1, COVER - 2, COVER - 2, 0, 0, 100, 100, 100, 100);
+         } else {
+            c.fill(cx + 1, cy + 1, cx + COVER - 1, cy + COVER - 1, 0xFF1B2540);
+            Px.zip(c, cx + 10, cy + 8, 1, false, System.currentTimeMillis());
+         }
+         // Play-state badge in the corner of the cover
+         int bx = cx + COVER - 11;
+         int by = cy + COVER - 11;
+         c.fill(bx, by, bx + 11, by + 11, Px.INK);
+         c.fill(bx + 1, by + 1, bx + 10, by + 10, playing ? Px.OK : cProg);
+         if (playing) {
+            c.fill(bx + 3, by + 3, bx + 5, by + 8, Px.INK);
+            c.fill(bx + 6, by + 3, bx + 8, by + 8, Px.INK);
+         } else {
+            triRight(c, bx + 4, by + 3, 5, Px.INK);
+         }
+         textX = cx + COVER + 8;
+      }
+
+      int textW = x + W - PAD - textX;
+      if (!has) {
+         c.text("NOW PLAYING", textX, top + 6, cTitle, true);
+         c.text("Waiting for media…", textX, top + 18, cSub, false);
+         eq(c, x + W - PAD - 18, top, 0, false, cProg);
          return;
       }
 
-      boolean cover = this.opt("cover", true);
-      boolean showArtist = this.opt("artist", true);
-      boolean showBar = this.opt("progress", true) && MusicState.durationMs() > 0L;
-      boolean showTime = this.opt("time", true) && MusicState.durationMs() > 0L;
-      boolean showCtrl = this.opt("controls", false);
-      boolean showNext = this.opt("nextsong", false) && SpotifyManager.hasNext();
-      boolean glass = this.opt("glass", true);
-      float bloom = (float)(this.optValue("bloom", 20.0) / 100.0);
-      int opacity = clamp255((int)Math.round(this.optValue("opacity", 55.0) / 100.0 * 255.0));
-      int cTitle = this.optColor("col_title", -1);
-      int cSub = this.optColor("col_sub", -6642766);
-      int cProg = this.optColor("col_prog", -12868259);
-      int cBg = this.optColor("col_bg", -15987700);
-      int bg = opacity << 24 | cBg & 16777215;
-      int progBg = 637534208 | cSub & 16777215;
-      int border = glass ? 872415231 : 352321535;
-      int H = 44 + (showCtrl ? 14 : 0) + (showNext ? 17 : 0);
-      if (bloom > 0.001F) {
-         for (int i = 3; i >= 1; i--) {
-            int grow = i * 3;
-            int a = (int)(bloom * 34.0F / i);
-            c.roundRect(x - grow, y - grow, 175 + 2 * grow, H + 2 * grow, 8.0F + grow, clamp255(a) << 24 | cProg & 16777215);
-         }
-      }
-
-      int blurPx = (int)Math.round(this.optValue("blur", 60.0) / 100.0 * 24.0);
-      boolean glassDrawn = glass && c.glassRect(x, y, 175, H, 6.0F, bg, blurPx);
-      if (glassDrawn) {
-         c.card(x, y, 175, H, 0, border, 1, 6.0F);
-         c.gradientV(x + 1, y + 1, 173, H / 2, 352321535, 16777215);
-      } else {
-         c.card(x, y, 175, H, bg, border, 1, 6.0F);
-         if (glass) {
-            c.gradientV(x + 2, y + 2, 171, H / 2, 318767103, 16777215);
-         }
-      }
-
-      int textX = x + 6;
-      if (cover) {
-         int cx = x + 6;
-         int cy = y + 6;
-         Object art = MusicState.artHandle();
-         if (art != null) {
-            c.roundRect(cx, cy, 32, 32, 4.0F, -16777216);
-            c.textureRegion(art, cx, cy, 32, 32, 0, 0, 100, 100, 100, 100);
-         } else {
-            c.roundRect(cx, cy, 32, 32, 4.0F, -15461356);
-            c.gradientV(cx + 1, cy + 1, 30, 30, -14013910, -15461356);
-            c.roundRect(cx + 16 - 6, cy + 16 - 6, 12, 12, 6.0F, 788529151);
-         }
-
-         textX = cx + 32 + 6;
-      }
-
-      int textW = 175 - (textX - x) - 6;
+      // Equalizer in the top-right corner; the title yields to it
+      int eqW = 18;
+      eq(c, x + W - PAD - eqW, top, 0, playing, cProg);
       boolean twoLines = showArtist && !MusicState.artist().isEmpty();
-      c.text(fit(c, MusicState.title(), textW), textX, twoLines ? y + 8 : y + 12, cTitle, true);
+      c.text(fit(c, MusicState.title(), textW - eqW - 4), textX, twoLines ? top + 1 : top + 6, cTitle, true);
       if (twoLines) {
-         c.text(fit(c, MusicState.artist(), textW), textX, y + 19, cSub, true);
+         c.text(fit(c, MusicState.artist(), textW), textX, top + 12, cSub, false);
       }
 
       if (showBar || showTime) {
-         int rowY = y + 44 - 6 - 3;
+         int rowY = top + COVER - 8;
          int bx = textX;
          int bw = textW;
          if (showTime) {
             String el = mmss(MusicState.positionMs());
             String to = mmss(MusicState.durationMs());
-            int elW = sw(c, el);
-            int toW = sw(c, to);
-            drawSmall(c, el, textX, rowY - 2, cSub, 0.72F);
-            drawSmall(c, to, x + 175 - 6 - toW, rowY - 2, cSub, 0.72F);
-            bx = textX + elW + 4;
-            bw = x + 175 - 6 - toW - 4 - bx;
+            int toW = c.textWidth(to);
+            c.text(el, textX, rowY - 11, cSub, false);
+            c.text(to, x + W - PAD - toW, rowY - 11, cSub, false);
          }
-
-         if (showBar && bw > 4) {
-            c.roundRect(bx, rowY, bw, 3, 1.5F, progBg);
+         if (showBar && bw > 8) {
+            Px.segBar(c, bx, rowY, bw, 6, MusicState.progress(), cProg, Math.max(8, bw / 5));
             int fw = Math.round(bw * MusicState.progress());
-            if (fw > 0) {
-               c.roundRect(bx, rowY, fw, 3, 1.5F, cProg);
-            }
+            c.fill(bx + fw - 2, rowY - 2, bx + fw + 2, rowY + 8, Px.INK);
+            c.fill(bx + fw - 1, rowY - 1, bx + fw + 1, rowY + 7, Px.TEXT);
          }
       }
 
       if (showCtrl) {
-         int cy = y + 44 + 3;
-         int mid = x + 87;
-         drawPrev(c, mid - 22, cy, cSub);
-         if (MusicState.playing()) {
-            drawPause(c, mid - 3, cy, cTitle);
-         } else {
-            triRight(c, mid - 3, cy, 8, cTitle);
-         }
-
-         drawNext(c, mid + 14, cy, cSub);
+         int cy = y + BASE_H - 2;
+         int mid = x + W / 2;
+         key(c, mid - 34, cy, 22, 14, cSub, 0);
+         key(c, mid - 11, cy, 22, 14, cTitle, playing ? 3 : 1);
+         key(c, mid + 12, cy, 22, 14, cSub, 2);
       }
 
       if (showNext) {
-         int ny = y + 44 + (showCtrl ? 14 : 0);
-         c.fill(x + 6, ny, x + 175 - 6, ny + 1, 352321535);
+         int ny = y + BASE_H + (showCtrl ? CTRL_H : 0) - 3;
+         c.fill(x + 6, ny, x + W - 6, ny + 2, 0xFF000000);
          int tx = x + 6;
          Object na = SpotifyManager.nextArtHandle();
          if (na != null) {
-            c.roundRect(tx, ny + 3, 11, 11, 2.0F, -16777216);
-            c.textureRegion(na, tx, ny + 3, 11, 11, 0, 0, 100, 100, 100, 100);
+            c.fill(tx, ny + 4, tx + 11, ny + 15, Px.INK);
+            c.textureRegion(na, tx + 1, ny + 5, 9, 9, 0, 0, 100, 100, 100, 100);
             tx += 15;
          }
-
-         drawSmall(c, "NEXT", tx, ny + 4, cProg, 0.7F);
-         int lblW = (int)Math.ceil(c.textWidth("NEXT") * 0.7F) + 5;
+         Px.tag(c, tx, ny + 4, "NEXT", cProg);
+         int lblW = c.textWidth("NEXT") + 12;
          String nt = SpotifyManager.nextTitle();
          String nar = SpotifyManager.nextArtist();
          if (!nar.isBlank()) {
             nt = nt + "  " + nar;
          }
-
-         c.text(fit(c, nt, 175 - (tx - x) - 6 - lblW), tx + lblW, ny + 5, cSub, true);
+         c.text(fit(c, nt, W - (tx - x) - 6 - lblW), tx + lblW, ny + 6, cSub, false);
       }
    }
 
-   /** Visible idle state so the element is selectable in the HUD editor. */
-   private void drawPlaceholder(Canvas c, int x, int y) {
-      boolean glass = this.opt("glass", true);
-      int opacity = clamp255((int)Math.round(this.optValue("opacity", 55.0) / 100.0 * 255.0));
-      int cBg = this.optColor("col_bg", -15987700);
-      int cTitle = this.optColor("col_title", -1);
-      int cSub = this.optColor("col_sub", -6642766);
-      int bg = opacity << 24 | cBg & 16777215;
-      int border = glass ? 872415231 : 352321535;
-      int H = 44;
-      int blurPx = (int)Math.round(this.optValue("blur", 60.0) / 100.0 * 24.0);
-      boolean glassDrawn = glass && c.glassRect(x, y, 175, H, 6.0F, bg, blurPx);
-      if (glassDrawn) {
-         c.card(x, y, 175, H, 0, border, 1, 6.0F);
-      } else {
-         c.card(x, y, 175, H, bg, border, 1, 6.0F);
+   /** Four-bar equalizer. Bars bounce in steps while playing and rest low otherwise. */
+   private static void eq(Canvas c, int x, int y, int unused, boolean playing, int color) {
+      long t = System.currentTimeMillis() / 110L;
+      for (int i = 0; i < 4; i++) {
+         int hgt = playing ? 3 + (int)((t * (3 + i * 2) + i * 5) % 9L) : 2;
+         int bx = x + i * 5;
+         c.fill(bx, y + 10 - hgt, bx + 4, y + 11, Px.INK);
+         c.fill(bx + 1, y + 11 - hgt, bx + 3, y + 10, color);
       }
-      c.roundRect(x + 6, y + 6, 32, 32, 4.0F, -15461356);
-      c.gradientV(x + 7, y + 7, 30, 30, -14013910, -15461356);
-      c.roundRect(x + 16, y + 16, 12, 12, 6.0F, 788529151);
-      c.text("Now playing", x + 44, y + 10, cTitle, true);
-      c.text("Waiting for media…", x + 44, y + 22, cSub, true);
+   }
+
+   /** Transport key: kind 0 prev, 1 play, 2 next, 3 pause. */
+   private static void key(Canvas c, int x, int y, int w, int h, int col, int kind) {
+      c.card(x, y, w, h, 0xFF1D2535, 0, 0, 2.0F);
+      int cx = x + w / 2;
+      int cy = y + h / 2;
+      switch (kind) {
+         case 0 -> {
+            c.fill(cx - 4, cy - 3, cx - 2, cy + 3, col);
+            triLeft(c, cx - 2, cy - 3, 6, col);
+         }
+         case 1 -> triRight(c, cx - 2, cy - 3, 6, col);
+         case 2 -> {
+            triRight(c, cx - 4, cy - 3, 6, col);
+            c.fill(cx + 3, cy - 3, cx + 5, cy + 3, col);
+         }
+         default -> {
+            c.fill(cx - 3, cy - 3, cx - 1, cy + 3, col);
+            c.fill(cx + 1, cy - 3, cx + 3, cy + 3, col);
+         }
+      }
    }
 
    @Override
@@ -234,31 +230,6 @@ public final class MusicElement extends HudElement {
       }
    }
 
-   private static void drawPause(Canvas c, int x, int y, int col) {
-      c.roundRect(x, y, 2, 8, 1.0F, col);
-      c.roundRect(x + 5, y, 2, 8, 1.0F, col);
-   }
-
-   private static void drawPrev(Canvas c, int x, int y, int col) {
-      c.roundRect(x, y, 2, 8, 1.0F, col);
-      triLeft(c, x + 3, y, 7, col);
-   }
-
-   private static void drawNext(Canvas c, int x, int y, int col) {
-      triRight(c, x, y, 7, col);
-      c.roundRect(x + 8, y, 2, 8, 1.0F, col);
-   }
-
-   private static int sw(Canvas c, String s) {
-      return (int)Math.ceil(c.textWidth(s) * 0.72F);
-   }
-
-   private static void drawSmall(Canvas c, String s, int x, int y, int argb, float scale) {
-      c.pushScale(x, y, scale);
-      c.text(s, 0, 0, argb, true);
-      c.popScale();
-   }
-
    private static String fit(Canvas c, String s, int maxW) {
       if (s == null) {
          return "";
@@ -267,11 +238,9 @@ public final class MusicElement extends HudElement {
       } else {
          int ew = c.textWidth("…");
          StringBuilder sb = new StringBuilder();
-
          for (int i = 0; i < s.length() && c.textWidth(sb.toString() + s.charAt(i)) + ew <= maxW; i++) {
             sb.append(s.charAt(i));
          }
-
          return sb.append("…").toString();
       }
    }

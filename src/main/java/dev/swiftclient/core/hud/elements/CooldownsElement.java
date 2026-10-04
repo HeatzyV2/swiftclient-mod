@@ -34,7 +34,7 @@ public final class CooldownsElement extends HudElement {
       List<HudData.Cooldown> list = d.cooldowns();
       if (!list.isEmpty()) {
          if (this.opt("background", true)) {
-            c.card(x, y, this.width(c, d), CELL + 6, 1996488704, 587202559, 1, 4.0F);
+            plate(c, x, y, this.width(c, d), CELL + 6);
          }
 
          int cx = x + 4;

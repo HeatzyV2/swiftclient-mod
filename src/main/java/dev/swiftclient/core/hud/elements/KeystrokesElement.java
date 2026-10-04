@@ -59,7 +59,7 @@ public final class KeystrokesElement extends HudElement {
    public void draw(Canvas c, HudData d, int x, int y) {
       int s = this.box();
       int w = this.width();
-      int pressed = this.optColor("pressedColor", -1);
+      int pressed = this.optColor("pressedColor", 0xFF3B82F6);
       int idle = this.optColor("idleColor", 1996488704);
       this.key(c, x + s + 2, y, s, this.rowH(), "W", HudStats.pressed(1), null, pressed, idle);
       int cy = y + this.rowH() + 2;
@@ -91,12 +91,15 @@ public final class KeystrokesElement extends HudElement {
    }
 
    private void key(Canvas c, int x, int y, int w, int h, String label, boolean down, String sub, int pressedColor, int idleColor) {
-      c.card(x, y, w, h, down ? pressedColor : idleColor, down ? pressedColor : 587202559, 1, 3.0F);
-      int fg = down ? -15724268 : -1;
-      int textY = sub == null ? y + (h - 8) / 2 : y + 3;
+      // A keycap: it sinks one pixel and lights up when held
+      int dy = down ? 1 : 0;
+      int fill = down ? pressedColor : 0xF0141925;
+      c.card(x, y + dy, w, h - dy, fill, 0, 0, 3.0F);
+      int fg = down ? 0xFF0C0F16 : -1;
+      int textY = sub == null ? y + dy + (h - dy - 8) / 2 : y + dy + 3;
       c.centeredText(label, x + w / 2, textY, fg, !down);
       if (sub != null) {
-         c.centeredText(sub, x + w / 2, y + h - 10, down ? -13420996 : -4604474, !down);
+         c.centeredText(sub, x + w / 2, y + h - 10, down ? 0xFF3A4766 : 0xFF9AA6BA, !down);
       }
    }
 

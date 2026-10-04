@@ -40,12 +40,12 @@ public final class ServerElement extends HudElement {
       String t = this.text(d);
       if (!t.isEmpty()) {
          boolean icon = this.opt("icon", true);
-         c.card(x, y, this.width(c, d), chipH(c, 1), 1996488704, 587202559, 1, 4.0F);
+         plate(c, x, y, this.width(c, d), chipH(c, 1));
          if (icon) {
             c.icon("globe", x + 5, y + 3, 9, -12877066);
          }
 
-         c.text(t, x + 6 + (icon ? 12 : 0), y + 4, -1, true);
+         c.text(t, x + 9 + (icon ? 12 : 0), y + 4, -1, true);
       }
    }
 

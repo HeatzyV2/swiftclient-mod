@@ -36,8 +36,8 @@ public final class ComboElement extends HudElement {
       if (this.width(c, d) > 0) {
          String t = this.text(d);
          int n = d.combat().combo();
-         c.card(x, y, chipW(c, t), chipH(c, 1), 1996488704, 587202559, 1, 4.0F);
-         c.text(t, x + 6, y + 4, n >= 3 ? this.optColor("color", -12877066) : -1, true);
+         plate(c, x, y, chipW(c, t), chipH(c, 1));
+         c.text(t, x + 9, y + 4, n >= 3 ? this.optColor("color", -12877066) : -1, true);
       }
    }
 

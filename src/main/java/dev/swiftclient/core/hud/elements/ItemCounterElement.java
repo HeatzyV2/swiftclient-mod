@@ -73,7 +73,7 @@ public final class ItemCounterElement extends HudElement {
       List<HudData.ItemCount> l = this.shown(d);
       if (!l.isEmpty()) {
          if (this.opt("background", true)) {
-            c.card(x, y, this.width(c, d), this.height(c, d), 1996488704, 587202559, 1, 4.0F);
+            plate(c, x, y, this.width(c, d), this.height(c, d));
          }
 
          int cx = x + 3;

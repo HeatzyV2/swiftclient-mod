@@ -42,8 +42,8 @@ public final class PingElement extends HudElement {
    public void draw(Canvas c, HudData d, int x, int y) {
       if (this.width(c, d) > 0) {
          String t = this.text(d);
-         c.card(x, y, chipW(c, t), chipH(c, 1), 1996488704, 587202559, 1, 4.0F);
-         c.text(t, x + 6, y + 4, this.opt("colored", true) ? color(d.ping()) : -1, true);
+         plate(c, x, y, chipW(c, t), chipH(c, 1));
+         c.text(t, x + 9, y + 4, this.opt("colored", true) ? color(d.ping()) : -1, true);
       }
    }
 

@@ -1,10 +1,11 @@
 package dev.swiftclient.core.screen;
 
-import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Lang;
 import dev.swiftclient.core.platform.Platform;
+import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.ui.Defilement;
+import dev.swiftclient.core.ui.Px;
 import dev.swiftclient.core.ui.UiScreen;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -12,35 +13,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * Language picker, Swift style: a grid of "slots", each with a code plate, the language name and a star.
+ * The selected slot is framed in white like the selected hotbar slot; favourites float to the top.
+ */
 public class LanguageScreen extends UiScreen {
-   private static final int BG = 1426063360;
-   private static final int ROW = -871494130;
-   private static final int ROW_HOVER = -300016098;
-   private static final int ROW_SEL = -299218310;
-   private static final int TEXT = -1;
-   private static final int TEXT_DIM = -5592406;
-   private static final int TEXT_FAINT = -9735552;
-   private static final int ACCENT = -12877066;
-   private static final int STAR_ON = -340971;
-   private static final int SEARCH_BG = -300805614;
-   private static final int SEARCH_LINE = -14013910;
-   private static final int ROW_H = 22;
-   private static final int ROW_GAP = 3;
-   private static final int LIST_W = 300;
-   private static final int SEARCH_H = 22;
-   private static final int STAR_W = 22;
    private static final String FAV_KEY = "lang.favorites";
+   private static final int PAD = 14;
+   private static final int TILE_H = 30;
+   private static final int GAP = 6;
+   private static final int TILE_MIN_W = 150;
+   private static final int HEAD_H = 40;
    private List<Lang> all = List.of();
    private String selected = "";
    private final Set<String> favorites = new LinkedHashSet<>();
    private String query = "";
    private boolean searchFocused;
    private long caretBlink;
-   private int listTop;
-   private int listBottom;
-   private int listX;
    private final Defilement defil = new Defilement();
-   private List<LanguageScreen.Row> rows = List.of();
+   private List<Row> rows = List.of();
 
    @Override
    public String title() {
@@ -53,33 +44,26 @@ public class LanguageScreen extends UiScreen {
       this.all = Platform.game().languages();
       this.selected = Platform.game().currentLanguage();
       this.favorites.clear();
-
-      for (String c : Platform.game().getConfig("lang.favorites", "").split(",")) {
+      for (String c : Platform.game().getConfig(FAV_KEY, "").split(",")) {
          String t = c.trim();
          if (!t.isEmpty()) {
             this.favorites.add(t);
          }
       }
-
-      this.listX = (width - 300) / 2;
-      this.listTop = 74;
-      this.listBottom = height - 32;
       this.rebuild();
    }
 
    private void rebuild() {
       String q = this.query.trim().toLowerCase(Locale.ROOT);
-      List<LanguageScreen.Row> fav = new ArrayList<>();
-      List<LanguageScreen.Row> rest = new ArrayList<>();
-
+      List<Row> fav = new ArrayList<>();
+      List<Row> rest = new ArrayList<>();
       for (Lang l : this.all) {
          if (q.isEmpty() || this.matches(l, q)) {
             boolean f = this.favorites.contains(l.code());
-            (f ? fav : rest).add(new LanguageScreen.Row(l, f));
+            (f ? fav : rest).add(new Row(l, f));
          }
       }
-
-      List<LanguageScreen.Row> out = new ArrayList<>(fav);
+      List<Row> out = new ArrayList<>(fav);
       out.addAll(rest);
       this.rows = out;
       this.clampScroll();
@@ -89,117 +73,186 @@ public class LanguageScreen extends UiScreen {
       return l.name().toLowerCase(Locale.ROOT).contains(q) || l.region().toLowerCase(Locale.ROOT).contains(q) || l.code().toLowerCase(Locale.ROOT).contains(q);
    }
 
-   private int rowStride() {
-      return 25;
+   // ---- geometry ----
+
+   private int gridX() {
+      return PAD;
    }
 
-   private int viewHeight() {
-      return Math.max(0, this.listBottom - this.listTop);
+   private int gridW() {
+      return this.width - PAD * 2 - 8;
+   }
+
+   private int gridTop() {
+      return HEAD_H + 6;
+   }
+
+   private int gridBottom() {
+      return this.height - 22;
+   }
+
+   private int columns() {
+      return Math.max(1, (this.gridW() + GAP) / (TILE_MIN_W + GAP));
+   }
+
+   private int tileW() {
+      int cols = this.columns();
+      return (this.gridW() - (cols - 1) * GAP) / cols;
+   }
+
+   private int[] tileRect(int i) {
+      int cols = this.columns();
+      int w = this.tileW();
+      return new int[]{this.gridX() + (i % cols) * (w + GAP), this.gridTop() + (i / cols) * (TILE_H + GAP) - this.defil.px(), w, TILE_H};
+   }
+
+   private int[] searchRect() {
+      int w = Math.min(190, this.width / 2);
+      return new int[]{this.width - PAD - 8 - w, 8, w, 20};
    }
 
    private void clampScroll() {
-      this.defil.contenu(this.rows.size() * this.rowStride(), this.viewHeight());
+      int cols = this.columns();
+      int rowsN = (this.rows.size() + cols - 1) / cols;
+      this.defil.contenu(Math.max(0, rowsN * (TILE_H + GAP) - GAP), Math.max(0, this.gridBottom() - this.gridTop()));
    }
+
+   // ---- drawing ----
 
    @Override
    public void draw(Canvas c, int mouseX, int mouseY, float delta) {
       this.caretBlink++;
       this.clampScroll();
       this.defil.anime();
-      c.fill(0, 0, this.width, this.height, 1426063360);
-      c.centeredText(this.title(), this.width / 2, 18, -1, true);
+      Px.title(c, this.title(), PAD, 10);
       this.drawSearch(c, mouseX, mouseY);
-      c.pushScissor(this.listX, this.listTop, 300, this.viewHeight());
-      int y = this.listTop - this.defil.px();
-      boolean drewFavSep = false;
 
+      int top = this.gridTop();
+      int bottom = this.gridBottom();
+      c.pushScissor(0, top - 2, this.width, bottom - top + 4);
       for (int i = 0; i < this.rows.size(); i++) {
-         LanguageScreen.Row r = this.rows.get(i);
-         if (this.query.isEmpty() && !r.fav() && !drewFavSep && i > 0) {
-            drewFavSep = true;
+         int[] r = this.tileRect(i);
+         if (r[1] + r[3] >= top - 2 && r[1] <= bottom) {
+            this.drawTile(c, this.rows.get(i), r, mouseX, mouseY, mouseY >= top && mouseY <= bottom);
          }
-
-         if (y + 22 >= this.listTop && y <= this.listBottom) {
-            this.drawRow(c, r, y, mouseX, mouseY);
-         }
-
-         y += this.rowStride();
       }
-
       c.popScissor();
+
       if (this.rows.isEmpty()) {
-         c.centeredText(Tr.of("swift.language.no_match", this.query), this.width / 2, this.listTop + 20, -9735552, true);
+         c.centeredText(Tr.of("swift.language.no_match", this.query), this.width / 2, top + 24, Px.FAINT, true);
       }
 
-      String count = Tr.of("swift.language.count", this.rows.size(), this.all.size());
-      c.centeredText(count, this.width / 2, this.height - 20, -9735552, true);
+      int maxPx = this.defil.maxPx();
+      if (maxPx > 0) {
+         int vh = bottom - top;
+         int barH = Math.max(18, vh * vh / (vh + maxPx));
+         int barY = top + (vh - barH) * this.defil.px() / maxPx;
+         int bx = this.width - 12;
+         c.fill(bx, top, bx + 5, bottom, 0x66000000);
+         c.fill(bx, barY, bx + 5, barY + barH, Px.INK);
+         c.fill(bx + 1, barY + 1, bx + 4, barY + barH - 1, Px.ACCENT);
+      }
+
+      c.text(Tr.of("swift.language.count", this.rows.size(), this.all.size()), PAD, this.height - 15, Px.FAINT, false);
    }
 
    private void drawSearch(Canvas c, int mouseX, int mouseY) {
-      int sw = 300;
-      int sx = this.listX;
-      int sy = 44;
-      c.roundRect(sx, sy, sw, 22, 5.0F, -300805614);
-      c.roundRect(sx, sy, sw, 22, 5.0F, this.searchFocused ? 1715176182 : -14013910);
-      c.roundRect(sx + 1, sy + 1, sw - 2, 20, 4.0F, -300805614);
-      int tx = sx + 8;
-      int ty = sy + (22 - c.lineHeight()) / 2 + 1;
+      int[] r = this.searchRect();
+      boolean over = mouseX >= r[0] && mouseX < r[0] + r[2] && mouseY >= r[1] && mouseY < r[1] + r[3];
+      c.card(r[0], r[1], r[2], r[3], 0xFF0C0F16, this.searchFocused ? Px.ACCENT : (over ? 0xFF3A4766 : 0), 1, 2.0F);
+      int tx = r[0] + 6;
+      int ty = r[1] + (r[3] - c.lineHeight()) / 2 + 1;
       if (this.query.isEmpty() && !this.searchFocused) {
-         c.text(Tr.of("swift.language.search"), tx, ty, -9735552, false);
+         c.text(Tr.of("swift.language.search"), tx, ty, Px.FAINT, false);
       } else {
-         String shown = this.query;
-         if (this.searchFocused && this.caretBlink % 60L < 30L) {
-            shown = shown + "_";
+         c.text(this.query, tx, ty, Px.TEXT, false);
+         if (this.searchFocused && this.caretBlink % 40L < 20L) {
+            int cx = tx + c.textWidth(this.query) + 1;
+            c.fill(cx, r[1] + 4, cx + 2, r[1] + r[3] - 4, Px.TEXT);
          }
-
-         c.text(shown, tx, ty, -1, false);
       }
    }
 
-   private void drawRow(Canvas c, LanguageScreen.Row r, int y, int mouseX, int mouseY) {
-      boolean sel = r.lang().code().equals(this.selected);
-      boolean overRow = mouseX >= this.listX && mouseX <= this.listX + 300 && mouseY >= y && mouseY <= y + 22;
-      boolean overStar = mouseX >= this.listX + 300 - 22 && overRow;
-      c.roundRect(this.listX, y, 300, 22, 5.0F, sel ? -299218310 : (overRow ? -300016098 : -871494130));
-      int ty = y + (22 - c.lineHeight()) / 2 + 1;
-      c.text(r.lang().display(), this.listX + 10, ty, sel ? -1 : -5592406, true);
-      int starX = this.listX + 300 - 22 + 5;
-      int starColor = r.fav() ? -340971 : (overStar ? -5592406 : -9735552);
-      c.centeredText(r.fav() ? "★" : "☆", starX + 5, ty, starColor, true);
+   private void drawTile(Canvas c, Row row, int[] r, int mouseX, int mouseY, boolean inView) {
+      boolean sel = row.lang().code().equals(this.selected);
+      boolean over = inView && mouseX >= r[0] && mouseX < r[0] + r[2] && mouseY >= r[1] && mouseY < r[1] + r[3];
+      boolean overStar = over && mouseX >= r[0] + r[2] - 22;
+      int y = r[1] - (over && !sel ? 2 : 0);
+      c.card(r[0], y, r[2], r[3], sel ? 0xFF1D2535 : (over ? 0xFF182033 : 0xFF11151F), sel ? 0xFFFFFFFF : 0, sel ? 1 : 0, 3.0F);
+
+      // Code plate: the language code on an accent block
+      String code = row.lang().code().split("[_-]")[0].toUpperCase(Locale.ROOT);
+      int plate = 22;
+      int px = r[0] + 5;
+      int py = y + (r[3] - plate) / 2;
+      c.card(px, py, plate, plate, sel ? Px.ACCENT : 0xFF222B42, 0, 0, 2.0F);
+      c.centeredText(code.length() > 3 ? code.substring(0, 3) : code, px + plate / 2, py + (plate - 8) / 2 + 1, Px.TEXT, true);
+
+      int tx = px + plate + 7;
+      int maxW = r[0] + r[2] - 26 - tx;
+      c.text(fit(c, row.lang().name(), maxW), tx, y + 6, sel ? Px.TEXT : (over ? Px.TEXT : 0xFFC9D3E6), true);
+      String region = row.lang().region();
+      if (region != null && !region.isBlank()) {
+         c.text(fit(c, region, maxW), tx, y + 17, Px.FAINT, false);
+      }
+
+      // Star
+      int sx = r[0] + r[2] - 17;
+      int sy = y + (r[3] - 9) / 2;
+      boolean fav = row.fav();
+      c.text(fav ? "★" : "☆", sx, sy, fav ? 0xFFFFD23F : (overStar ? Px.TEXT : Px.FAINT), true);
+      if (sel) {
+         Px.lamp(c, r[0] + r[2] - 14, y + r[3] - 9, true);
+      }
    }
+
+   private static String fit(Canvas c, String s, int maxW) {
+      if (s == null) {
+         return "";
+      }
+      if (c.textWidth(s) <= maxW) {
+         return s;
+      }
+      while (s.length() > 1 && c.textWidth(s + "…") > maxW) {
+         s = s.substring(0, s.length() - 1);
+      }
+      return s + "…";
+   }
+
+   // ---- input ----
 
    @Override
    public boolean click(double mouseX, double mouseY, int button) {
       if (button != 0) {
          return false;
-      } else {
-         boolean inSearch = mouseX >= this.listX && mouseX <= this.listX + 300 && mouseY >= 44.0 && mouseY <= 66.0;
-         this.searchFocused = inSearch;
-         if (inSearch) {
-            Platform.game().playClick();
-            return true;
-         } else if (!(mouseX < this.listX) && !(mouseX > this.listX + 300) && !(mouseY < this.listTop) && !(mouseY > this.listBottom)) {
-            int idx = (int)((mouseY - this.listTop + this.defil.px()) / this.rowStride());
-            if (idx >= 0 && idx < this.rows.size()) {
-               LanguageScreen.Row r = this.rows.get(idx);
-               if (mouseX >= this.listX + 300 - 22) {
-                  this.toggleFavorite(r.lang().code());
-               } else {
-                  Platform.game().playClick();
-                  if (!r.lang().code().equals(this.selected)) {
-                     this.selected = r.lang().code();
-                     Platform.game().setLanguage(r.lang().code());
-                  }
-               }
-
-               return true;
+      }
+      int[] sr = this.searchRect();
+      boolean inSearch = mouseX >= sr[0] && mouseX < sr[0] + sr[2] && mouseY >= sr[1] && mouseY < sr[1] + sr[3];
+      this.searchFocused = inSearch;
+      if (inSearch) {
+         Platform.game().playClick();
+         return true;
+      }
+      if (mouseY < this.gridTop() || mouseY > this.gridBottom()) {
+         return false;
+      }
+      for (int i = 0; i < this.rows.size(); i++) {
+         int[] r = this.tileRect(i);
+         if (mouseX >= r[0] && mouseX < r[0] + r[2] && mouseY >= r[1] && mouseY < r[1] + r[3]) {
+            Row row = this.rows.get(i);
+            if (mouseX >= r[0] + r[2] - 22) {
+               this.toggleFavorite(row.lang().code());
             } else {
-               return false;
+               Platform.game().playClick();
+               if (!row.lang().code().equals(this.selected)) {
+                  this.selected = row.lang().code();
+                  Platform.game().setLanguage(row.lang().code());
+               }
             }
-         } else {
-            return false;
+            return true;
          }
       }
+      return false;
    }
 
    private void toggleFavorite(String code) {
@@ -207,8 +260,7 @@ public class LanguageScreen extends UiScreen {
       if (!this.favorites.remove(code)) {
          this.favorites.add(code);
       }
-
-      Platform.game().setConfig("lang.favorites", String.join(",", this.favorites));
+      Platform.game().setConfig(FAV_KEY, String.join(",", this.favorites));
       this.rebuild();
    }
 
@@ -216,11 +268,10 @@ public class LanguageScreen extends UiScreen {
    public boolean charTyped(String s) {
       if (!this.searchFocused) {
          return false;
-      } else {
-         this.query = this.query + s;
-         this.rebuild();
-         return true;
       }
+      this.query = this.query + s;
+      this.rebuild();
+      return true;
    }
 
    @Override
@@ -232,7 +283,6 @@ public class LanguageScreen extends UiScreen {
             this.query = this.query.substring(0, this.query.length() - 1);
             this.rebuild();
          }
-
          return true;
       } else if (keyCode == 256) {
          this.searchFocused = false;
@@ -240,7 +290,6 @@ public class LanguageScreen extends UiScreen {
             this.query = "";
             this.rebuild();
          }
-
          return true;
       } else {
          return keyCode == 257;
@@ -249,7 +298,7 @@ public class LanguageScreen extends UiScreen {
 
    @Override
    public boolean scroll(double mouseX, double mouseY, double amount) {
-      this.defil.cran(amount, this.rowStride());
+      this.defil.cran(amount, TILE_H + GAP);
       return true;
    }
 

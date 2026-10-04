@@ -78,11 +78,7 @@ public final class BossBarElement extends HudElement {
          }
 
          int col = this.opt("own_color", false) ? this.optColor("color", -12877066) : barColor(b.color());
-         c.roundRect(x, yy, W, BAR_H, 2.5F, 0x66000000);
-         int fw = Math.round(W * Math.max(0.0F, Math.min(1.0F, b.progress())));
-         if (fw > 0) {
-            c.roundRect(x, yy, Math.max(fw, 3), BAR_H, 2.5F, col);
-         }
+         dev.swiftclient.core.ui.Px.segBar(c, x, yy, W, BAR_H, Math.max(0.0F, Math.min(1.0F, b.progress())), col, 20);
 
          yy += BAR_H + 4;
       }

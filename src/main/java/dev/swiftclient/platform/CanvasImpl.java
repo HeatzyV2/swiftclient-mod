@@ -155,6 +155,7 @@ public final class CanvasImpl implements Canvas {
 
    @Override
    public void icon(String name, int x, int y, int size, int argb) {
+      // Icons are 64x64 colour emoji tiles; the tint dims them when idle and shows them in full colour at white.
       this.ctx.blit(RenderPipelines.GUI_TEXTURED, iconId(name), x, y, 0.0F, 0.0F, size, size, 64, 64, 64, 64, argb);
    }
 

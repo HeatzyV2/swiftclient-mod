@@ -48,7 +48,7 @@ public abstract class HudElement {
          w = Math.max(w, c.textWidth(s));
       }
 
-      return new int[]{w + 12, lines.length * (c.lineHeight() + 2) + 5};
+      return new int[]{w + 17, lines.length * (c.lineHeight() + 2) + 7};
    }
 
    protected ModuleSetting setting(String settingId) {
@@ -83,21 +83,29 @@ public abstract class HudElement {
          w = Math.max(w, c.textWidth(s));
       }
 
-      return w + 12;
+      return w + 17;
    }
 
    protected static int chipH(Canvas c, int n) {
-      return n * (c.lineHeight() + 2) + 5;
+      return n * (c.lineHeight() + 2) + 7;
    }
 
+   /** A bare plate (outline, solid side, accent tab) for elements that lay out their own content. */
+   protected static void plate(Canvas c, int x, int y, int w, int h) {
+      c.card(x, y, w, h, 0xE60C0F16, 0, 0, 3.0F);
+      c.fill(x + 2, y + 3, x + 4, y + h - 3, 0xFF3B82F6);
+   }
+
+   /** The Swift plate every simple HUD readout is drawn on: ink outline, solid side, accent tab, pixel text. */
    protected static void chip(Canvas c, int x, int y, String... lines) {
       int w = chipW(c, lines);
       int h = chipH(c, lines.length);
-      c.card(x, y, w, h, 1996488704, 587202559, 1, 4.0F);
+      c.card(x, y, w, h, 0xE60C0F16, 0, 0, 3.0F);
+      c.fill(x + 2, y + 3, x + 4, y + h - 3, 0xFF3B82F6);
       int yy = y + 4;
 
       for (String s : lines) {
-         c.text(s, x + 6, yy, -1, true);
+         c.text(s, x + 9, yy, -1, true);
          yy += c.lineHeight() + 2;
       }
    }

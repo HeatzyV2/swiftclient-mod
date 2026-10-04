@@ -43,8 +43,8 @@ public final class FpsElement extends HudElement {
       String t = this.text();
       int w = chipW(c, new String[]{t});
       int h = chipH(c, 1);
-      c.card(x, y, w, h, 1996488704, 587202559, 1, 4.0F);
-      c.text(t, x + 6, y + 4, this.color(), true);
+      plate(c, x, y, w, h);
+      c.text(t, x + 9, y + 4, this.color(), true);
    }
 
    @Override

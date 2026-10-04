@@ -8,8 +8,8 @@ import java.util.List;
 
 /** Swift toasts (friends, screenshots...), sliding in and fading out. */
 public final class NotificationsElement extends HudElement {
-   private static final int W = 150;
-   private static final int H = 30;
+   private static final int W = 160;
+   private static final int H = 32;
    private static final int GAP = 4;
 
    public NotificationsElement() {
@@ -58,18 +58,22 @@ public final class NotificationsElement extends HudElement {
          int slide = Math.round((1.0F - ease) * 24.0F);
          int a = Math.round(ease * 255.0F);
          if (a > 8) {
-            int bx = x + slide;
-            c.card(bx, yy, W, H, (Math.round(ease * 0xE6) << 24) | 0x0B0D12, (Math.round(ease * 0x33) << 24) | 0xFFFFFF, 1, 6.0F);
-            c.fill(bx + 1, yy + 5, bx + 3, yy + H - 5, (a << 24) | 0x3B82F6);
-            c.icon(t.icon(), bx + 8, yy + (H - 12) / 2, 12, (a << 24) | 0xFFFFFF);
-            String title = trunc(c, t.title(), W - 32);
-            String body = trunc(c, t.body(), W - 32);
+            // Stepped slide-in (4 px per frame), solid plate, accent tab, icon block and a draining timer
+            int bx = x + (slide / 4) * 4;
+            c.card(bx, yy, W, H, 0xF20C0F16, 0xFF222B42, 1, 3.0F);
+            c.fill(bx + 2, yy + 3, bx + 4, yy + H - 3, 0xFF3B82F6);
+            c.card(bx + 7, yy + (H - 18) / 2 - 1, 18, 18, 0xFF3B82F6, 0, 0, 2.0F);
+            c.icon(t.icon(), bx + 10, yy + (H - 12) / 2 - 1, 12, 0xFFFFFFFF);
+            String title = trunc(c, t.title(), W - 40);
+            String body = trunc(c, t.body(), W - 40);
             if (body.isEmpty()) {
-               c.text(title, bx + 26, yy + (H - 8) / 2, (a << 24) | 0xFFFFFF, false);
+               c.text(title, bx + 30, yy + (H - 8) / 2 - 1, 0xFFFFFFFF, true);
             } else {
-               c.text(title, bx + 26, yy + 6, (a << 24) | 0xFFFFFF, false);
-               c.text(body, bx + 26, yy + 17, (a << 24) | 0x9AA3B2, false);
+               c.text(title, bx + 30, yy + 5, 0xFFFFFFFF, true);
+               c.text(body, bx + 30, yy + 15, 0xFF9AA6BA, false);
             }
+            float rest = Math.max(0.0F, Math.min(1.0F, left / (float)t.durationMs()));
+            c.fill(bx + 7, yy + H - 5, bx + 7 + Math.round((W - 14) * rest), yy + H - 3, 0xFF3B82F6);
          }
 
          yy += H + GAP;

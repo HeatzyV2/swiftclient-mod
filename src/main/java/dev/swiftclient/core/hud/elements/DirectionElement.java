@@ -35,7 +35,7 @@ public final class DirectionElement extends HudElement {
       yaw = (yaw % 360.0F + 360.0F) % 360.0F;
       float pxPerDeg = 1.4F;
       if (this.opt("background", true)) {
-         c.card(x, y, W, H, 1996488704, 587202559, 1, 4.0F);
+         plate(c, x, y, W, H);
       }
 
       c.pushScissor(x + 2, y, W - 4, H);

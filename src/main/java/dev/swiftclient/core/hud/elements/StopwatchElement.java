@@ -39,8 +39,8 @@ public final class StopwatchElement extends HudElement {
 
    @Override
    public void draw(Canvas c, HudData d, int x, int y) {
-      c.card(x, y, this.width(c, d), chipH(c, 1), 1996488704, 587202559, 1, 4.0F);
-      c.text(this.text(), x + 6, y + 4, Stopwatch.running() ? -9707413 : -1, true);
+      plate(c, x, y, this.width(c, d), chipH(c, 1));
+      c.text(this.text(), x + 9, y + 4, Stopwatch.running() ? -9707413 : -1, true);
    }
 
    @Override

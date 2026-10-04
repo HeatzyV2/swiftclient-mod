@@ -50,9 +50,8 @@ public final class PvpInfoElement extends HudElement {
          c.text(name, tx, y + 5, -1, true);
          float ratio = t.maxHealth() <= 0.0F ? 0.0F : Math.max(0.0F, Math.min(1.0F, t.health() / t.maxHealth()));
          int bw = x + W - 6 - tx;
-         c.roundRect(tx, y + 16, bw, 4, 2.0F, 0x33FFFFFF);
          int col = ratio > 0.6F ? -9707413 : (ratio > 0.3F ? -865972 : -38037);
-         c.roundRect(tx, y + 16, Math.max(2, Math.round(bw * ratio)), 4, 2.0F, col);
+         dev.swiftclient.core.ui.Px.segBar(c, tx, y + 16, bw, 5, ratio, col, 10);
          String hp = String.format(Locale.ROOT, "%.1f", t.health() / 2.0F) + " ❤";
          String extra = this.opt("distance", true) ? String.format(Locale.ROOT, "%.1fm", t.distance()) : "";
          if (this.opt("armor", true) && t.armor() > 0) {
