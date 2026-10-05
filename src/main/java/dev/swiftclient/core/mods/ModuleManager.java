@@ -97,6 +97,8 @@ public final class ModuleManager {
             new PackDisplayModule(),
             new MinimapModule(),
             new NotificationsModule(),
+            new SessionModule(),
+            new ScenesModule(),
             new TntCountdownModule(),
             new TitlesModule(),
             new FriendsModule()

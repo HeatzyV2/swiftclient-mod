@@ -93,7 +93,7 @@ public final class MusicElement extends HudElement {
             c.textureRegion(art, cx + 1, cy + 1, COVER - 2, COVER - 2, 0, 0, 100, 100, 100, 100);
          } else {
             c.fill(cx + 1, cy + 1, cx + COVER - 1, cy + COVER - 1, 0xFF1B2540);
-            Px.zip(c, cx + 10, cy + 8, 1, false, System.currentTimeMillis());
+            Px.zip(c, cx + 6, cy + 5, 1, false, System.currentTimeMillis());
          }
          // Play-state badge in the corner of the cover
          int bx = cx + COVER - 11;

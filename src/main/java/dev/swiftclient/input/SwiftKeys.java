@@ -21,6 +21,7 @@ public final class SwiftKeys {
    public static KeyMapping STOPWATCH;
    public static KeyMapping STOPWATCH_RESET;
    public static KeyMapping WAYPOINT;
+   public static KeyMapping RADIAL;
 
    private SwiftKeys() {
    }
@@ -35,6 +36,7 @@ public final class SwiftKeys {
       STOPWATCH = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch", GLFW.GLFW_KEY_K, CATEGORY));
       STOPWATCH_RESET = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch_reset", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
       WAYPOINT = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.waypoint", GLFW.GLFW_KEY_J, CATEGORY));
+      RADIAL = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.radial", GLFW.GLFW_KEY_G, CATEGORY));
    }
 
    /**

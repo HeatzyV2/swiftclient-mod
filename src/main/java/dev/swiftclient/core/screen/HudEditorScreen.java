@@ -273,13 +273,13 @@ public final class HudEditorScreen extends UiScreen {
       int x0 = 10;
       int y0 = 12;
       c.card(x0, y0, railW, this.height - 24, 0xF2090C12, 0xFF222B42, 1, 4.0F);
-      dev.swiftclient.core.ui.Px.zip(c, x0 + 8, y0 + 6, 1, false, System.currentTimeMillis());
+      dev.swiftclient.core.ui.Px.zip(c, x0 + 8, y0 + 5, 1, false, System.currentTimeMillis());
       String titre = I18n.get("swift.hud.bar_title");
-      c.text(titre.toUpperCase(Locale.ROOT), x0 + 8, y0 + 28, -1, true);
-      dev.swiftclient.core.ui.Px.streak(c, x0 + 8, y0 + 39);
-      c.text(I18n.get("swift.hud.bar_sub"), x0 + 8, y0 + 46, FAINT, false);
+      c.text(titre.toUpperCase(Locale.ROOT), x0 + 8, y0 + 36, -1, true);
+      dev.swiftclient.core.ui.Px.streak(c, x0 + 8, y0 + 47);
+      c.text(I18n.get("swift.hud.bar_sub"), x0 + 8, y0 + 54, FAINT, false);
 
-      int row = y0 + 64;
+      int row = y0 + 72;
       int rowH = 22;
       String snapL = I18n.get("swift.hud.snap");
       String gridL = I18n.get("swift.hud.grid");

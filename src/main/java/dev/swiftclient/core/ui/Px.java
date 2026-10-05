@@ -103,40 +103,113 @@ public final class Px {
       c.text(s, x + 4, y + 2, TEXT, false);
    }
 
-   // ---- Zip, the mascot ----
+   // ---- Zip, the mascot: a little speedster, 24x26 grid ----
 
-   private static final String[] HEAD = {
-      ".....KKKKKKKK...", "....KBBBBBBBBK..", "..Y.KBBLLBBBBBK.", ".YYKBBBBBBBBBBKY",
-      "..Y.KSSSSSSSSSKY", ".Y..KSSWKSWKSSK.", "....KSSSSSSSSK..", ".....KKSSSSKK...",
+   public static final int ZIP_W = 24;
+   public static final int ZIP_H = 26;
+
+   private static final String[] IDLE = {
+      "......KKKKKKKKKKKK......",
+      ".....KBBBBBBBBBBBBK.....",
+      "....KBBBBBBYYBBBBBBK....",
+      "...KBBLLLLYYBBBBBBBBK...",
+      "..KBBLLLBYYYBBBBBBBBBK..",
+      ".YKBBBBBBYYBBBBBBBBBBKY.",
+      "YYYBDDDDDDDDDDDDDDDDBYYY",
+      ".YKBBBKSSSSSSSSSSKBBBKY.",
+      "Y.KBBKWWWWSSSWWWWSKBBK.Y",
+      "..KBKSWWKWSSSWWKWSSKBK..",
+      "..KBKSWKKWSSSWKKWSSKBK..",
+      "..KBKSWKKWSSSWKKWSSKBK..",
+      "..KBKPPSSKSSSKSSPPSKBK..",
+      "...KBKSSSSKKKSSSSSKBK...",
+      "....KBKSSSPPSSSSSKBK....",
+      ".....KBKKKKKKKKKKBK.....",
+      "....KBKKKKKKKKKKKKBK....",
+      "....KBBKBBBYYBBBKBBK....",
+      "....KKKKBBBYBBBBKKKK....",
+      "....KSSKBBYBBBBBKSSK....",
+      "....KSSKKBBBBBBKKSSK....",
+      ".....KKKBKKKKKKBKKK.....",
+      ".......KKKKKKKKKK.......",
+      "......KYYYYKKYYYYK......",
+      "......KYYYYKKYYYYK......",
+      ".......KKKK..KKKK.......",
    };
    private static final String[] RUN_A = {
-      "....KBBBBBBBK...", ".KKKBBBBYYBBK...", "KBBBBBBYYYBBK...", ".KKKBBBBBYYBK...", "...KBBBYYBBDK...",
-      "....KDBBBBBK....", "...KBBKKKBBK....", "..KBBK...KBBBK..", ".KBBK.....KKBBK.", ".KKK........KKK.",
+      ".......KKKKKKKKKKKK.....",
+      "......KBBBBBBBBBBBBK....",
+      ".....KBBBBBBYYBBBBBBK...",
+      "....KBBLLLLYYBBBBBBBBK..",
+      "...KBBLLLBYYYBBBBBBBBBK.",
+      "..YKBBBBBBYYBBBBBBBBBBKY",
+      ".YYYBDDDDDDDDDDDDDDDDBYY",
+      "..YKBBBKSSSSSSSSSSKBBBKY",
+      ".Y.KBBKWWWWSSSWWWWSKBBK.",
+      "...KBKSWWWKSSSWWWKSSKBK.",
+      "...KBKSWWKKSSSWWKKSSKBK.",
+      "...KBKSWWKKSSSWWKKSSKBK.",
+      "...KBKPPSSKSSSKSSPPSKBK.",
+      "....KBKSSSSKKKSSSSSKBK..",
+      ".....KBKSSSPPSSSSSKBKK..",
+      "KKKKKKKBKKKKKKKKKKBKK...",
+      "SSSKBBBKKKKKKKKKKKKK....",
+      "SSSKBBBKKBBBYYBBBKBK....",
+      "KKKKKKK.KBBBYBBBBKK.....",
+      ".......KKBBYBBBBBK......",
+      "......KBBKBBBBBBKKK.....",
+      "....KKKKBBKKKKKKBKKKK...",
+      "..KKKKBBKBK..KKBKYYYYK..",
+      ".KYYYYKBKK.....KKYYYYK..",
+      ".KYYYYKK.........KKKK...",
+      "..KKKK..................",
    };
    private static final String[] RUN_B = {
-      "....KBBBBBBBK...", "....KBBBYYBBBKK.", "...KBBBYYYBBBBBK", "....KBBBBYYBBKK.", "...KBBBYYBBDK...",
-      "....KDBBBBBK....", "....KBBKKBBK....", "...KBBK..KBBK...", "..KBBK....KBBK..", "..KKK......KKK..",
-   };
-   private static final String[] IDLE = {
-      "...KBBBBBBBBK...", "..KBBBBYYBBBBK..", "..KBBBYYYBBBBK..", "..KBBBBBYYBBBK..", "...KDBBYYBBDK...",
-      "...KBBBKKBBBK...", "...KBBBK.KBBK...", "...KBBBK.KBBK...", "...KKKKK.KKKK...", "................",
+      ".......KKKKKKKKKKKK.....",
+      "......KBBBBBBBBBBBBK....",
+      ".....KBBBBBBYYBBBBBBK...",
+      "....KBBLLLLYYBBBBBBBBK..",
+      "...KBBLLLBYYYBBBBBBBBBK.",
+      "..YKBBBBBBYYBBBBBBBBBBKY",
+      ".YYYBDDDDDDDDDDDDDDDDBYY",
+      "..YKBBBKSSSSSSSSSSKBBBKY",
+      ".Y.KBBKWWWWSSSWWWWSKBBK.",
+      "...KBKSWWWKSSSWWWKSSKBK.",
+      "...KBKSWWKKSSSWWKKSSKBK.",
+      "...KBKSWWKKSSSWWKKSSKBK.",
+      "...KBKPPSSKSSSKSSPPSKBK.",
+      "....KBKSSSSKKKSSSSSKBK..",
+      "...KKKBKSSSPPSSSSSKBKKK.",
+      "..KBBKKBKKKKKKKKKKBKSSSK",
+      "..KBBK.KKKKKKKKKKKKKSSSK",
+      "..KKKK..KBBBYYBBBKBBKKK.",
+      ".KSSSK..KBBBYBBBBKKKKK..",
+      ".KSSSK.KKBBYBBBBBK......",
+      "..KKK..KBKBBBBBBKK......",
+      ".......KBKKKKKKKBK......",
+      "........KKBKYKBBBK......",
+      "..........KKYKKKKK......",
+      "............KKYYYYK.....",
+      "..............KKKK......",
    };
 
-   /** Draws Zip at [scale] px per sprite pixel (16×18 grid). [t] is a running clock in ms; [run] animates the stride. */
+   /**
+    * Draws Zip at [scale] px per sprite pixel. [t] is a running clock in ms; with [run] the two stride
+    * frames alternate and speed lines trail behind him.
+    */
    public static void zip(Canvas c, int x, int y, int scale, boolean run, long t) {
-      String[] body = run ? ((t / 160L) % 2L == 0L ? RUN_A : RUN_B) : IDLE;
-      int bob = run ? (int)((t / 160L) % 2L) * (scale > 1 ? 1 : 0) : (int)((t / 600L) % 2L) * (scale > 1 ? 1 : 0);
+      String[] body = run ? ((t / 140L) % 2L == 0L ? RUN_A : RUN_B) : IDLE;
+      int bob = scale > 1 ? (int)((t / (run ? 140L : 700L)) % 2L) : 0;
       if (run) {
-         int shift = (int)((t / 100L) % 3L);
-         c.fill(x - (9 - shift) * scale, y + 7 * scale, x - 3 * scale, y + 8 * scale, ACCENT);
-         c.fill(x - (7 - shift) * scale, y + 10 * scale, x, y + 11 * scale, ACCENT_HI);
-         c.fill(x - (9 - shift) * scale, y + 13 * scale, x - 4 * scale, y + 14 * scale, ACCENT);
+         int shift = (int)((t / 90L) % 3L);
+         c.fill(x - (11 - shift) * scale, y + 8 * scale, x - 3 * scale, y + 9 * scale, ACCENT);
+         c.fill(x - (8 - shift) * scale, y + 12 * scale, x, y + 13 * scale, ACCENT_HI);
+         c.fill(x - (11 - shift) * scale, y + 16 * scale, x - 4 * scale, y + 17 * scale, ACCENT);
       }
-      sprite(c, HEAD, x, y + bob * scale, scale, run);
-      sprite(c, body, x, y + (8 + bob) * scale, scale, run);
+      sprite(c, body, x, y + bob * scale, scale);
    }
 
-   private static void sprite(Canvas c, String[] rows, int x, int y, int s, boolean unused) {
+   private static void sprite(Canvas c, String[] rows, int x, int y, int s) {
       for (int r = 0; r < rows.length; r++) {
          String row = rows[r];
          int cx = 0;
@@ -163,9 +236,11 @@ public final class Px {
          case 'B' -> ACCENT;
          case 'D' -> ACCENT_LO;
          case 'L' -> 0xFF9CC4FF;
-         case 'S' -> 0xFFF2C9A0;
+         case 'S' -> 0xFFFFD6B0;
          case 'W' -> 0xFFFFFFFF;
          case 'Y' -> 0xFFFFD23F;
+         case 'P' -> 0xFFFF7896;
+         case 'O' -> 0xFFFF9A1F;
          default -> 0;
       };
    }

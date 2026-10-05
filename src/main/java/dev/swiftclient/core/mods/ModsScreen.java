@@ -10,6 +10,7 @@ import dev.swiftclient.core.screen.HostWorldScreen;
 import dev.swiftclient.core.screen.HudEditorScreen;
 import dev.swiftclient.core.screen.LanguageScreen;
 import dev.swiftclient.core.screen.ProfilesScreen;
+import dev.swiftclient.core.screen.SessionScreen;
 import dev.swiftclient.core.screen.WardrobeScreen;
 import dev.swiftclient.core.ui.Defilement;
 import dev.swiftclient.core.ui.ScreenRequest;
@@ -73,6 +74,7 @@ public final class ModsScreen extends UiScreen {
       new ModsScreen.Nav(5, "swift.menu.language", "globe"),
       ModsScreen.Nav.header("swift.menu.section.account"),
       new ModsScreen.Nav(8, "swift.menu.friends", "friends"),
+      new ModsScreen.Nav(9, "swift.menu.session", "activity"),
       new ModsScreen.Nav(4, "swift.menu.account", "users")
    };
    private final List<ModsScreen.NavHit> navHits = new ArrayList<>();
@@ -451,7 +453,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int[] backRect() {
-      return new int[]{this.panelX() + 168, this.panelY() + 8, 18, 18};
+      return new int[]{this.panelX() + 178, this.panelY() + 8, 18, 18};
    }
 
    private boolean canGoBack() {
@@ -547,7 +549,7 @@ public final class ModsScreen extends UiScreen {
       int x = this.panelX() + 12;
       int y = this.panelY() + 7;
       long t = (System.nanoTime() - this.t0) / 1_000_000L;
-      dev.swiftclient.core.ui.Px.zip(c, x, y - 1, 1, false, t);
+      dev.swiftclient.core.ui.Px.zip(c, x, this.panelY() + 4, 1, false, t);
       String swift = "SWIFT";
       String client = "CLIENT";
       try {
@@ -555,9 +557,9 @@ public final class ModsScreen extends UiScreen {
          client = Platform.game().translate("swift.brand.client").toUpperCase(Locale.ROOT);
       } catch (Throwable ignored) {
       }
-      c.text(swift, x + 24, y + 3, ACCENT, true);
-      c.text(client, x + 24 + c.textWidth(swift) + 5, y + 3, TEXT, true);
-      dev.swiftclient.core.ui.Px.streak(c, x + 24, y + 15);
+      c.text(swift, x + 30, y + 3, ACCENT, true);
+      c.text(client, x + 30 + c.textWidth(swift) + 5, y + 3, TEXT, true);
+      dev.swiftclient.core.ui.Px.streak(c, x + 30, y + 15);
       c.fill(this.panelX() + 4, this.panelY() + TOP_H, this.panelX() + this.panelW() - 4, this.panelY() + TOP_H + 2, 0xFF000000);
    }
 
@@ -1338,6 +1340,8 @@ public final class ModsScreen extends UiScreen {
          this.setEmbedded(new dev.swiftclient.core.screen.FriendsScreen(), 8);
       } else if (id == 4) {
          this.setEmbedded(new AccountScreen(), 4);
+      } else if (id == 9) {
+         this.setEmbedded(new SessionScreen(), 9);
       }
    }
 
@@ -1394,7 +1398,7 @@ public final class ModsScreen extends UiScreen {
          this.closeSettings();
          return true;
       } else if (!this.searchFocused) {
-         if (keyCode >= 49 && keyCode <= 56 && this.settingsFor == null) {
+         if (keyCode >= 49 && keyCode <= 57 && this.settingsFor == null) {
             int want = keyCode - 49;
             if (want < this.hotHits.size()) {
                this.onNav(this.hotHits.get(want)[4]);

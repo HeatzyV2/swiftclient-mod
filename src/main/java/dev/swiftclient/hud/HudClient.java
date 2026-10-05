@@ -6,6 +6,7 @@ import dev.swiftclient.core.cosmetics.HeartbeatManager;
 import dev.swiftclient.core.hud.HudManager;
 import dev.swiftclient.core.hud.HudVisibilite;
 import dev.swiftclient.core.mods.ModsScreen;
+import dev.swiftclient.core.screen.RadialScreen;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.input.SwiftKeys;
 import dev.swiftclient.core.mods.Module;
@@ -86,6 +87,12 @@ public final class HudClient {
          while (SwiftKeys.MENU.consumeClick()) {
             if (mc.gui.screen() == null && mc.player != null) {
                mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), null));
+            }
+         }
+
+         while (SwiftKeys.RADIAL.consumeClick()) {
+            if (mc.gui.screen() == null && mc.player != null) {
+               mc.setScreenAndShow(new CoreScreenHost(new RadialScreen(), null));
             }
          }
 
