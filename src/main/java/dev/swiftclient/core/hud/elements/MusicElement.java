@@ -9,9 +9,9 @@ import dev.swiftclient.core.music.SpotifyManager;
 import dev.swiftclient.core.ui.Px;
 
 /**
- * Now playing, Swift style: a pocket player. A framed cover on the left, the title in sign text, a live
- * pixel equalizer that dances while a track plays, a segmented progress bar with a square playhead, and
- * real chunky transport keys. Nothing is rounded, blurred or glowing.
+ * Now playing, Swift style: a pocket player. A rounded cover with a play-state badge, the title, a live
+ * equalizer that dances while a track plays, a smooth progress bar with a round playhead, and rounded
+ * transport keys. The panel is translucent: the game stays visible behind it.
  */
 public final class MusicElement extends HudElement {
    private static final int W = 190;
@@ -68,18 +68,18 @@ public final class MusicElement extends HudElement {
       boolean showTime = has && this.opt("time", true) && MusicState.durationMs() > 0L;
       boolean showCtrl = has && this.opt("controls", false);
       boolean showNext = has && this.opt("nextsong", false) && SpotifyManager.hasNext();
-      int opacity = clamp255((int)Math.round(this.optValue("opacity", 90.0) / 100.0 * 255.0));
+      int opacity = clamp255((int)Math.round(this.optValue("opacity", 70.0) / 100.0 * 255.0));
       int cTitle = this.optColor("col_title", -1);
       int cSub = this.optColor("col_sub", 0xFF9AA6BA);
       int cProg = this.optColor("col_prog", Px.ACCENT);
-      int cBg = this.optColor("col_bg", 0xFF0C0F16);
-      int bg = Math.max(opacity, 0x80) << 24 | cBg & 0xFFFFFF;
+      int cBg = this.optColor("col_bg", 0xFF0A0D14);
+      int bg = opacity << 24 | cBg & 0xFFFFFF;
       int h = BASE_H + (showCtrl ? CTRL_H : 0) + (showNext ? NEXT_H : 0);
       boolean playing = has && MusicState.playing();
 
-      // The player body: ink outline, solid side, accent cap on top
-      c.card(x, y, W, h, bg, 0xFF222B42, 1, 4.0F);
-      c.fill(x + 3, y + 2, x + W - 3, y + 4, cProg);
+      // The panel: rounded, see-through, with a thin accent line along the top edge
+      c.card(x, y, W, h, bg, 0x26FFFFFF, 1, 9.0F);
+      c.roundRect(x + 10, y + 1, W - 20, 2, 1.0F, cProg & 0x00FFFFFF | 0xCC000000);
 
       int textX = x + PAD;
       int top = y + 8;
@@ -87,24 +87,24 @@ public final class MusicElement extends HudElement {
          int cx = x + PAD;
          int cy = top;
          Object art = MusicState.artHandle();
-         c.fill(cx - 1, cy - 1, cx + COVER + 1, cy + COVER + 1, Px.INK);
-         c.fill(cx, cy, cx + COVER, cy + COVER, 0xFFFFFFFF);
+         c.roundRect(cx - 1, cy - 1, COVER + 2, COVER + 2, 7.0F, 0x33FFFFFF);
          if (art != null && has) {
+            c.roundRect(cx, cy, COVER, COVER, 6.0F, 0xFF000000);
             c.textureRegion(art, cx + 1, cy + 1, COVER - 2, COVER - 2, 0, 0, 100, 100, 100, 100);
          } else {
-            c.fill(cx + 1, cy + 1, cx + COVER - 1, cy + COVER - 1, 0xFF1B2540);
+            c.roundRect(cx, cy, COVER, COVER, 6.0F, 0xFF1B2540);
             Px.zip(c, cx + 6, cy + 5, 1, false, System.currentTimeMillis());
          }
          // Play-state badge in the corner of the cover
-         int bx = cx + COVER - 11;
-         int by = cy + COVER - 11;
-         c.fill(bx, by, bx + 11, by + 11, Px.INK);
-         c.fill(bx + 1, by + 1, bx + 10, by + 10, playing ? Px.OK : cProg);
+         int bx = cx + COVER - 12;
+         int by = cy + COVER - 12;
+         c.roundRect(bx - 1, by - 1, 14, 14, 7.0F, 0xCC000000);
+         c.roundRect(bx, by, 12, 12, 6.0F, playing ? Px.OK : cProg);
          if (playing) {
-            c.fill(bx + 3, by + 3, bx + 5, by + 8, Px.INK);
-            c.fill(bx + 6, by + 3, bx + 8, by + 8, Px.INK);
+            c.roundRect(bx + 3, by + 3, 2, 6, 1.0F, 0xFF000000);
+            c.roundRect(bx + 7, by + 3, 2, 6, 1.0F, 0xFF000000);
          } else {
-            triRight(c, bx + 4, by + 3, 5, Px.INK);
+            triRight(c, bx + 4, by + 3, 5, 0xFF000000);
          }
          textX = cx + COVER + 8;
       }
@@ -113,53 +113,52 @@ public final class MusicElement extends HudElement {
       if (!has) {
          c.text("NOW PLAYING", textX, top + 6, cTitle, true);
          c.text("Waiting for media…", textX, top + 18, cSub, false);
-         eq(c, x + W - PAD - 18, top, 0, false, cProg);
+         eq(c, x + W - PAD - 17, top, false, cProg);
          return;
       }
 
       // Equalizer in the top-right corner; the title yields to it
-      int eqW = 18;
-      eq(c, x + W - PAD - eqW, top, 0, playing, cProg);
+      int eqW = 17;
+      eq(c, x + W - PAD - eqW, top, playing, cProg);
       boolean twoLines = showArtist && !MusicState.artist().isEmpty();
       c.text(fit(c, MusicState.title(), textW - eqW - 4), textX, twoLines ? top + 1 : top + 6, cTitle, true);
       if (twoLines) {
-         c.text(fit(c, MusicState.artist(), textW), textX, top + 12, cSub, false);
+         c.text(fit(c, MusicState.artist(), textW), textX, top + 12, cSub, true);
       }
 
       if (showBar || showTime) {
-         int rowY = top + COVER - 8;
+         int rowY = top + COVER - 7;
          int bx = textX;
          int bw = textW;
          if (showTime) {
             String el = mmss(MusicState.positionMs());
             String to = mmss(MusicState.durationMs());
             int toW = c.textWidth(to);
-            c.text(el, textX, rowY - 11, cSub, false);
-            c.text(to, x + W - PAD - toW, rowY - 11, cSub, false);
+            c.text(el, textX, rowY - 11, cSub, true);
+            c.text(to, x + W - PAD - toW, rowY - 11, cSub, true);
          }
          if (showBar && bw > 8) {
-            Px.segBar(c, bx, rowY, bw, 6, MusicState.progress(), cProg, Math.max(8, bw / 5));
+            Px.segBar(c, bx, rowY, bw, 4, MusicState.progress(), cProg, 0);
             int fw = Math.round(bw * MusicState.progress());
-            c.fill(bx + fw - 2, rowY - 2, bx + fw + 2, rowY + 8, Px.INK);
-            c.fill(bx + fw - 1, rowY - 1, bx + fw + 1, rowY + 7, Px.TEXT);
+            c.roundRect(Math.max(bx, bx + fw - 3), rowY - 2, 6, 8, 3.0F, 0xFFFFFFFF);
          }
       }
 
       if (showCtrl) {
-         int cy = y + BASE_H - 2;
+         int cy = y + BASE_H - 3;
          int mid = x + W / 2;
-         key(c, mid - 34, cy, 22, 14, cSub, 0);
-         key(c, mid - 11, cy, 22, 14, cTitle, playing ? 3 : 1);
-         key(c, mid + 12, cy, 22, 14, cSub, 2);
+         key(c, mid - 36, cy, 24, 14, cSub, 0);
+         key(c, mid - 12, cy, 24, 14, cTitle, playing ? 3 : 1);
+         key(c, mid + 12, cy, 24, 14, cSub, 2);
       }
 
       if (showNext) {
          int ny = y + BASE_H + (showCtrl ? CTRL_H : 0) - 3;
-         c.fill(x + 6, ny, x + W - 6, ny + 2, 0xFF000000);
-         int tx = x + 6;
+         c.fill(x + 8, ny, x + W - 8, ny + 1, 0x22FFFFFF);
+         int tx = x + 8;
          Object na = SpotifyManager.nextArtHandle();
          if (na != null) {
-            c.fill(tx, ny + 4, tx + 11, ny + 15, Px.INK);
+            c.roundRect(tx, ny + 4, 11, 11, 3.0F, 0xFF000000);
             c.textureRegion(na, tx + 1, ny + 5, 9, 9, 0, 0, 100, 100, 100, 100);
             tx += 15;
          }
@@ -170,39 +169,37 @@ public final class MusicElement extends HudElement {
          if (!nar.isBlank()) {
             nt = nt + "  " + nar;
          }
-         c.text(fit(c, nt, W - (tx - x) - 6 - lblW), tx + lblW, ny + 6, cSub, false);
+         c.text(fit(c, nt, W - (tx - x) - 8 - lblW), tx + lblW, ny + 6, cSub, true);
       }
    }
 
-   /** Four-bar equalizer. Bars bounce in steps while playing and rest low otherwise. */
-   private static void eq(Canvas c, int x, int y, int unused, boolean playing, int color) {
-      long t = System.currentTimeMillis() / 110L;
+   /** Four-bar equalizer: smooth, continuous motion while playing, resting low otherwise. */
+   private static void eq(Canvas c, int x, int y, boolean playing, int color) {
+      double t = System.currentTimeMillis() / 1000.0;
       for (int i = 0; i < 4; i++) {
-         int hgt = playing ? 3 + (int)((t * (3 + i * 2) + i * 5) % 9L) : 2;
-         int bx = x + i * 5;
-         c.fill(bx, y + 10 - hgt, bx + 4, y + 11, Px.INK);
-         c.fill(bx + 1, y + 11 - hgt, bx + 3, y + 10, color);
+         int hgt = playing ? 3 + (int)Math.round(8.0 * Math.abs(Math.sin(t * (2.6 + i * 0.9) + i * 1.7))) : 2;
+         c.roundRect(x + i * 4, y + 11 - hgt, 3, hgt, 1.5F, color);
       }
    }
 
    /** Transport key: kind 0 prev, 1 play, 2 next, 3 pause. */
    private static void key(Canvas c, int x, int y, int w, int h, int col, int kind) {
-      c.card(x, y, w, h, 0xFF1D2535, 0, 0, 2.0F);
+      c.card(x, y, w, h, 0x2AFFFFFF, 0x1AFFFFFF, 1, 5.0F);
       int cx = x + w / 2;
       int cy = y + h / 2;
       switch (kind) {
          case 0 -> {
-            c.fill(cx - 4, cy - 3, cx - 2, cy + 3, col);
+            c.roundRect(cx - 4, cy - 3, 2, 6, 1.0F, col);
             triLeft(c, cx - 2, cy - 3, 6, col);
          }
          case 1 -> triRight(c, cx - 2, cy - 3, 6, col);
          case 2 -> {
             triRight(c, cx - 4, cy - 3, 6, col);
-            c.fill(cx + 3, cy - 3, cx + 5, cy + 3, col);
+            c.roundRect(cx + 3, cy - 3, 2, 6, 1.0F, col);
          }
          default -> {
-            c.fill(cx - 3, cy - 3, cx - 1, cy + 3, col);
-            c.fill(cx + 1, cy - 3, cx + 3, cy + 3, col);
+            c.roundRect(cx - 3, cy - 3, 2, 6, 1.0F, col);
+            c.roundRect(cx + 1, cy - 3, 2, 6, 1.0F, col);
          }
       }
    }

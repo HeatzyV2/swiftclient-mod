@@ -58,22 +58,21 @@ public final class NotificationsElement extends HudElement {
          int slide = Math.round((1.0F - ease) * 24.0F);
          int a = Math.round(ease * 255.0F);
          if (a > 8) {
-            // Stepped slide-in (4 px per frame), solid plate, accent tab, icon block and a draining timer
-            int bx = x + (slide / 4) * 4;
-            c.card(bx, yy, W, H, 0xF20C0F16, 0xFF222B42, 1, 3.0F);
-            c.fill(bx + 2, yy + 3, bx + 4, yy + H - 3, 0xFF3B82F6);
-            c.card(bx + 7, yy + (H - 18) / 2 - 1, 18, 18, 0xFF3B82F6, 0, 0, 2.0F);
-            c.icon(t.icon(), bx + 10, yy + (H - 12) / 2 - 1, 12, 0xFFFFFFFF);
-            String title = trunc(c, t.title(), W - 40);
-            String body = trunc(c, t.body(), W - 40);
+            int bx = x + slide;
+            int al = Math.round(ease * 0xE0);
+            c.card(bx, yy, W, H, (al << 24) | 0x0A0D14, (Math.round(ease * 0x26) << 24) | 0xFFFFFF, 1, 8.0F);
+            c.roundRect(bx + 8, yy + (H - 20) / 2, 20, 20, 10.0F, (a << 24) | 0x3B82F6);
+            c.icon(t.icon(), bx + 11, yy + (H - 14) / 2, 14, (a << 24) | 0xFFFFFF);
+            String title = trunc(c, t.title(), W - 44);
+            String body = trunc(c, t.body(), W - 44);
             if (body.isEmpty()) {
-               c.text(title, bx + 30, yy + (H - 8) / 2 - 1, 0xFFFFFFFF, true);
+               c.text(title, bx + 36, yy + (H - 8) / 2 - 1, (a << 24) | 0xFFFFFF, true);
             } else {
-               c.text(title, bx + 30, yy + 5, 0xFFFFFFFF, true);
-               c.text(body, bx + 30, yy + 15, 0xFF9AA6BA, false);
+               c.text(title, bx + 36, yy + 6, (a << 24) | 0xFFFFFF, true);
+               c.text(body, bx + 36, yy + 16, (a << 24) | 0x9AA6BA, false);
             }
             float rest = Math.max(0.0F, Math.min(1.0F, left / (float)t.durationMs()));
-            c.fill(bx + 7, yy + H - 5, bx + 7 + Math.round((W - 14) * rest), yy + H - 3, 0xFF3B82F6);
+            c.roundRect(bx + 8, yy + H - 5, Math.max(2, Math.round((W - 16) * rest)), 2, 1.0F, (Math.round(a * 0.8F) << 24) | 0x3B82F6);
          }
 
          yy += H + GAP;

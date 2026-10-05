@@ -3,8 +3,9 @@ package dev.swiftclient.core.ui;
 import dev.swiftclient.core.gfx.Canvas;
 
 /**
- * Swift's pixel-block language, shared by every screen and HUD element: raised blocks with an ink outline,
- * square switches, lamps, segmented bars and the speed streak. Same family as the launcher.
+ * Swift's interface language, shared by every screen and HUD element: smooth rounded panels with a soft
+ * shadow, pill switches and bars, lamps, and the speed streak. Everything is anti-aliased and keeps the
+ * transparency it is given: nothing is drawn under a translucent fill.
  */
 public final class Px {
    public static final int INK = 0xFF000000;
@@ -24,82 +25,76 @@ public final class Px {
    private Px() {
    }
 
-   /** Raised block: ink outline, flat fill, solid side. [frame] is a colour frame (selection) or 0. */
+   /** A soft shadow under a rounded rectangle: a few translucent copies, growing and fading outward. */
+   public static void shadow(Canvas c, int x, int y, int w, int h, float radius, int alpha) {
+      for (int i = 1; i <= 3; i++) {
+         int a = Math.max(1, alpha / (i + 1));
+         c.roundRect(x - i, y - i + 3, w + 2 * i, h + 2 * i, radius + i, a << 24);
+      }
+   }
+
+   /** Rounded panel. [frame] is a coloured edge (selection, hover) or 0 for none. */
    public static void block(Canvas c, int x, int y, int w, int h, int fill, int frame) {
-      c.card(x, y, w, h, fill, frame, frame != 0 ? 1 : 0, 4.0F);
+      c.card(x, y, w, h, fill, frame, frame != 0 ? 1 : 0, 7.0F);
    }
 
-   /** Flat inset block with no side (rows, fields). */
+   /** Flat inset area (rows, fields). */
    public static void well(Canvas c, int x, int y, int w, int h, int fill) {
-      c.card(x, y, w, h, fill & 0x00FFFFFF | 0xB0000000, 0, 0, 2.0F);
+      c.roundRect(x, y, w, h, 5.0F, fill & 0x00FFFFFF | 0xB0000000);
    }
 
-   /** Chunky button: accent when [primary], raised, white frame on hover. */
+   /** Button: accent when [primary], lighter on hover. */
    public static void button(Canvas c, int x, int y, int w, int h, String label, boolean hover, boolean primary) {
-      int fill = primary ? (hover ? ACCENT_HI : ACCENT) : (hover ? BLOCK_HI : BLOCK);
-      c.card(x, y, w, h, fill, hover ? TEXT : 0, hover ? 1 : 0, 4.0F);
+      float r = Math.min(h / 2.0F, 7.0F);
       if (primary) {
-         c.fill(x + 2, y + h - 4, x + w - 2, y + h - 2, 0x40000000);
+         shadow(c, x, y, w, h, r, 0x40);
       }
-      int ty = y + (h - 8) / 2;
-      c.centeredText(label, x + w / 2, hover ? ty - 1 : ty, primary || hover ? TEXT : DIM, true);
+      int fill = primary ? (hover ? ACCENT_HI : ACCENT) : (hover ? BLOCK_HI : BLOCK);
+      c.card(x, y, w, h, fill, primary ? 0 : (hover ? 0x66FFFFFF : 0x1AFFFFFF), primary ? 0 : 1, r);
+      c.centeredText(label, x + w / 2, y + (h - 8) / 2, primary || hover ? TEXT : DIM, primary);
    }
 
-   /** Square switch: 26×12, a notched track and a square knob that snaps. */
+   /** Pill switch, 26×12: a rounded track and a round knob. */
    public static void toggle(Canvas c, int x, int y, boolean on) {
-      int w = 26;
-      int h = 12;
-      c.card(x, y, w, h, on ? ACCENT : 0xFF222836, 0, 0, 2.0F);
-      int k = h - 4;
-      int kx = on ? x + w - k - 2 : x + 2;
-      c.fill(kx, y + 2, kx + k, y + 2 + k, INK);
-      c.fill(kx + 1, y + 3, kx + k - 1, y + 1 + k, TEXT);
-      if (on) {
-         c.fill(x + 3, y + 5, x + 5, y + 7, 0x66FFFFFF);
-      }
+      c.roundRect(x, y, 26, 12, 6.0F, on ? ACCENT : 0xFF2A3042);
+      c.roundRect(on ? x + 16 : x + 2, y + 2, 8, 8, 4.0F, TEXT);
    }
 
-   /** Status lamp: lit square when on, dark when off. */
+   /** Status lamp: a round light with a soft halo when on. */
    public static void lamp(Canvas c, int x, int y, boolean on) {
-      c.fill(x, y, x + 5, y + 5, INK);
-      c.fill(x + 1, y + 1, x + 4, y + 4, on ? OK : 0xFF2A3042);
       if (on) {
-         c.fill(x + 1, y + 1, x + 2, y + 2, 0xCCFFFFFF);
+         c.roundRect(x - 2, y - 2, 10, 10, 5.0F, 0x383ECF8E);
       }
+      c.roundRect(x, y, 6, 6, 3.0F, on ? OK : 0xFF2A3042);
    }
 
-   /** Segmented bar: [segs] cells filled to [frac]. */
+   /** Smooth progress bar: a dark rounded track and a rounded fill ([segs] is kept for old callers). */
    public static void segBar(Canvas c, int x, int y, int w, int h, float frac, int color, int segs) {
-      segs = Math.max(2, segs);
-      c.fill(x - 1, y - 1, x + w + 1, y + h + 1, INK);
-      c.fill(x, y, x + w, y + h, 0xFF1A1F2B);
-      int gap = 1;
-      int cell = Math.max(1, (w - gap * (segs - 1)) / segs);
-      int lit = Math.round(Math.max(0F, Math.min(1F, frac)) * segs);
-      for (int i = 0; i < lit; i++) {
-         int cx = x + i * (cell + gap);
-         c.fill(cx, y, cx + cell, y + h, color);
-         c.fill(cx, y, cx + cell, y + 1, 0x55FFFFFF);
+      float r = h / 2.0F;
+      c.roundRect(x, y, w, h, r, 0xB0000000 | 0x1A1F2B);
+      int fw = Math.round(w * Math.max(0.0F, Math.min(1.0F, frac)));
+      if (fw > 0) {
+         c.roundRect(x, y, Math.max(h, fw), h, r, color);
       }
    }
 
-   /** The speed streak: three bars that shrink, drawn under titles. */
+   /** The speed streak: three rounded bars that shrink, drawn under titles. */
    public static void streak(Canvas c, int x, int y) {
-      c.fill(x, y, x + 28, y + 2, ACCENT);
-      c.fill(x + 31, y, x + 43, y + 2, ACCENT & 0x00FFFFFF | 0x99000000);
-      c.fill(x + 46, y, x + 50, y + 2, ACCENT & 0x00FFFFFF | 0x55000000);
+      c.roundRect(x, y, 28, 2, 1.0F, ACCENT);
+      c.roundRect(x + 31, y, 12, 2, 1.0F, ACCENT & 0x00FFFFFF | 0x99000000);
+      c.roundRect(x + 46, y, 4, 2, 1.0F, ACCENT & 0x00FFFFFF | 0x55000000);
    }
 
-   /** Section title in the Swift sign style: pixel text with a flat shadow, then the streak. */
+   /** Section title: capitals with a soft shadow, then the streak. */
    public static void title(Canvas c, String s, int x, int y) {
       c.text(s.toUpperCase(java.util.Locale.ROOT), x, y, TEXT, true);
       streak(c, x, y + 11);
    }
 
-   /** Little tag (category, badge): flat accent block. */
+   /** Little tag (category, badge): rounded accent label. */
    public static void tag(Canvas c, int x, int y, String s, int color) {
       int w = c.textWidth(s) + 8;
-      c.card(x, y, w, 11, color, 0, 0, 2.0F);
+      c.roundRect(x, y, w, 11, 4.0F, color);
       c.text(s, x + 4, y + 2, TEXT, false);
    }
 

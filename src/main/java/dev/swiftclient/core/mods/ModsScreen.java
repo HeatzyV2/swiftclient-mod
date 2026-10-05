@@ -446,9 +446,8 @@ public final class ModsScreen extends UiScreen {
          int barH = Math.max(24, vh * vh / (vh + d.maxPx()));
          int barY = top + (vh - barH) * d.px() / d.maxPx();
          int x = this.panelX() + this.panelW() - 9;
-         c.fill(x, top, x + 5, bottom, 0x66000000);
-         c.fill(x, barY, x + 5, barY + barH, 0xFF000000);
-         c.fill(x + 1, barY + 1, x + 4, barY + barH - 1, ACCENT);
+         c.roundRect(x, top, 4, bottom - top, 2.0F, 0x22FFFFFF);
+         c.roundRect(x, barY, 4, barH, 2.0F, ACCENT);
       }
    }
 
@@ -560,14 +559,14 @@ public final class ModsScreen extends UiScreen {
       c.text(swift, x + 30, y + 3, ACCENT, true);
       c.text(client, x + 30 + c.textWidth(swift) + 5, y + 3, TEXT, true);
       dev.swiftclient.core.ui.Px.streak(c, x + 30, y + 15);
-      c.fill(this.panelX() + 4, this.panelY() + TOP_H, this.panelX() + this.panelW() - 4, this.panelY() + TOP_H + 2, 0xFF000000);
+      c.fill(this.panelX() + 8, this.panelY() + TOP_H, this.panelX() + this.panelW() - 8, this.panelY() + TOP_H + 1, 0x22FFFFFF);
    }
 
    /** The hotbar: one slot per section, white frame on the selected one, number keys 1–8 jump to it. */
    private void drawHotbar(Canvas c, int mouseX, int mouseY) {
       this.hotHits.clear();
       int by = this.panelY() + this.panelH() - BAR_H;
-      c.fill(this.panelX() + 4, by - 2, this.panelX() + this.panelW() - 4, by, 0xFF000000);
+      c.fill(this.panelX() + 8, by - 2, this.panelX() + this.panelW() - 8, by - 1, 0x22FFFFFF);
       int n = 0;
       for (ModsScreen.Nav nv : NAV) {
          if (!nv.isHeader()) {

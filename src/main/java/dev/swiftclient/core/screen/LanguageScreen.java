@@ -148,9 +148,8 @@ public class LanguageScreen extends UiScreen {
          int barH = Math.max(18, vh * vh / (vh + maxPx));
          int barY = top + (vh - barH) * this.defil.px() / maxPx;
          int bx = this.width - 12;
-         c.fill(bx, top, bx + 5, bottom, 0x66000000);
-         c.fill(bx, barY, bx + 5, barY + barH, Px.INK);
-         c.fill(bx + 1, barY + 1, bx + 4, barY + barH - 1, Px.ACCENT);
+         c.roundRect(bx, top, 4, bottom - top, 2.0F, 0x22FFFFFF);
+         c.roundRect(bx, barY, 4, barH, 2.0F, Px.ACCENT);
       }
 
       c.text(Tr.of("swift.language.count", this.rows.size(), this.all.size()), PAD, this.height - 15, Px.FAINT, false);

@@ -109,8 +109,7 @@ public final class Kit {
          int vh = bas - haut;
          int h = Math.max(24, vh * vh / (vh + max));
          int y = haut + (vh - h) * decalage / max;
-         c.fill(x - 1, y - 1, x + 4, y + h + 1, 0xFF000000);
-         c.fill(x, y, x + 3, y + h, Px.ACCENT);
+         c.roundRect(x, y, 3, h, 1.5F, Px.ACCENT);
       }
    }
 

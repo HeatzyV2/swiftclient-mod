@@ -90,18 +90,17 @@ public abstract class HudElement {
       return n * (c.lineHeight() + 2) + 7;
    }
 
-   /** A bare plate (outline, solid side, accent tab) for elements that lay out their own content. */
+   /** A bare plate for elements that lay out their own content: translucent, rounded, with a thin accent tab. */
    protected static void plate(Canvas c, int x, int y, int w, int h) {
-      c.card(x, y, w, h, 0xE60C0F16, 0, 0, 3.0F);
-      c.fill(x + 2, y + 3, x + 4, y + h - 3, 0xFF3B82F6);
+      c.card(x, y, w, h, 0x7A0A0D14, 0x26FFFFFF, 1, 6.0F);
+      c.roundRect(x + 3, y + 4, 2, h - 8, 1.0F, 0xFF3B82F6);
    }
 
-   /** The Swift plate every simple HUD readout is drawn on: ink outline, solid side, accent tab, pixel text. */
+   /** The plate every simple HUD readout is drawn on: see through, so the game stays visible behind it. */
    protected static void chip(Canvas c, int x, int y, String... lines) {
       int w = chipW(c, lines);
       int h = chipH(c, lines.length);
-      c.card(x, y, w, h, 0xE60C0F16, 0, 0, 3.0F);
-      c.fill(x + 2, y + 3, x + 4, y + h - 3, 0xFF3B82F6);
+      plate(c, x, y, w, h);
       int yy = y + 4;
 
       for (String s : lines) {

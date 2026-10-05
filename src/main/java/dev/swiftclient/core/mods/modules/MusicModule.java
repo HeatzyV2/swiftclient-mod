@@ -36,7 +36,7 @@ public final class MusicModule extends Module {
          );
       this.settings
          .add(
-            ModuleSetting.slider("hud_music", "opacity", "Background opacity", 90.0, 0.0, 100.0, 5.0, "%")
+            ModuleSetting.slider("hud_music", "opacity", "Background opacity", 70.0, 0.0, 100.0, 5.0, "%")
                .desc("How opaque the panel background is.")
                .group("Style")
          );

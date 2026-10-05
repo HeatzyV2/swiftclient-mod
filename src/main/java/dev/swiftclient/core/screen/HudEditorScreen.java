@@ -151,7 +151,7 @@ public final class HudEditorScreen extends UiScreen {
          if ((!live || !on) && !e.drawsWithoutData()) {
             int bw = Math.round(b[2] / s);
             int bh = Math.round(b[3] / s);
-            c.card(0, 0, bw, bh, on ? 0xE60C0F16 : 0x990C0F16, 0, 0, 3.0F);
+            c.card(0, 0, bw, bh, on ? 0x7A0A0D14 : 0x440A0D14, 0x26FFFFFF, 1, 6.0F);
             int yy = 4;
 
             for (String str : e.previewLines()) {
