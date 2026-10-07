@@ -161,6 +161,7 @@
   "swift.net.denied": "Access refused by the Swift server (HTTP %s)",
   "swift.net.not_found": "Service not found on the Swift server",
   "swift.net.http_error": "The Swift server returned an error (HTTP %s)",
+  "swift.platform.maintenance": "Maintenance in progress",
   "swift.net.disabled": "The Swift server is disabled",
   "swift.net.unreachable": "The Swift server can't be reached right now",
   "swift.net.need_account": "Can't sign in to the Swift server (Microsoft account required)",

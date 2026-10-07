@@ -9,6 +9,7 @@ import dev.swiftclient.core.cosmetics.PetState;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.music.MusicState;
+import dev.swiftclient.core.net.PlatformFeed;
 import dev.swiftclient.core.pet.DynamicPets;
 import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.hud.HudClient;
@@ -77,6 +78,7 @@ public class SwiftClient implements ClientModInitializer {
       DynamicPets.setSink(new DynamicPetLoader());
       HudClient.init();
       MusicState.boot();
+      PlatformFeed.start(FabricLoader.getInstance().getModContainer("swiftclient").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?"));
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, client) -> forgetPlayers());
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> {
          if (!mixinAuditDone && Boolean.getBoolean("swiftclient.auditMixins")) {
@@ -85,6 +87,7 @@ public class SwiftClient implements ClientModInitializer {
          }
 
          DisplayModeFix.tick();
+         PlatformFeed.tick(client.level != null);
          if (client.gui.overlay() == null) {
             SwiftPanorama.applyWhenReady();
          }

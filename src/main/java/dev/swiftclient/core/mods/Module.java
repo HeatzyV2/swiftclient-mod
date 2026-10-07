@@ -116,8 +116,9 @@ public abstract class Module {
 
    // --- State ---
 
+   /** On in the player's settings, and not switched off remotely by the Swift admin (kill switch for a broken module). */
    public boolean isEnabled() {
-      return this.enabled;
+      return this.enabled && !dev.swiftclient.core.net.PlatformFeed.isDisabled(this.id);
    }
 
    public void setEnabled(boolean e) {
