@@ -28,6 +28,7 @@ public final class HudStats {
 
    public static void update(HudData d) {
       long now = System.nanoTime();
+      dev.swiftclient.core.perf.FrameStats.frame(now);
       framesInWindow++;
       if (fpsWindowStart == 0L) {
          fpsWindowStart = now;

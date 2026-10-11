@@ -29,6 +29,15 @@ public final class SwiftSounds {
       }
    }
 
+   /** A short high blip: somebody named you in chat. */
+   public static void ping() {
+      try {
+         var sm = Minecraft.getInstance().getSoundManager();
+         sm.play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.55F));
+      } catch (Throwable ignored) {
+      }
+   }
+
    public static void hover() {
       long now = System.currentTimeMillis();
       if (now - lastHoverMs < 90L) {

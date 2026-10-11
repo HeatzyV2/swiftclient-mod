@@ -18,6 +18,8 @@ public final class TestGame {
    public static ConfigStore store;
 
    public static final String[] CLIPBOARD = {""};
+   /** Whether a singleplayer world is open (screens that host or edit it). */
+   public static final boolean[] SINGLEPLAYER = {false};
    /** Signed-in player: {uuid, name, Minecraft access token}; all null = no account. */
    public static final String[] PLAYER = {null, null, null};
 
@@ -48,6 +50,7 @@ public final class TestGame {
    public static void install() {
       CONFIG.clear();
       java.util.Arrays.fill(PLAYER, null);
+      SINGLEPLAYER[0] = false;
 
       try {
          store = new ConfigStore(Files.createTempDirectory("swiftclient-test"));
@@ -69,6 +72,8 @@ public final class TestGame {
          case "configDir" -> Path.of("build", "test-config");
          case "config" -> store;
          case "translate" -> translate((String)args[0], args.length > 1 ? (Object[])args[1] : new Object[0]);
+         case "inSingleplayer" -> SINGLEPLAYER[0];
+         case "worldName" -> SINGLEPLAYER[0] ? "Elysia Survival" : null;
          case "readClipboard" -> CLIPBOARD[0];
          case "getUuid" -> PLAYER[0];
          case "getUsername" -> PLAYER[1];

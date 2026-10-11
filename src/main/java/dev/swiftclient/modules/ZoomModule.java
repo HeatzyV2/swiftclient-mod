@@ -14,6 +14,9 @@ public final class ZoomModule extends Module {
    public final ModuleSetting duration;
    public final ModuleSetting smooth;
    public final ModuleSetting fov;
+   public final ModuleSetting sensitivity;
+   /** The player's mouse sensitivity while it is scaled down for the zoom, null otherwise. */
+   private Double savedSensitivity;
    /** The player's FOV while zoomed (or easing back), null otherwise. */
    private Integer savedFov;
 
@@ -26,6 +29,8 @@ public final class ZoomModule extends Module {
          .desc("How long the zoom takes to reach its target. Shorter feels snappier, longer feels cinematic.");
       this.smooth = this.toggle("smooth", "Smooth transition", true).desc("Ease in and out instead of snapping to the zoomed view.");
       this.fov = this.slider("fov", "Zoom FOV", 30.0, 10.0, 60.0, 5.0, "").desc("Field of view while zoomed. The lower the value, the closer it gets.");
+      this.sensitivity = this.toggle("sensitivity", "Scale mouse sensitivity", true)
+         .desc("Slow the mouse down in proportion to the zoom, so aiming stays precise when zoomed in.");
    }
 
    private static OptionInstance<Integer> fovOption() {
@@ -50,6 +55,30 @@ public final class ZoomModule extends Module {
       }
 
       this.applyFrame();
+      this.applySensitivity();
+   }
+
+   /** Mouse sensitivity follows the zoom: the narrower the view, the slower the mouse. */
+   private void applySensitivity() {
+      Minecraft mc = Minecraft.getInstance();
+      OptionInstance<Double> sens = mc.options.sensitivity();
+      if (this.savedFov != null && this.sensitivity.boolValue() && mc.player != null) {
+         if (this.savedSensitivity == null) {
+            this.savedSensitivity = sens.get();
+         }
+
+         double ratio = Math.max(0.15, Math.min(1.0, ZoomState.courant() / Math.max(30.0, this.savedFov)));
+         ((SimpleOptionAccessor)(Object)sens).swiftclient$setRaw(this.savedSensitivity * ratio);
+      } else {
+         this.restoreSensitivity();
+      }
+   }
+
+   private void restoreSensitivity() {
+      if (this.savedSensitivity != null) {
+         Minecraft.getInstance().options.sensitivity().set(this.savedSensitivity);
+         this.savedSensitivity = null;
+      }
    }
 
    @Override
@@ -71,6 +100,7 @@ public final class ZoomModule extends Module {
 
    @Override
    protected void onDisable() {
+      this.restoreSensitivity();
       ZoomState.stop();
       if (this.savedFov != null) {
          fovOption().set(this.savedFov);
@@ -80,6 +110,10 @@ public final class ZoomModule extends Module {
 
    /** Called right before options.txt is written, so a zoomed FOV is never saved as the player's. */
    public void beforeOptionsSave() {
+      if (this.savedSensitivity != null) {
+         ((SimpleOptionAccessor)(Object)Minecraft.getInstance().options.sensitivity()).swiftclient$setRaw(this.savedSensitivity);
+      }
+
       if (this.savedFov != null) {
          ((SimpleOptionAccessor)(Object)fovOption()).swiftclient$setRaw(this.savedFov);
       }

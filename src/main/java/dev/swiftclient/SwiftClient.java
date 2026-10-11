@@ -78,6 +78,7 @@ public class SwiftClient implements ClientModInitializer {
       DynamicPets.setSink(new DynamicPetLoader());
       HudClient.init();
       MusicState.boot();
+      dev.swiftclient.core.update.ModUpdate.start(FabricLoader.getInstance().getModContainer("swiftclient").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?"));
       PlatformFeed.start(FabricLoader.getInstance().getModContainer("swiftclient").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?"));
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, client) -> forgetPlayers());
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> {
@@ -88,6 +89,7 @@ public class SwiftClient implements ClientModInitializer {
 
          DisplayModeFix.tick();
          PlatformFeed.tick(client.level != null);
+         dev.swiftclient.core.update.ModUpdate.tick(client.level != null);
          if (client.gui.overlay() == null) {
             SwiftPanorama.applyWhenReady();
          }

@@ -53,7 +53,16 @@ public final class CanvasImpl implements Canvas {
 
    @Override
    public void playerModel(int x, int y, int w, int h, int mouseX, int mouseY, float delta) {
-      PlayerSkin3DRenderer.render(this.ctx, x, y, w, h, mouseX, mouseY, delta);
+      // The 3D skin widget works in screen coordinates and ignores the current translate / scale, so a screen
+      // drawn inside the menu frame would see the model land far from its box. Convert box and mouse first.
+      var pose = this.ctx.pose();
+      float k = pose.m00();
+      float ox = pose.m20();
+      float oy = pose.m21();
+      PlayerSkin3DRenderer.render(
+         this.ctx, Math.round(ox + x * k), Math.round(oy + y * k), Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k)),
+         Math.round(ox + mouseX * k), Math.round(oy + mouseY * k), delta
+      );
    }
 
    @Override

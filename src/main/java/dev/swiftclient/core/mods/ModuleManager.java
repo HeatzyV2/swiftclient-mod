@@ -24,13 +24,13 @@ public final class ModuleManager {
     * modules interleaved. "@hud" stands for the generic HUD element modules. Unknown ids are appended.
     */
    private static final List<String> ORDER = List.of(
-      "friends", "hud_minimap", "waypoints", "motion_blur", "hud_pvpinfo", "hud_combo", "saturation", "freelook", "hud_keystrokes",
+      "friends", "hud_minimap", "waypoints", "motion_blur", "hud_pvpinfo", "combat_recap", "hud_combo", "saturation", "freelook", "hud_keystrokes",
       "item_physics", "hud_direction", "time_changer", "nametags", "hud_cps", "chunk_borders", "zoom", "fog", "hud_reach", "hud_bossbar",
-      "hit_color", "hud_music", "hud_fps", "particles", "snaplook", "worldedit_cui", "old_visuals", "hud_ping", "hud_armor", "uhc_overlay",
+      "hit_color", "hud_music", "hud_fps", "hud_perf", "particles", "snaplook", "worldedit_cui", "old_visuals", "hud_ping", "hud_armor", "uhc_overlay",
       "hud_itemcounter", "clear_glass", "team_view", "hud_cooldowns", "crosshair", "hud_scoreboard", "weather_changer", "hud_server",
       "light_overlay", "hitboxes", "hud_notifications", "fullbright", "hud_itemtracker", "items_2d", "hud_tnt", "tab_editor", "chat",
       "hud_memory", "hide_foliage", "hud_stopwatch", "togglesprint", "togglesneak", "hud_togglestatus", "fire", "hud_playtime",
-      "better_foliage", "nick_hider", "titles", "hud_packs", "blockoverlay", "screenshot", "gui_blur", "hud_speed", "autojump", "@hud",
+      "better_foliage", "streamer", "autoprofile", "aura", "updates", "nick_hider", "titles", "hud_packs", "blockoverlay", "screenshot", "gui_blur", "hud_speed", "autojump", "@hud",
       "hud_biome", "mod_menu", "discord_rpc", "vanillaui"
    );
    /** Category chips, in this order. */
@@ -72,6 +72,10 @@ public final class ModuleManager {
             new BlockOverlayModule(),
             new MusicModule(),
             new FpsModule(),
+            new PerfModule(),
+            new CombatRecapModule(),
+            new StreamerModule(),
+            new UpdateModule(),
             new MemoryModule(),
             new BiomeModule(),
             new SpeedModule(),

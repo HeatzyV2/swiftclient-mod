@@ -39,6 +39,8 @@ public abstract class ChatComponentMixin {
    private int swiftclient$lastCount;
    @Unique
    private GuiMessage swiftclient$lastMessage;
+   @Unique
+   private boolean swiftclient$hide;
 
    @ModifyVariable(
       method = {"addMessage"},
@@ -47,8 +49,9 @@ public abstract class ChatComponentMixin {
       ordinal = 0
    )
    private Component swiftclient$decorate(Component contents) {
+      this.swiftclient$hide = contents != null && ChatModule.shouldHide(contents.getString());
       ChatModule m = ChatModule.active();
-      if (m == null || contents == null) {
+      if (this.swiftclient$hide || m == null || contents == null) {
          this.swiftclient$lastRaw = null;
          return contents;
       }
@@ -73,7 +76,23 @@ public abstract class ChatComponentMixin {
          out = Component.empty().append(stamp).append(out);
       }
 
+      if (m.mentioned(raw)) {
+         out = Component.empty().append(out).withStyle(ChatFormatting.YELLOW);
+      }
+
       return out;
+   }
+
+   /** A line the chat module or streamer mode drops: vanilla draws it first, then stores it, so stop both. */
+   @Inject(
+      method = {"addMessageToDisplayQueue", "addMessageToQueue"},
+      at = @At("HEAD"),
+      cancellable = true
+   )
+   private void swiftclient$dropHidden(CallbackInfo ci) {
+      if (this.swiftclient$hide) {
+         ci.cancel();
+      }
    }
 
    @Inject(
@@ -81,6 +100,7 @@ public abstract class ChatComponentMixin {
       at = @At("TAIL")
    )
    private void swiftclient$rememberLast(CallbackInfo ci) {
+      this.swiftclient$hide = false;
       this.swiftclient$lastMessage = this.allMessages.isEmpty() ? null : this.allMessages.get(0);
    }
 

@@ -16,6 +16,10 @@ public final class CoordsElement extends HudElement {
 
    private String text(HudData d) {
       String f = d.facing() != null && !d.facing().isEmpty() ? "  " + d.facing() : "";
+      if (dev.swiftclient.core.mods.StreamerMode.hidesCoords()) {
+         return "XYZ  " + dev.swiftclient.core.mods.StreamerMode.MASK;
+      }
+
       return "XYZ  " + (long)Math.floor(d.x()) + "  " + (long)Math.floor(d.y()) + "  " + (long)Math.floor(d.z()) + f;
    }
 

@@ -9,8 +9,24 @@ public abstract class UiScreen {
    protected static final int KEY_ESCAPE = 256;
    protected static final int KEY_ENTER = 257;
    protected static final int KEY_BACKSPACE = 259;
+   private static volatile boolean shiftDown;
+   private static volatile boolean ctrlDown;
    private Consumer<UiScreen> opener;
    private Runnable closer;
+
+   /** Set by the host before each input event, so screens can react to Shift / Ctrl (Cmd on macOS). */
+   public static void setModifiers(boolean shift, boolean ctrl) {
+      shiftDown = shift;
+      ctrlDown = ctrl;
+   }
+
+   protected static boolean shift() {
+      return shiftDown;
+   }
+
+   protected static boolean ctrl() {
+      return ctrlDown;
+   }
 
    public abstract String title();
 

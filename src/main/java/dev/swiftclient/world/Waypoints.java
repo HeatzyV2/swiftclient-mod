@@ -148,6 +148,54 @@ public final class Waypoints {
       return best;
    }
 
+   /** Every waypoint of this server / world, in all dimensions (what a share code carries). */
+   public static List<Waypoint> allHere() {
+      return List.copyOf(all());
+   }
+
+   /** Adds a waypoint at an explicit place (a death point, an imported one). Returns it, or null out of a world. */
+   public static Waypoint addAt(String name, int x, int y, int z, int color) {
+      Minecraft mc = Minecraft.getInstance();
+      if (mc.player == null) {
+         return null;
+      }
+
+      Waypoint w = new Waypoint(name, x, y, z, dimension(), color);
+      all().add(w);
+      save();
+      return w;
+   }
+
+   /** Adds waypoints that came from a share code, skipping the ones already here. Returns how many were new. */
+   public static int importAll(List<Waypoint> incoming) {
+      List<Waypoint> l = all();
+      int added = 0;
+      for (Waypoint w : incoming) {
+         if (!l.contains(w)) {
+            l.add(w);
+            added++;
+         }
+      }
+
+      if (added > 0) {
+         save();
+      }
+
+      return added;
+   }
+
+   /** Removes the waypoints for which {@code test} is true; returns how many went. */
+   public static int removeIf(java.util.function.Predicate<Waypoint> test) {
+      List<Waypoint> l = all();
+      int before = l.size();
+      l.removeIf(test);
+      if (l.size() != before) {
+         save();
+      }
+
+      return before - l.size();
+   }
+
    /** Removes every waypoint of this server / world. */
    public static int clearHere() {
       List<Waypoint> l = all();

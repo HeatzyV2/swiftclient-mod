@@ -12,6 +12,10 @@ public final class SessionModule extends Module {
 
    @Override
    protected void onRender(float partialTick) {
-      SessionStats.sample(HudManager.lastData());
+      dev.swiftclient.core.hud.HudData d = HudManager.lastData();
+      SessionStats.sample(d);
+      dev.swiftclient.core.session.SessionGraph.sample(
+         System.currentTimeMillis(), d != null && d.inWorld(), dev.swiftclient.core.hud.HudStats.fpsSmoothed(), d == null ? -1 : d.ping()
+      );
    }
 }

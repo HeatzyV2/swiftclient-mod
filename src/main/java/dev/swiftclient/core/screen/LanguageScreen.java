@@ -199,7 +199,7 @@ public class LanguageScreen extends UiScreen {
       int sx = r[0] + r[2] - 17;
       int sy = y + (r[3] - 9) / 2;
       boolean fav = row.fav();
-      c.text(fav ? "★" : "☆", sx, sy, fav ? 0xFFFFD23F : (overStar ? Px.TEXT : Px.FAINT), true);
+      c.icon("star", sx - 1, sy - 1, 11, fav ? 0xFFFFD23F : (overStar ? Px.TEXT : 0xFF3A4152));
       if (sel) {
          Px.lamp(c, r[0] + r[2] - 14, y + r[3] - 9, true);
       }

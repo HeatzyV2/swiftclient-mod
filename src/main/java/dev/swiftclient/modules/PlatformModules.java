@@ -44,6 +44,8 @@ public final class PlatformModules {
          new NickHiderModule(),
          new ScreenshotModule(),
          new ChatModule(),
+         new AutoProfileModule(),
+         new AuraModule(),
          new ModMenuModule()
       );
    }

@@ -44,6 +44,7 @@ public final class HudManager {
       new TntTimerElement(),
       new MusicElement(),
       new FpsElement(),
+      new PerfElement(),
       new MemoryElement(),
       new BiomeElement(),
       new SpeedElement(),

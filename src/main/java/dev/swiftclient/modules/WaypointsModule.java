@@ -5,6 +5,8 @@ import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.platform.Tr;
 import dev.swiftclient.core.ui.Notifications;
 import dev.swiftclient.input.SwiftKeys;
+import dev.swiftclient.core.platform.Platform;
+import dev.swiftclient.world.WaypointCodec;
 import dev.swiftclient.world.Waypoints;
 import dev.swiftclient.world.WorldOverlays;
 import net.minecraft.client.Minecraft;
@@ -18,6 +20,15 @@ public final class WaypointsModule extends Module implements WorldOverlays.World
    public final ModuleSetting nextName;
    public final ModuleSetting beam;
    public final ModuleSetting maxDistance;
+   public final ModuleSetting death;
+   /** Marker for a death point, so it can be told apart and removed once you are back. */
+   private static final String DEATH_PREFIX = "† ";
+   private static final int DEATH_COLOR = 0xFFFF4D4D;
+   private int lastX;
+   private int lastY;
+   private int lastZ;
+   private boolean haveLast;
+   private boolean wasDead;
 
    public WaypointsModule() {
       super("waypoints", "Waypoints", "Mark places and find them again: a beam and a label with the distance.", "World", "pin", false);
@@ -35,6 +46,58 @@ public final class WaypointsModule extends Module implements WorldOverlays.World
          .desc("Delete every waypoint of this server or world.");
       this.beam = this.toggle("beam", "Beam", true).desc("Draw a vertical beam on each waypoint so you see it from afar.");
       this.maxDistance = this.slider("distance", "Max distance", 1000.0, 100.0, 5000.0, 100.0, "").desc("Waypoints further than this are hidden.");
+      this.death = this.toggle("death", "Death point", true).desc("Drop a red waypoint where you die, and remove it when you are back there.");
+      this.action("share", "Copy share code", () -> Tr.of("swift.waypoints.share"), this::copyCode)
+         .desc("Copy all waypoints of this server as a code you can paste to a friend.").group("Sharing");
+      this.action("import", "Import from clipboard", () -> Tr.of("swift.waypoints.import"), this::importCode)
+         .desc("Add the waypoints from a share code you copied.").group("Sharing");
+   }
+
+   private void copyCode() {
+      var all = Waypoints.allHere();
+      if (all.isEmpty()) {
+         say(Tr.of("swift.waypoints.share_none"));
+      } else {
+         Platform.game().copyToClipboard(WaypointCodec.encode(all));
+         say(Tr.of("swift.waypoints.shared", all.size()));
+      }
+   }
+
+   private void importCode() {
+      try {
+         int added = Waypoints.importAll(WaypointCodec.decode(Platform.game().readClipboard()));
+         say(Tr.of("swift.waypoints.imported", added));
+      } catch (IllegalArgumentException e) {
+         say(Tr.of("swift.waypoints.import_bad"));
+      }
+   }
+
+   /** Remembers where you stand while alive, drops a point when you die, and clears it when you come back. */
+   private void trackDeath() {
+      Minecraft mc = Minecraft.getInstance();
+      if (mc.player == null) {
+         this.haveLast = false;
+         this.wasDead = false;
+         return;
+      }
+
+      boolean dead = mc.player.isDeadOrDying();
+      if (dead && !this.wasDead && this.haveLast && this.death.boolValue()) {
+         Waypoints.removeIf(w -> w.name().startsWith(DEATH_PREFIX));
+         Waypoints.addAt(DEATH_PREFIX + Tr.of("swift.waypoints.death"), this.lastX, this.lastY, this.lastZ, DEATH_COLOR);
+         say(Tr.of("swift.waypoints.death_added", this.lastX, this.lastY, this.lastZ));
+      }
+
+      this.wasDead = dead;
+      if (!dead) {
+         this.lastX = mc.player.getBlockX();
+         this.lastY = mc.player.getBlockY();
+         this.lastZ = mc.player.getBlockZ();
+         this.haveLast = true;
+         if (this.death.boolValue()) {
+            Waypoints.removeIf(w -> w.name().startsWith(DEATH_PREFIX) && mc.player.distanceToSqr(w.x() + 0.5, w.y(), w.z() + 0.5) < 16.0);
+         }
+      }
    }
 
    private void addHere() {
@@ -56,6 +119,7 @@ public final class WaypointsModule extends Module implements WorldOverlays.World
 
    @Override
    protected void onTick() {
+      this.trackDeath();
       while (SwiftKeys.WAYPOINT.consumeClick()) {
          this.addHere();
       }

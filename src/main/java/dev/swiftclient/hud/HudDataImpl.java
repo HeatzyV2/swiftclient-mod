@@ -234,6 +234,11 @@ public final class HudDataImpl implements HudData {
    }
 
    @Override
+   public int renderDistance() {
+      return this.mc.options.renderDistance().get();
+   }
+
+   @Override
    public String serverAddress() {
       if (this.mc.getSingleplayerServer() != null) {
          return "";

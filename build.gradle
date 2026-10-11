@@ -59,6 +59,11 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // ./gradlew test --tests '*UiPreviewTest*' -Ppreview=true : renders the main screens to build/ui-preview/*.png
+    if (project.hasProperty('preview')) {
+        systemProperty 'swiftclient.preview', '1'
+        outputs.upToDateWhen { false }
+    }
     // ./gradlew test --tests '*LangTest*' -PlangDump=<file> : writes the English texts still missing
     if (project.hasProperty('langDump')) {
         systemProperty 'swiftclient.langDump', project.property('langDump')

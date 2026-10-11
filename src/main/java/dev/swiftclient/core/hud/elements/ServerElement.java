@@ -20,7 +20,7 @@ public final class ServerElement extends HudElement {
       if (a == null || a.isEmpty()) {
          return this.opt("singleplayer", true) ? Tr.of("swift.hud.singleplayer") : "";
       } else {
-         return a;
+         return dev.swiftclient.core.mods.StreamerMode.hidesAddress() ? dev.swiftclient.core.mods.StreamerMode.mask(a) : a;
       }
    }
 

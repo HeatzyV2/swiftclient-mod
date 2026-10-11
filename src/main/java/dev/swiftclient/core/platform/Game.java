@@ -93,6 +93,10 @@ public interface Game {
       return "";
    }
 
+   /** Writes a line in the player's chat, visible only to them. Safe to call from any thread. */
+   default void chat(String message) {
+   }
+
    /** Shows a short in-game notification (toast). Safe to call from any thread. */
    default void notify(String title, String message) {
    }

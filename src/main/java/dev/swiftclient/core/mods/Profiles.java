@@ -93,6 +93,51 @@ public final class Profiles {
       }
    }
 
+   /**
+    * Creates profile {@code nom} from the current settings with some modules forced on and others off.
+    * Returns false if the name is empty or taken. The profile is not activated.
+    */
+   public static synchronized boolean creerPreset(String nom, java.util.Set<String> on, java.util.Set<String> off) {
+      charger();
+      nom = nom == null ? "" : nom.trim();
+      if (nom.isEmpty() || PROFILS.containsKey(nom)) {
+         return false;
+      }
+
+      memoriser();
+      Map<String, Map<String, String>> p = capturer();
+      for (String id : on) {
+         Map<String, String> m = p.get(id);
+         if (m != null) {
+            m.put("enabled", "1");
+         }
+      }
+
+      for (String id : off) {
+         Map<String, String> m = p.get(id);
+         if (m != null) {
+            m.put("enabled", "0");
+         }
+      }
+
+      PROFILS.put(nom, p);
+      ecrire();
+      return true;
+   }
+
+   /** Activates the next profile in the list (wrapping round) and returns its name. */
+   public static synchronized String suivant() {
+      charger();
+      List<String> noms = new ArrayList<>(PROFILS.keySet());
+      if (noms.size() < 2) {
+         return actif;
+      }
+
+      String next = noms.get((noms.indexOf(actif) + 1) % noms.size());
+      activer(next);
+      return next;
+   }
+
    public static synchronized boolean supprimer(String nom) {
       charger();
       if (nom != null && !nom.equals(actif) && PROFILS.size() > 1) {

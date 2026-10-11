@@ -102,8 +102,8 @@ public final class ModsScreen extends UiScreen {
    private static final float RATIO = 2.0F;
    private static final int HEADER_H = 34;
    private static final int CHIPS_H = 26;
-   private static final int CARD_MIN_W = 76;
-   private static final int TILE_H = 57;
+   private static final int CARD_MIN_W = 124;
+   private static final int TILE_H = 30;
    private static final int TILE_GAP = 6;
    private static final int GAP = 10;
    private static final int CARD_H = 64;
@@ -122,7 +122,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int embY() {
-      return this.panelY() + TOP_H;
+      return this.panelY() + this.topH();
    }
 
    private int embW() {
@@ -130,7 +130,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int embH() {
-      return this.panelH() - TOP_H - BAR_H;
+      return this.panelH() - this.topH() - this.barH();
    }
 
    private void setEmbedded(UiScreen s, int section) {
@@ -179,8 +179,18 @@ public final class ModsScreen extends UiScreen {
       return 0;
    }
 
-   private static final int BAR_H = 48;
-   private static final int TOP_H = 34;
+   /** Small windows (GUI scale 3 and up) get a tighter shell so the content keeps room and names stay readable. */
+   private boolean compact() {
+      return this.height < 300;
+   }
+
+   private int barH() {
+      return this.compact() ? 40 : 48;
+   }
+
+   private int topH() {
+      return this.compact() ? 30 : 34;
+   }
 
    private int sideX() {
       return this.panelX();
@@ -195,11 +205,11 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int gridTop() {
-      return this.panelY() + 34 + 26;
+      return this.panelY() + this.topH() + 26;
    }
 
    private int gridBottom() {
-      return this.panelY() + this.panelH() - 8 - BAR_H;
+      return this.panelY() + this.panelH() - 8 - this.barH();
    }
 
    private int gridLeft() {
@@ -232,12 +242,14 @@ public final class ModsScreen extends UiScreen {
       return new int[]{this.gridLeft() + col * (w + TILE_GAP), this.gridTop() + row * (TILE_H + TILE_GAP) - this.grille.px(), w, TILE_H};
    }
 
+   /** Settings button, left of the switch. */
    private static int[] gearRect(int[] card) {
-      return new int[]{card[0] + card[2] - 5 - 14, card[1] + card[3] - 5 - 14, 14, 14};
+      return new int[]{card[0] + card[2] - 6 - 26 - 5 - 14, card[1] + (card[3] - 14) / 2, 14, 14};
    }
 
+   /** Pill switch at the right end of the card. */
    private static int[] toggleRect(int[] card) {
-      return new int[]{card[0] + 5, card[1] + card[3] - 5 - 14, card[2] - 10 - 16, 14};
+      return new int[]{card[0] + card[2] - 6 - 26, card[1] + (card[3] - 12) / 2, 26, 12};
    }
 
    private int[] closeRect() {
@@ -498,7 +510,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int accountCardY() {
-      return this.panelY() + this.panelH() - BAR_H + 6;
+      return this.panelY() + this.panelH() - this.barH() + 6;
    }
 
    private void buildNav() {
@@ -559,13 +571,13 @@ public final class ModsScreen extends UiScreen {
       c.text(swift, x + 30, y + 3, ACCENT, true);
       c.text(client, x + 30 + c.textWidth(swift) + 5, y + 3, TEXT, true);
       dev.swiftclient.core.ui.Px.streak(c, x + 30, y + 15);
-      c.fill(this.panelX() + 8, this.panelY() + TOP_H, this.panelX() + this.panelW() - 8, this.panelY() + TOP_H + 1, 0x22FFFFFF);
+      c.fill(this.panelX() + 8, this.panelY() + this.topH(), this.panelX() + this.panelW() - 8, this.panelY() + this.topH() + 1, 0x22FFFFFF);
    }
 
    /** The hotbar: one slot per section, white frame on the selected one, number keys 1–8 jump to it. */
    private void drawHotbar(Canvas c, int mouseX, int mouseY) {
       this.hotHits.clear();
-      int by = this.panelY() + this.panelH() - BAR_H;
+      int by = this.panelY() + this.panelH() - this.barH();
       c.fill(this.panelX() + 8, by - 2, this.panelX() + this.panelW() - 8, by - 1, 0x22FFFFFF);
       int n = 0;
       for (ModsScreen.Nav nv : NAV) {
@@ -580,7 +592,7 @@ public final class ModsScreen extends UiScreen {
       int slot = Math.max(18, Math.min(30, (zone - (n - 1) * gap) / n));
       int total = n * slot + (n - 1) * gap;
       int x = left + Math.max(0, (zone - total) / 2);
-      int y = by + (BAR_H - slot) / 2 + 1;
+      int y = by + (this.barH() - slot) / 2 + 1;
       int idx = 0;
       String hoverLabel = null;
       int hoverX = 0;
@@ -597,7 +609,7 @@ public final class ModsScreen extends UiScreen {
          if (nv.icon() != null) {
             c.icon(nv.icon(), x + (slot - 14) / 2, y + dy + (slot - 14) / 2, 14, actif ? 0xFFFFFFFF : (over ? 0xFFE6ECF7 : 0xFFA9B4C8));
          }
-         c.text(String.valueOf(idx), x + slot - 7, y + dy + slot - 10, actif ? TEXT : FAINT, true);
+         c.text(String.valueOf(idx), x + slot - 6, y + dy + 2, actif ? TEXT : FAINT, false);
          this.hotHits.add(new int[]{x, y - 3, slot, slot + 3, nv.section()});
          if (over) {
             try {
@@ -632,7 +644,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int[] editHudRect() {
-      return new int[]{this.panelX() + this.panelW() - 12 - this.editW(), this.panelY() + this.panelH() - BAR_H + 10, this.editW(), 22};
+      return new int[]{this.panelX() + this.panelW() - 12 - this.editW(), this.panelY() + this.panelH() - this.barH() + (this.barH() - 22) / 2, this.editW(), 22};
    }
 
    private void drawAccountCard(Canvas c, int x, int w, int mouseX, int mouseY) {
@@ -679,7 +691,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int chipsY() {
-      return this.panelY() + 34 + 3;
+      return this.panelY() + this.topH() + 3;
    }
 
    private void drawCategoryTabs(Canvas c, int mouseX, int mouseY) {
@@ -779,33 +791,31 @@ public final class ModsScreen extends UiScreen {
       boolean on = m.isEnabled();
       boolean inGrid = mouseY >= this.gridTop() && mouseY <= this.gridBottom();
       boolean hover = inGrid && in(mouseX, mouseY, r);
-      float hov = this.ease("card:" + m.id, hover ? 1.0F : 0.0F, 30.0F);
-      float onT = this.ease("on:" + m.id, on ? 1.0F : 0.0F, 30.0F);
-      int lift = hover ? 2 : 0;
-      int y = r[1] - lift;
-      // A lit module has an accent frame and a lamp; an idle one is a dark block.
+      int y = r[1];
+      // A lit module has an accent frame; an idle one is a dark block. Everything is on one line, so the name is never hidden.
       c.card(r[0], y, r[2], r[3], hover ? 0xFF182033 : 0xFF11151F, on ? ACCENT : (hover ? 0xFF3A4766 : 0), 1, 4.0F);
-      dev.swiftclient.core.ui.Px.lamp(c, r[0] + 6, y + 6, on);
+      if (on) {
+         c.roundRect(r[0] + 1, y + 6, 2, r[3] - 12, 1.0F, ACCENT);
+      }
 
-      int is = 16;
-      c.icon(m.icon == null ? "mods" : m.icon, r[0] + (r[2] - is) / 2, y + 6, is, on ? 0xFFFFFFFF : (hover ? 0xFFE6ECF7 : 0xFF98A3B8));
-      c.centeredText(trunc(c, m.displayName(), r[2] - 8), r[0] + r[2] / 2, y + 25, on || hover ? TEXT : DIM, false);
+      int is = 14;
+      int ix = r[0] + 9;
+      c.icon(m.icon == null ? "mods" : m.icon, ix, y + (r[3] - is) / 2, is, on ? 0xFFFFFFFF : (hover ? 0xFFE6ECF7 : 0xFF98A3B8));
 
-      // ON / OFF key: sinks and lights up when the module is on
-      int[] t = toggleRect(r);
-      t[1] -= lift;
-      boolean tOver = inGrid && in(mouseX, mouseY, t);
-      c.card(t[0], t[1], t[2], t[3], on ? (tOver ? 0xFF6FA8FF : ACCENT) : (tOver ? 0xFF2A3350 : 0xFF1E2433), 0, 0, 2.0F);
-      String label = on ? Tr.of("swift.mods.enabled") : Tr.of("swift.mods.disabled");
-      c.centeredText(trunc(c, label.toUpperCase(Locale.ROOT), t[2] - 4), t[0] + t[2] / 2, t[1] + (t[3] - c.lineHeight()) / 2 + 1, on ? TEXT : 0xFF8A93A0, on);
-
-      // Settings gear
-      int[] g = gearRect(r);
-      g[1] -= lift;
       boolean has = m.hasSettings();
-      boolean gOver = has && inGrid && in(mouseX, mouseY, g);
-      c.card(g[0], g[1], g[2], g[3], gOver ? ACCENT : 0xFF1E2433, 0, 0, 2.0F);
-      c.icon("gear", g[0] + (g[2] - 8) / 2, g[1] + (g[3] - 8) / 2, 8, has ? (gOver ? TEXT : DIM) : 0xFF3A4152);
+      int[] g = gearRect(r);
+      int nameX = ix + is + 7;
+      int nameMax = (has ? g[0] : toggleRect(r)[0]) - 5 - nameX;
+      c.text(trunc(c, m.displayName(), nameMax), nameX, y + (r[3] - c.lineHeight()) / 2 + 1, on || hover ? TEXT : DIM, false);
+
+      int[] t = toggleRect(r);
+      dev.swiftclient.core.ui.Px.toggle(c, t[0], t[1], on);
+
+      if (has) {
+         boolean gOver = inGrid && in(mouseX, mouseY, g);
+         c.card(g[0], g[1], g[2], g[3], gOver ? ACCENT : 0xFF1E2433, 0, 0, 3.0F);
+         c.icon("gear", g[0] + 2, g[1] + 2, 10, gOver ? TEXT : DIM);
+      }
    }
 
    private static final int LETTER_SPACING = 1;
@@ -896,7 +906,7 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int settingsTop() {
-      return groupsOf(this.settingsFor).size() > 1 ? this.gridTop() : this.panelY() + 34 + 4;
+      return groupsOf(this.settingsFor).size() > 1 ? this.gridTop() : this.panelY() + this.topH() + 4;
    }
 
    private void drawSettings(Canvas c, int mouseX, int mouseY) {

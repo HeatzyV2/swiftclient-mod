@@ -244,6 +244,11 @@ public final class GameImpl implements Game {
    private static final SystemToast.SystemToastId SWIFT_TOAST = new SystemToast.SystemToastId();
 
    @Override
+   public void chat(String message) {
+      this.mc().execute(() -> this.mc().gui.hud.getChat().addClientSystemMessage(Component.literal(message)));
+   }
+
+   @Override
    public void notify(String title, String message) {
       this.mc().execute(() -> SystemToast.addOrUpdate(
          this.mc().gui.toastManager(), SWIFT_TOAST, Component.literal(title), message == null ? null : Component.literal(message)

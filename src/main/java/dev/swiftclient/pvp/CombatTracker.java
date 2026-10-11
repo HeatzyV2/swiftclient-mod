@@ -1,5 +1,6 @@
 package dev.swiftclient.pvp;
 
+import dev.swiftclient.core.combat.FightLog;
 import dev.swiftclient.core.hud.HudData;
 import java.lang.ref.WeakReference;
 import net.minecraft.client.Minecraft;
@@ -27,6 +28,7 @@ public final class CombatTracker {
    private static int pendingTicks;
    private static WeakReference<LivingEntity> target = new WeakReference<>(null);
    private static int lastSelfHurt;
+   private static float lastHealth = -1.0F;
 
    private CombatTracker() {
    }
@@ -35,6 +37,7 @@ public final class CombatTracker {
    public static void onAttack(Entity entity) {
       LocalPlayer self = Minecraft.getInstance().player;
       if (self != null && entity instanceof LivingEntity living) {
+         FightLog.RECAP.swing();
          lastAttackMs = System.currentTimeMillis();
          target = new WeakReference<>(living);
          pending = new WeakReference<>(living);
@@ -65,10 +68,17 @@ public final class CombatTracker {
       }
 
       lastSelfHurt = self.hurtTime;
+      float health = self.getHealth();
+      if (lastHealth >= 0.0F && health < lastHealth - 0.01F) {
+         FightLog.RECAP.tookDamage(lastHealth - health);
+      }
+
+      lastHealth = health;
       LivingEntity p = pending.get();
       if (p != null) {
          if (p.hurtTime > 0 && p.hurtTime >= p.hurtDuration - CONFIRM_TICKS) {
             combo++;
+            FightLog.RECAP.hit(combo);
             lastHitMs = System.currentTimeMillis();
             pending = new WeakReference<>(null);
          } else if (--pendingTicks <= 0) {
@@ -88,6 +98,7 @@ public final class CombatTracker {
    }
 
    public static void reset() {
+      lastHealth = -1.0F;
       combo = 0;
       reach = -1.0;
       lastHitMs = 0L;

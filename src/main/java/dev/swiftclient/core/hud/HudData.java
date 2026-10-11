@@ -57,6 +57,11 @@ public interface HudData {
       return 0.0F;
    }
 
+   /** Render distance in chunks, as set in the video options. */
+   default int renderDistance() {
+      return 12;
+   }
+
    /** Address of the server being played on, empty in singleplayer. */
    default String serverAddress() {
       return "";
