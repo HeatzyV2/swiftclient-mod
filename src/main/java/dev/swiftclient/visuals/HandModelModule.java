@@ -20,12 +20,34 @@ public final class HandModelModule extends Module {
    public final ModuleSetting items;
    public final ModuleSetting mainHand;
    public final ModuleSetting offHand;
+   public final ModuleSetting raise;
+   public final ModuleSetting shift;
+   public final ModuleSetting depth;
 
    public HandModelModule() {
       super("hand_model", "3D Hand", "Shows your own arm holding the item in first person: swords, tools, items and blocks.", "Visual", "hand", false);
       this.items = this.cycle("items", "Items", new String[]{"All items", "Weapons & tools"}, 0).desc("Which held items get your arm.");
       this.mainHand = this.toggle("main_hand", "Main hand", true).desc("Show the arm holding the main hand item.");
       this.offHand = this.toggle("off_hand", "Offhand", true).desc("Show the arm holding the offhand item.");
+      this.raise = this.slider("raise", "Raise", 0.09, -0.3, 0.3, 0.005, "").desc("Lifts the item and your arm so more of the arm is on screen.").group("Position");
+      this.shift = this.slider("shift", "Shift", 0.04, -0.3, 0.3, 0.005, "").desc("Moves the item and your arm towards the centre of the screen (negative: away).").group("Position");
+      this.depth = this.slider("depth", "Depth", 0.0, -0.3, 0.3, 0.005, "").desc("Pushes the item and your arm away from the camera (negative: closer).").group("Position");
+   }
+
+   /**
+    * Moves the item and its arm together, for items that get an arm. Pushes a pose the caller must pop when this
+    * returns true. Knives bring their own arm and are left alone.
+    */
+   public static boolean nudge(PoseStack pose, ItemStack stack, ItemDisplayContext context, boolean mainHand) {
+      HandModelModule module = active;
+      if (module == null || !covers(stack, mainHand) || WeaponInspectModule.active != null && stack.is(ItemTags.SWORDS)) {
+         return false;
+      }
+
+      float side = context.leftHand() ? -1.0F : 1.0F;
+      pose.pushPose();
+      pose.translate(-side * module.shift.floatValue(), module.raise.floatValue(), -module.depth.floatValue());
+      return true;
    }
 
    @Override

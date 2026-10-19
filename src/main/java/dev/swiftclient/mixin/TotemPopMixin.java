@@ -37,6 +37,7 @@ public abstract class TotemPopMixin {
       if (entity instanceof LivingEntity living && !living.isRemoved()) {
          TotemSpiritModule.onTotemPop(living);
          RelicParticlesModule.onTotemPop(living);
+         dev.swiftclient.visuals.TotemCounterModule.onTotemPop(living);
       }
    }
 }

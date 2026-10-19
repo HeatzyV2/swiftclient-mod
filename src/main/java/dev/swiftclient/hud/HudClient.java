@@ -110,6 +110,7 @@ public final class HudClient {
             ModuleManager.render(deltaTracker.getGameTimeDeltaPartialTick(false));
             if (!mc.gui.hud.isHidden()) {
                LowHealthWarningModule.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+               dev.swiftclient.visuals.ExtraHud.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
             }
 
             Screen ecran = mc.gui.screen();

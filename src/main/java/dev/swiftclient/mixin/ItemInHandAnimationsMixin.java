@@ -105,6 +105,7 @@ public abstract class ItemInHandAnimationsMixin {
       @Local(argsOnly = true) InteractionHand hand
    ) {
       boolean mainHand = hand == InteractionHand.MAIN_HAND;
+      boolean nudged = HandModelModule.nudge(poseStack, stack, context, mainHand);
       if (WeaponInspectModule.active != null) {
          if (!WeaponInspectModule.renderItem(poseStack, entity, stack, context, collector, light, mainHand)) {
             original.call(renderer, entity, stack, context, poseStack, collector, light);
@@ -115,6 +116,10 @@ public abstract class ItemInHandAnimationsMixin {
          }
 
          original.call(renderer, entity, stack, context, poseStack, collector, light);
+      }
+
+      if (nudged) {
+         poseStack.popPose();
       }
    }
 
