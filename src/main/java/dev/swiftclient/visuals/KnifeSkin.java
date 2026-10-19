@@ -91,7 +91,7 @@ final class KnifeSkin {
       float[] tip = KnifeModels.KARAMBIT_TIP;
       int k = 2;
       Streak[] streaks = new Streak[]{new Streak(0, 6.0F * (float)k, 0.5F * (float)k, tip[0], tip[1], 1.0F)};
-      return new KnifeSkin("Karambit", parts, streaks, 0.022F / (float)k, ringX + 2.0F, ringY, new Vector3f(-0.06F, 0.1F, 0.02F), new Vector3f(-0.5F, -0.8F, -0.3F), new Vector3f(0.8F, -0.5F, 0.35F), new InspectAnimation.Clip(KARAMBIT_INSPECT, 3.2F, 0.14F, 0.4F), new InspectAnimation.Clip(KARAMBIT_DEPLOY, 0.8F));
+      return new KnifeSkin("Karambit", parts, streaks, 0.022F / (float)k, ringX + 2.0F, ringY, new Vector3f(-0.06F, 0.1F, 0.02F), new Vector3f(-0.6F, 0.7F, -0.2F), new Vector3f(0.7F, 0.65F, 0.1F), new InspectAnimation.Clip(KARAMBIT_INSPECT, 3.2F, 0.14F, 0.4F), new InspectAnimation.Clip(KARAMBIT_DEPLOY, 0.8F));
    }
 
    private static KnifeSkin katana() {
