@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -282,7 +283,8 @@ public class MicrosoftAuthFlow {
             for (String kv : requestLine.substring(q + 1, space).split("&")) {
                String[] parts = kv.split("=", 2);
                if (parts.length == 2 && parts[0].equals(param)) {
-                  return parts[1];
+                  // The callback URL is percent-encoded; sending it on encoded again made Microsoft reject the code (AADSTS70000).
+                  return URLDecoder.decode(parts[1], StandardCharsets.UTF_8);
                }
             }
 
