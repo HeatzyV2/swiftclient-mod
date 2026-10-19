@@ -46,6 +46,11 @@ public final class CombatTracker {
       }
    }
 
+   /** When you last swung at a living entity (epoch ms, 0 = never). */
+   public static long lastAttackMs() {
+      return lastAttackMs;
+   }
+
    /** Closest distance from {@code eye} to the box. */
    static double distance(Vec3 eye, AABB box) {
       double dx = Math.max(Math.max(box.minX - eye.x, 0.0), eye.x - box.maxX);

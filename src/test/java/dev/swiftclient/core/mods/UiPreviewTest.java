@@ -47,6 +47,11 @@ class UiPreviewTest {
    void mods() throws Exception {
       shot("mods-427x240", 427, 240, new ModsScreen(), null);
       shot("mods-640x360", 640, 360, new ModsScreen(), null);
+      for (String id : new String[]{"zoom", "freelook", "togglesprint", "hitboxes"}) {
+         ModuleManager.byId(id).setEnabled(true);
+      }
+
+      shot("mods-enabled-640x360", 640, 360, new ModsScreen(), null);
    }
 
    /** Fills the private state of a screen (the real one comes from the backend). */
@@ -175,6 +180,31 @@ class UiPreviewTest {
       shot("hud-427x240", 427, 240, new HudEditorScreen(), hudSelect(false, "fps"));
       shot("hud-640x360", 640, 360, new HudEditorScreen(), hudSelect(true, "coords"));
       shot("hud-multi-640x360", 640, 360, new HudEditorScreen(), hudSelect(false, "fps", "coords", "clock"));
+   }
+
+   /** Now Playing card with synced lyrics (looked up on LRCLIB, so it needs the network). */
+   @Test
+   void nowPlaying() throws Exception {
+      ModuleManager.byId("hud_music").setEnabled(true);
+      ModuleManager.byId("hud_music").setting("lyrics").setBool(true);
+      ModuleManager.byId("hud_music").setting("lyric_lines").setValue(3.0);
+      var el = new dev.swiftclient.core.hud.elements.MusicElement();
+      for (int i = 0; i < 40; i++) {
+         dev.swiftclient.core.music.MusicState.apply("Billie Jean", "Michael Jackson", true, 88_000L, 294_000L, "bj", "", false);
+         if (dev.swiftclient.core.music.MusicLyrics.current().status() != dev.swiftclient.core.music.lyrics.Lyrics.Status.LOADING) {
+            break;
+         }
+
+         Thread.sleep(250);
+      }
+
+      PreviewCanvas c = new PreviewCanvas(200, 110, 3);
+      c.fill(0, 0, 200, 110, 0xFF3A5A40);
+      for (int i = 0; i < 30; i++) {
+         el.draw(c, null, 10, 10);
+      }
+
+      c.save(OUT.resolve("music-card.png"));
    }
 
    @Test

@@ -46,7 +46,29 @@ public final class PlatformModules {
          new ChatModule(),
          new AutoProfileModule(),
          new AuraModule(),
-         new ModMenuModule()
+         new ModMenuModule(),
+         new SkinChangeModule(),
+         new dev.swiftclient.visuals.SwingAnimationModule(),
+         new dev.swiftclient.visuals.HandsModule(),
+         new dev.swiftclient.visuals.HandModelModule(),
+         new dev.swiftclient.visuals.WeaponInspectModule(),
+         new dev.swiftclient.visuals.TotemSpiritModule(),
+         new dev.swiftclient.visuals.FloatingRelicsModule(),
+         new dev.swiftclient.visuals.RelicParticlesModule(),
+         new dev.swiftclient.visuals.JumpCirclesModule(),
+         new dev.swiftclient.visuals.PharaohHeaddressModule(),
+         new dev.swiftclient.visuals.AtmosphereModule(),
+         new dev.swiftclient.visuals.LowHealthWarningModule(),
+         new dev.swiftclient.visuals.CustomGlintModule(),
+         new dev.swiftclient.visuals.HitParticlesModule(),
+         new dev.swiftclient.modules.CoordSnapperModule(),
+         new dev.swiftclient.modules.ElytraSwapModule(),
+         new dev.swiftclient.modules.AutoReconnectModule(),
+         new dev.swiftclient.modules.WeatherNotifierModule(),
+         new dev.swiftclient.modules.FriendGuardModule(),
+         new dev.swiftclient.modules.BorderlessModule(),
+         new dev.swiftclient.modules.HideInventoryModule(),
+         new dev.swiftclient.visuals.HandAuraModule()
       );
    }
 }

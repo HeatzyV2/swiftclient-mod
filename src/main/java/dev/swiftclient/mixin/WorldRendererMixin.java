@@ -2,6 +2,7 @@ package dev.swiftclient.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.swiftclient.pet.PetManager;
+import dev.swiftclient.visuals.JumpCirclesModule;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -20,5 +21,6 @@ public abstract class WorldRendererMixin {
    private void swiftclient$submitPet(PoseStack poseStack, LevelRenderState state, SubmitNodeCollector collector, CallbackInfo ci) {
       float tickProgress = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
       PetManager.INSTANCE.renderInWorld(poseStack, collector, state.cameraRenderState, tickProgress);
+      JumpCirclesModule.submit(poseStack, collector, state.cameraRenderState);
    }
 }

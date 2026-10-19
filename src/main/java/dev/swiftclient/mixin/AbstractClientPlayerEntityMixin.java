@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.modules.SkinChangeModule;
 import dev.swiftclient.ui.SkinRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -34,6 +35,20 @@ public class AbstractClientPlayerEntityMixin {
          if (cached != null) {
             cir.setReturnValue((PlayerSkin)cached);
          }
+      }
+   }
+
+   /** Skin Change: the skin chosen in the module, for you and/or the other players. */
+   @Inject(
+      method = {"getSkin"},
+      at = {@At("RETURN")},
+      cancellable = true
+   )
+   private void swiftclient$skinChange(CallbackInfoReturnable<PlayerSkin> cir) {
+      PlayerSkin original = cir.getReturnValue();
+      PlayerSkin swapped = SkinChangeModule.swap((AbstractClientPlayer)(Object)this, original);
+      if (swapped != original) {
+         cir.setReturnValue(swapped);
       }
    }
 }

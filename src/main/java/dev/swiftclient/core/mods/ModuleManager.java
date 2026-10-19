@@ -24,7 +24,10 @@ public final class ModuleManager {
     * modules interleaved. "@hud" stands for the generic HUD element modules. Unknown ids are appended.
     */
    private static final List<String> ORDER = List.of(
-      "friends", "hud_minimap", "waypoints", "motion_blur", "hud_pvpinfo", "combat_recap", "hud_combo", "saturation", "freelook", "hud_keystrokes",
+      "friends", "hud_minimap", "waypoints", "motion_blur", "atmosphere", "hud_pvpinfo", "weapon_inspect", "combat_recap", "hud_combo", "saturation",
+      "swing_animation", "freelook", "hud_keystrokes", "custom_glint", "jump_circles", "hand_pose", "hand_aura", "low_health_warning", "totem_spirit", "hand_model",
+      "hit_particles", "skin_change", "coord_snapper", "hide_inventory", "auto_reconnect", "friend_guard", "weather_notifier", "borderless",
+      "relic_particles", "floating_relics", "pharaoh_headdress", "elytra_swap",
       "item_physics", "hud_direction", "time_changer", "nametags", "hud_cps", "chunk_borders", "zoom", "fog", "hud_reach", "hud_bossbar",
       "hit_color", "hud_music", "hud_fps", "hud_perf", "particles", "snaplook", "worldedit_cui", "old_visuals", "hud_ping", "hud_armor", "uhc_overlay",
       "hud_itemcounter", "clear_glass", "team_view", "hud_cooldowns", "crosshair", "hud_scoreboard", "weather_changer", "hud_server",

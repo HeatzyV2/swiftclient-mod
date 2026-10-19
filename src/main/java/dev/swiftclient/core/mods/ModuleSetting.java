@@ -35,6 +35,7 @@ public final class ModuleSetting {
    private int maxLength = 32;
    private final String key;
    private final String moduleId;
+   private int revision;
 
    private ModuleSetting(
       String moduleId, String id, String name, ModuleSetting.Type type, boolean bool, double value, int color, double min, double max, double step, String unit
@@ -176,6 +177,29 @@ public final class ModuleSetting {
       return this.options == null ? "" : this.options[i];
    }
 
+   /** Declared (untranslated) label of the selected option, for code that branches on it. */
+   public String label() {
+      return this.options == null ? "" : this.options[this.cycleIndex()];
+   }
+
+   /** Is the selected option the one declared as {@code label}? */
+   public boolean is(String label) {
+      return this.label().equals(label);
+   }
+
+   public float floatValue() {
+      return (float)this.value;
+   }
+
+   public int intValue() {
+      return (int)Math.round(this.value);
+   }
+
+   /** Goes up each time the value changes: lets a module rebuild what it derived from it only when needed. */
+   public int revision() {
+      return this.revision;
+   }
+
    /** Storage key of the selected option. */
    public String cycleKey() {
       return this.optionKeys != null && this.optionKeys.length != 0 ? this.optionKeys[this.cycleIndex()] : "";
@@ -297,6 +321,12 @@ public final class ModuleSetting {
       this.setBool(!this.bool);
    }
 
+   /** Slider value, clamped to its range (no step rounding: used to restore exact defaults). */
+   public void setValue(double v) {
+      this.value = v < this.min ? this.min : Math.min(v, this.max);
+      this.save();
+   }
+
    // --- Storage format ---
 
    /** Value as stored (config and profiles). Null for actions, which hold no value. */
@@ -380,6 +410,7 @@ public final class ModuleSetting {
    }
 
    private void save() {
+      this.revision++;
       if (this.type != ModuleSetting.Type.ACTION) {
          try {
             Platform.game().setConfig(this.key, this.exporter());

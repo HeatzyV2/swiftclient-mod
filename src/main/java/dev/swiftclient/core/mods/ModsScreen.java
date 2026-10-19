@@ -102,8 +102,9 @@ public final class ModsScreen extends UiScreen {
    private static final float RATIO = 2.0F;
    private static final int HEADER_H = 34;
    private static final int CHIPS_H = 26;
-   private static final int CARD_MIN_W = 124;
-   private static final int TILE_H = 30;
+   private static final int CARD_MIN_W = 96;
+   private static final int TILE_H = 60;
+   private static final int BAR_H = 14;
    private static final int TILE_GAP = 6;
    private static final int GAP = 10;
    private static final int CARD_H = 64;
@@ -242,14 +243,15 @@ public final class ModsScreen extends UiScreen {
       return new int[]{this.gridLeft() + col * (w + TILE_GAP), this.gridTop() + row * (TILE_H + TILE_GAP) - this.grille.px(), w, TILE_H};
    }
 
-   /** Settings button, left of the switch. */
+   /** Settings button, at the right end of the tile's bottom row. */
    private static int[] gearRect(int[] card) {
-      return new int[]{card[0] + card[2] - 6 - 26 - 5 - 14, card[1] + (card[3] - 14) / 2, 14, 14};
+      return new int[]{card[0] + card[2] - 4 - BAR_H, card[1] + card[3] - 4 - BAR_H, BAR_H, BAR_H};
    }
 
-   /** Pill switch at the right end of the card. */
-   private static int[] toggleRect(int[] card) {
-      return new int[]{card[0] + card[2] - 6 - 26, card[1] + (card[3] - 12) / 2, 26, 12};
+   /** Enabled / Disabled bar along the bottom of the tile (leaves room for the settings button). */
+   private static int[] stateRect(int[] card, boolean withGear) {
+      int w = card[2] - 8 - (withGear ? BAR_H + 3 : 0);
+      return new int[]{card[0] + 4, card[1] + card[3] - 4 - BAR_H, w, BAR_H};
    }
 
    private int[] closeRect() {
@@ -787,34 +789,42 @@ public final class ModsScreen extends UiScreen {
       return false;
    }
 
+   /**
+    * A module tile, Lunar style: the icon and name centred on top, an Enabled / Disabled bar along the
+    * bottom and the settings button next to it. A lit module gets an accent frame and a soft halo.
+    */
    private void drawModCard(Canvas c, Module m, int[] r, int mouseX, int mouseY) {
       boolean on = m.isEnabled();
       boolean inGrid = mouseY >= this.gridTop() && mouseY <= this.gridBottom();
       boolean hover = inGrid && in(mouseX, mouseY, r);
+      int x = r[0];
       int y = r[1];
-      // A lit module has an accent frame; an idle one is a dark block. Everything is on one line, so the name is never hidden.
-      c.card(r[0], y, r[2], r[3], hover ? 0xFF182033 : 0xFF11151F, on ? ACCENT : (hover ? 0xFF3A4766 : 0), 1, 4.0F);
+      int w = r[2];
+      c.card(x, y, w, r[3], hover ? TILE_HOV : TILE, on ? withAlpha(ACCENT, 0.7F) : (hover ? 0x26FFFFFF : 0x12FFFFFF), 1, 6.0F);
+
+      int is = 16;
+      int cx = x + w / 2;
+      int iy = y + 7;
       if (on) {
-         c.roundRect(r[0] + 1, y + 6, 2, r[3] - 12, 1.0F, ACCENT);
+         c.roundRect(cx - 11, iy - 3, 22, 22, 11.0F, ACCENT_SOFT);
       }
 
-      int is = 14;
-      int ix = r[0] + 9;
-      c.icon(m.icon == null ? "mods" : m.icon, ix, y + (r[3] - is) / 2, is, on ? 0xFFFFFFFF : (hover ? 0xFFE6ECF7 : 0xFF98A3B8));
+      c.icon(m.icon == null ? "mods" : m.icon, cx - is / 2, iy, is, on ? TEXT : (hover ? 0xFFE6ECF7 : 0xFF98A3B8));
+      c.centeredText(trunc(c, m.displayName(), w - 10), cx, y + 27, on || hover ? TEXT : DIM, false);
 
       boolean has = m.hasSettings();
-      int[] g = gearRect(r);
-      int nameX = ix + is + 7;
-      int nameMax = (has ? g[0] : toggleRect(r)[0]) - 5 - nameX;
-      c.text(trunc(c, m.displayName(), nameMax), nameX, y + (r[3] - c.lineHeight()) / 2 + 1, on || hover ? TEXT : DIM, false);
-
-      int[] t = toggleRect(r);
-      dev.swiftclient.core.ui.Px.toggle(c, t[0], t[1], on);
+      int[] bar = stateRect(r, has);
+      boolean barOver = inGrid && in(mouseX, mouseY, bar);
+      int fill = on ? (barOver ? ACCENT_HOV : ACCENT) : (barOver ? 0xFF262A33 : OFF_BG);
+      c.card(bar[0], bar[1], bar[2], bar[3], fill, 0, 0, 4.0F);
+      String state = Tr.of(on ? "swift.mods.enabled" : "swift.mods.disabled").toUpperCase(Locale.ROOT);
+      spacedCentered(c, state, bar[0] + bar[2] / 2, bar[1] + (BAR_H - 8) / 2 + 1, on ? TEXT : OFF_TEXT, bar[2] - 4);
 
       if (has) {
+         int[] g = gearRect(r);
          boolean gOver = inGrid && in(mouseX, mouseY, g);
-         c.card(g[0], g[1], g[2], g[3], gOver ? ACCENT : 0xFF1E2433, 0, 0, 3.0F);
-         c.icon("gear", g[0] + 2, g[1] + 2, 10, gOver ? TEXT : DIM);
+         c.card(g[0], g[1], g[2], g[3], gOver ? BTN_HOV : BTN, 0, 0, 4.0F);
+         c.icon("gear", g[0] + 2, g[1] + 2, BAR_H - 4, gOver ? TEXT : DIM);
       }
    }
 

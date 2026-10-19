@@ -77,6 +77,14 @@ public final class PostFx {
     * @param blur motion blur strength 0..0.95 (0 = off)
     */
    public static void apply(float saturation, float contrast, float brightness, float blur) {
+      apply(saturation, contrast, brightness, 0.0F, 0.0F, blur);
+   }
+
+   /**
+    * @param warmth -1 (cool) .. 1 (warm), 0 = unchanged
+    * @param vignette 0..1 darkening of the corners
+    */
+   public static void apply(float saturation, float contrast, float brightness, float warmth, float vignette, float blur) {
       boolean grade = saturation >= 0.0F;
       boolean motion = blur > 0.001F;
       if (!motion) {
@@ -100,7 +108,7 @@ public final class PostFx {
          if (grade) {
             captureTex = ensure(captureTex, screen, w, h, "SwiftClient Grade Buffer", false);
             enc.copyTextureToTexture(screen, captureTex, 0, 0, 0, 0, 0, w, h);
-            write(enc, gradeUniforms, 0.0F, saturation, contrast, brightness);
+            write(enc, gradeUniforms, 0.0F, saturation, contrast, brightness, warmth, vignette);
             draw(enc, rt, captureView, gradeUniforms, "SwiftClient Color Grade");
          }
 
@@ -111,7 +119,7 @@ public final class PostFx {
             }
 
             if (historyValid) {
-               write(enc, blendUniforms, 1.0F, Math.min(0.95F, blur), 0.0F, 0.0F);
+               write(enc, blendUniforms, 1.0F, Math.min(0.95F, blur), 0.0F, 0.0F, 0.0F, 0.0F);
                draw(enc, rt, historyView, blendUniforms, "SwiftClient Motion Blur");
             }
 
@@ -158,11 +166,11 @@ public final class PostFx {
       }
    }
 
-   private static void write(CommandEncoder enc, GpuBuffer target, float a, float b, float c, float d) {
+   private static void write(CommandEncoder enc, GpuBuffer target, float a, float b, float c, float d, float e, float f) {
       ByteBuffer buf = MemoryUtil.memAlloc(32);
       try {
          buf.putFloat(a).putFloat(b).putFloat(c).putFloat(d);
-         buf.putFloat(0.0F).putFloat(0.0F).putFloat(0.0F).putFloat(0.0F);
+         buf.putFloat(e).putFloat(f).putFloat(0.0F).putFloat(0.0F);
          buf.flip();
          enc.writeToBuffer(target.slice(), buf);
       } finally {

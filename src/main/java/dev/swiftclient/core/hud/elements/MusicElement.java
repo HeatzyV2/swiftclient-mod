@@ -4,22 +4,35 @@ import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.hud.HudData;
 import dev.swiftclient.core.hud.HudElement;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.core.music.MusicLyrics;
 import dev.swiftclient.core.music.MusicState;
 import dev.swiftclient.core.music.SpotifyManager;
+import dev.swiftclient.core.music.lyrics.Lyrics;
+import dev.swiftclient.core.music.lyrics.SyncedLyrics;
 import dev.swiftclient.core.ui.Px;
+import java.util.Locale;
 
 /**
- * Now playing, Swift style: a pocket player. A rounded cover with a play-state badge, the title, a live
- * equalizer that dances while a track plays, a smooth progress bar with a round playhead, and rounded
- * transport keys. The panel is translucent: the game stays visible behind it.
+ * Now playing, as a compact card: the cover on the left; "Now playing", a scrolling title and the artist
+ * on the right, with the time, the transport keys and a thin progress bar. Below, the synced lyrics
+ * scroll smoothly line by line, the current line filling up like a karaoke screen.
  */
 public final class MusicElement extends HudElement {
-   private static final int W = 190;
-   private static final int BASE_H = 48;
+   private static final int W = 180;
    private static final int PAD = 6;
-   private static final int COVER = 36;
-   private static final int CTRL_H = 18;
-   private static final int NEXT_H = 17;
+   private static final int ART = 42;
+   private static final int LYRIC_LH = 11;
+   private static final int NEXT_H = 15;
+   private static final float SMALL = 0.7F;
+   private static final float MARQUEE_SPEED = 22.0F;
+   private static final float MARQUEE_PAUSE = 1.6F;
+   private static final int MARQUEE_GAP = 28;
+   /** Lyric line the view is scrolled to, eased towards the line being sung. */
+   private float scroll = Float.NaN;
+   private Object scrollSource;
+   private long lastFrame;
+   private float titleClock;
+   private String titleShown = "";
 
    public MusicElement() {
       super("music", "Now playing");
@@ -50,7 +63,25 @@ public final class MusicElement extends HudElement {
       if (!this.moduleOn() && !MusicState.hasMusic()) {
          return 0;
       }
-      return BASE_H + (this.opt("controls", false) ? CTRL_H : 0) + (this.opt("nextsong", false) && SpotifyManager.hasNext() ? NEXT_H : 0);
+
+      return this.headerHeight() + this.lyricsHeight() + (this.showNext() ? NEXT_H : 0);
+   }
+
+   private int headerHeight() {
+      return PAD + ART + PAD;
+   }
+
+   private boolean showNext() {
+      return MusicState.hasMusic() && this.opt("nextsong", false) && SpotifyManager.hasNext();
+   }
+
+   private int lyricLines() {
+      return this.opt("lyrics", false) && MusicState.hasMusic() ? Math.max(1, Math.min(3, (int)Math.round(this.optValue("lyric_lines", 2.0)))) : 0;
+   }
+
+   private int lyricsHeight() {
+      int n = this.lyricLines();
+      return n == 0 ? 0 : n * LYRIC_LH + 4;
    }
 
    @Override
@@ -58,150 +89,283 @@ public final class MusicElement extends HudElement {
       if (!this.moduleOn() && !MusicState.hasMusic()) {
          return;
       }
-      // Kick the SMTC / Spotify pollers even before the first track arrives.
-      MusicState.hasMusic();
 
+      long nowNs = System.nanoTime();
+      float dt = this.lastFrame == 0L ? 0.0F : Math.min(0.1F, (nowNs - this.lastFrame) / 1.0E9F);
+      this.lastFrame = nowNs;
       boolean has = MusicState.hasMusic();
-      boolean cover = this.opt("cover", true);
-      boolean showArtist = this.opt("artist", true);
-      boolean showBar = has && this.opt("progress", true) && MusicState.durationMs() > 0L;
-      boolean showTime = has && this.opt("time", true) && MusicState.durationMs() > 0L;
-      boolean showCtrl = has && this.opt("controls", false);
-      boolean showNext = has && this.opt("nextsong", false) && SpotifyManager.hasNext();
+      boolean playing = has && MusicState.playing();
       int opacity = clamp255((int)Math.round(this.optValue("opacity", 70.0) / 100.0 * 255.0));
       int cTitle = this.optColor("col_title", -1);
       int cSub = this.optColor("col_sub", 0xFF9AA6BA);
       int cProg = this.optColor("col_prog", Px.ACCENT);
       int cBg = this.optColor("col_bg", 0xFF0A0D14);
-      int bg = opacity << 24 | cBg & 0xFFFFFF;
-      int h = BASE_H + (showCtrl ? CTRL_H : 0) + (showNext ? NEXT_H : 0);
-      boolean playing = has && MusicState.playing();
+      int h = this.height(c);
+      c.card(x, y, W, h, opacity << 24 | cBg & 0xFFFFFF, 0x1FFFFFFF, 1, 7.0F);
 
-      // The panel: rounded, see-through, with a thin accent line along the top edge
-      c.card(x, y, W, h, bg, 0x26FFFFFF, 1, 9.0F);
-      c.roundRect(x + 10, y + 1, W - 20, 2, 1.0F, cProg & 0x00FFFFFF | 0xCC000000);
-
-      int textX = x + PAD;
-      int top = y + 8;
+      boolean cover = this.opt("cover", true);
+      int left = x + PAD;
       if (cover) {
-         int cx = x + PAD;
-         int cy = top;
-         Object art = MusicState.artHandle();
-         c.roundRect(cx - 1, cy - 1, COVER + 2, COVER + 2, 7.0F, 0x33FFFFFF);
-         if (art != null && has) {
-            c.roundRect(cx, cy, COVER, COVER, 6.0F, 0xFF000000);
-            c.textureRegion(art, cx + 1, cy + 1, COVER - 2, COVER - 2, 0, 0, 100, 100, 100, 100);
-         } else {
-            c.roundRect(cx, cy, COVER, COVER, 6.0F, 0xFF1B2540);
-            Px.zip(c, cx + 6, cy + 5, 1, false, System.currentTimeMillis());
-         }
-         // Play-state badge in the corner of the cover
-         int bx = cx + COVER - 12;
-         int by = cy + COVER - 12;
-         c.roundRect(bx - 1, by - 1, 14, 14, 7.0F, 0xCC000000);
-         c.roundRect(bx, by, 12, 12, 6.0F, playing ? Px.OK : cProg);
-         if (playing) {
-            c.roundRect(bx + 3, by + 3, 2, 6, 1.0F, 0xFF000000);
-            c.roundRect(bx + 7, by + 3, 2, 6, 1.0F, 0xFF000000);
-         } else {
-            triRight(c, bx + 4, by + 3, 5, 0xFF000000);
-         }
-         textX = cx + COVER + 8;
+         this.drawCover(c, left, y + PAD, has, playing, cProg);
+         left += ART + 7;
       }
 
-      int textW = x + W - PAD - textX;
+      int column = x + W - PAD - left;
+      int top = y + PAD;
+      small(c, has ? (playing ? "NOW PLAYING" : "PAUSED") : "NOW PLAYING", left, top + 1, withAlpha(cSub, 0.8F));
+      if (playing) {
+         this.equalizer(c, x + W - PAD - 11, top, cProg);
+      }
+
       if (!has) {
-         c.text("NOW PLAYING", textX, top + 6, cTitle, true);
-         c.text("Waiting for media…", textX, top + 18, cSub, false);
-         eq(c, x + W - PAD - 17, top, false, cProg);
+         c.text("Waiting for media…", left, top + 12, cSub, true);
          return;
       }
 
-      // Equalizer in the top-right corner; the title yields to it
-      int eqW = 17;
-      eq(c, x + W - PAD - eqW, top, playing, cProg);
-      boolean twoLines = showArtist && !MusicState.artist().isEmpty();
-      c.text(fit(c, MusicState.title(), textW - eqW - 4), textX, twoLines ? top + 1 : top + 6, cTitle, true);
-      if (twoLines) {
-         c.text(fit(c, MusicState.artist(), textW), textX, top + 12, cSub, true);
+      // Title (scrolls when it is too long), then the artist.
+      String title = MusicState.title();
+      if (!title.equals(this.titleShown)) {
+         this.titleShown = title;
+         this.titleClock = 0.0F;
       }
 
-      if (showBar || showTime) {
-         int rowY = top + COVER - 7;
-         int bx = textX;
-         int bw = textW;
-         if (showTime) {
-            String el = mmss(MusicState.positionMs());
-            String to = mmss(MusicState.durationMs());
-            int toW = c.textWidth(to);
-            c.text(el, textX, rowY - 11, cSub, true);
-            c.text(to, x + W - PAD - toW, rowY - 11, cSub, true);
-         }
-         if (showBar && bw > 8) {
-            Px.segBar(c, bx, rowY, bw, 4, MusicState.progress(), cProg, 0);
-            int fw = Math.round(bw * MusicState.progress());
-            c.roundRect(Math.max(bx, bx + fw - 3), rowY - 2, 6, 8, 3.0F, 0xFFFFFFFF);
+      if (playing) {
+         this.titleClock += dt;
+      }
+
+      this.marquee(c, title, left, top + 9, column, cTitle, this.titleClock);
+      boolean showArtist = this.opt("artist", true) && !MusicState.artist().isEmpty();
+      if (showArtist) {
+         c.text(fit(c, MusicState.artist(), column), left, top + 20, cSub, true);
+      }
+
+      // Time, transport keys, progress bar.
+      long dur = MusicState.durationMs();
+      int rowY = y + PAD + ART - 9;
+      if (this.opt("time", true) && dur > 0L) {
+         long pos = MusicState.positionMs();
+         small(c, mmss(pos), left, rowY, cSub);
+         String rest = "-" + mmss(Math.max(0L, dur - pos));
+         int restW = Math.round(c.textWidth(rest) * SMALL);
+         small(c, rest, x + W - PAD - restW, rowY, cSub);
+      }
+
+      if (this.opt("controls", true)) {
+         transport(c, left + column / 2, rowY + 2, playing, cTitle, cSub);
+      }
+
+      if (this.opt("progress", true) && dur > 0L) {
+         int barY = y + PAD + ART - 2;
+         c.roundRect(left, barY, column, 2, 1.0F, 0x26FFFFFF);
+         int fill = Math.round(column * MusicState.progress());
+         if (fill > 0) {
+            c.roundRect(left, barY, fill, 2, 1.0F, playing ? cProg : cSub);
          }
       }
 
-      if (showCtrl) {
-         int cy = y + BASE_H - 3;
-         int mid = x + W / 2;
-         key(c, mid - 36, cy, 24, 14, cSub, 0);
-         key(c, mid - 12, cy, 24, 14, cTitle, playing ? 3 : 1);
-         key(c, mid + 12, cy, 24, 14, cSub, 2);
+      int below = y + this.headerHeight();
+      if (this.lyricLines() > 0) {
+         this.drawLyrics(c, x + PAD, below, W - PAD * 2, this.lyricLines(), dt, this.optColor("col_lyric", -1), cSub, cProg);
+         below += this.lyricsHeight();
       }
 
-      if (showNext) {
-         int ny = y + BASE_H + (showCtrl ? CTRL_H : 0) - 3;
-         c.fill(x + 8, ny, x + W - 8, ny + 1, 0x22FFFFFF);
-         int tx = x + 8;
-         Object na = SpotifyManager.nextArtHandle();
-         if (na != null) {
-            c.roundRect(tx, ny + 4, 11, 11, 3.0F, 0xFF000000);
-            c.textureRegion(na, tx + 1, ny + 5, 9, 9, 0, 0, 100, 100, 100, 100);
-            tx += 15;
-         }
-         Px.tag(c, tx, ny + 4, "NEXT", cProg);
-         int lblW = c.textWidth("NEXT") + 12;
+      if (this.showNext()) {
+         c.fill(x + 8, below, x + W - 8, below + 1, 0x1AFFFFFF);
+         int tx = x + PAD;
+         small(c, "NEXT", tx, below + 5, cProg);
+         int lblW = Math.round(c.textWidth("NEXT") * SMALL) + 5;
          String nt = SpotifyManager.nextTitle();
          String nar = SpotifyManager.nextArtist();
          if (!nar.isBlank()) {
-            nt = nt + "  " + nar;
+            nt = nt + " · " + nar;
          }
-         c.text(fit(c, nt, W - (tx - x) - 8 - lblW), tx + lblW, ny + 6, cSub, true);
+
+         small(c, fitScaled(c, nt, W - PAD * 2 - lblW), tx + lblW, below + 5, cSub);
       }
    }
 
-   /** Four-bar equalizer: smooth, continuous motion while playing, resting low otherwise. */
-   private static void eq(Canvas c, int x, int y, boolean playing, int color) {
+   private void drawCover(Canvas c, int x, int y, boolean has, boolean playing, int accent) {
+      Object art = MusicState.artHandle();
+      if (art != null && has) {
+         c.roundRect(x, y, ART, ART, 5.0F, 0xFF000000);
+         c.textureRegion(art, x, y, ART, ART, 0, 0, 100, 100, 100, 100);
+      } else {
+         c.roundRect(x, y, ART, ART, 5.0F, 0x1AFFFFFF);
+         // Three resting bars, like Anubis' empty cover.
+         int bar = 3;
+         int gap = 3;
+         int base = y + Math.round(ART * 0.64F);
+         int l = x + (ART - bar * 3 - gap * 2) / 2;
+         float[] heights = {0.2F, 0.34F, 0.26F};
+         for (int i = 0; i < 3; i++) {
+            int bh = Math.round(ART * heights[i]);
+            c.roundRect(l + i * (bar + gap), base - bh, bar, bh, 1.0F, playing ? withAlpha(accent, 0.7F) : 0x66FFFFFF);
+         }
+      }
+
+      c.card(x, y, ART, ART, 0, 0x1FFFFFFF, 1, 5.0F);
+   }
+
+   /** Title scrolling left when it does not fit, with a pause at the start of each loop. */
+   private void marquee(Canvas c, String text, int x, int y, int avail, int color, float clock) {
+      int tw = c.textWidth(text);
+      if (tw <= avail) {
+         c.text(text, x, y, color, true);
+         return;
+      }
+
+      float loop = (tw + MARQUEE_GAP) / MARQUEE_SPEED;
+      float t = clock % (loop + MARQUEE_PAUSE);
+      int offset = t <= MARQUEE_PAUSE ? 0 : Math.round((t - MARQUEE_PAUSE) * MARQUEE_SPEED);
+      c.pushScissor(x, y - 1, avail, c.lineHeight() + 2);
+      c.text(text, x - offset, y, color, true);
+      c.text(text, x - offset + tw + MARQUEE_GAP, y, color, true);
+      c.popScissor();
+   }
+
+   /**
+    * The lyrics view: lines slide up as the song goes on; the line being sung is bright and fills from
+    * left to right, the next ones wait dimmer below.
+    */
+   private void drawLyrics(Canvas c, int x, int y, int w, int lines, float dt, int cLit, int cSub, int accent) {
+      Lyrics lyrics = MusicLyrics.current();
+      int areaH = lines * LYRIC_LH;
+      if (lyrics == null || lyrics.status() != Lyrics.Status.SYNCED) {
+         this.scrollSource = null;
+         String msg = lyrics == null ? "" : switch (lyrics.status()) {
+            case LOADING -> "Looking for lyrics…";
+            case PLAIN -> "No synced lyrics for this song";
+            case INSTRUMENTAL -> "♪ Instrumental";
+            case UNAVAILABLE -> "Lyrics unavailable";
+            default -> "No lyrics found";
+         };
+         small(c, msg, x, y + 3, withAlpha(cSub, 0.8F));
+         return;
+      }
+
+      SyncedLyrics synced = lyrics.synced();
+      long pos = MusicLyrics.position();
+      int current = synced.indexAt(pos);
+      float target = Math.max(0, current);
+      if (synced != this.scrollSource || Float.isNaN(this.scroll) || Math.abs(target - this.scroll) > 3.0F) {
+         this.scrollSource = synced;
+         this.scroll = target;
+      } else {
+         this.scroll += (target - this.scroll) * (1.0F - (float)Math.exp(-12.0F * dt));
+         if (Math.abs(target - this.scroll) < 0.002F) {
+            this.scroll = target;
+         }
+      }
+
+      c.pushScissor(x, y, w, areaH + 2);
+      int first = (int)Math.floor(this.scroll) - 1;
+      for (int i = Math.max(0, first); i < synced.size() && i <= first + lines + 2; i++) {
+         float rel = i - this.scroll;
+         int ly = y + 1 + Math.round(rel * LYRIC_LH);
+         if (ly < y - LYRIC_LH || ly > y + areaH) {
+            continue;
+         }
+
+         // Fade out what scrolls away above, and the bottom of the view.
+         float alpha = rel < 0.0F ? Math.max(0.0F, 1.0F + rel) * 0.45F : 1.0F;
+         if (rel > lines - 1) {
+            alpha *= Math.max(0.0F, lines - rel);
+         }
+
+         String text = synced.line(i).text();
+         if (text.isBlank()) {
+            if (i == current) {
+               this.breathingDots(c, x, ly + 3, accent);
+            }
+
+            continue;
+         }
+
+         String shown = fit(c, text, w);
+         if (i == current) {
+            int mode = this.optCycle("lyric_highlight", 0);
+            int lit = this.optColor("col_highlight", 0xFF6FA8FF);
+            if (mode == 0) {
+               // Karaoke: the line lights up as it is sung.
+               int lineW = c.textWidth(shown);
+               c.text(shown, x, ly, withAlpha(cLit, 0.9F * alpha), true);
+               int fill = Math.round(lineW * this.lineProgress(synced, i, pos));
+               if (fill > 0) {
+                  c.pushScissor(x, ly - 1, fill, LYRIC_LH);
+                  c.text(shown, x, ly, withAlpha(lit, alpha), true);
+                  c.popScissor();
+               }
+            } else {
+               c.text(shown, x, ly, withAlpha(mode == 1 ? lit : cLit, alpha), true);
+            }
+         } else {
+            float dim = i < current ? 0.5F : (i == current + 1 ? 0.7F : 0.45F);
+            c.text(shown, x, ly, withAlpha(cSub, dim * alpha), true);
+         }
+      }
+
+      c.popScissor();
+   }
+
+   /** How far the line being sung is, 0..1 (until the next line starts, at most 6 s). */
+   private float lineProgress(SyncedLyrics synced, int index, long pos) {
+      long start = synced.line(index).timeMs();
+      long end = index + 1 < synced.size() ? synced.line(index + 1).timeMs() : start + 4000L;
+      end = Math.min(end, start + 6000L);
+      if (end <= start) {
+         return 1.0F;
+      }
+
+      float t = (float)(pos - start) / (float)(end - start);
+      return t < 0.0F ? 0.0F : Math.min(1.0F, t * 1.15F);
+   }
+
+   private void breathingDots(Canvas c, int x, int y, int accent) {
+      double t = System.currentTimeMillis() / 1000.0;
+      for (int i = 0; i < 3; i++) {
+         float a = 0.35F + 0.65F * (float)Math.abs(Math.sin(t * 2.2 + i * 0.6));
+         c.roundRect(x + i * 6, y, 3, 3, 1.5F, withAlpha(accent, a));
+      }
+   }
+
+   /** Four little bars dancing while a track plays. */
+   private void equalizer(Canvas c, int x, int y, int color) {
       double t = System.currentTimeMillis() / 1000.0;
       for (int i = 0; i < 4; i++) {
-         int hgt = playing ? 3 + (int)Math.round(8.0 * Math.abs(Math.sin(t * (2.6 + i * 0.9) + i * 1.7))) : 2;
-         c.roundRect(x + i * 4, y + 11 - hgt, 3, hgt, 1.5F, color);
+         int hgt = 2 + (int)Math.round(4.0 * Math.abs(Math.sin(t * (2.6 + i * 0.9) + i * 1.7)));
+         c.fill(x + i * 3, y + 6 - hgt, x + i * 3 + 2, y + 6, color);
       }
    }
 
-   /** Transport key: kind 0 prev, 1 play, 2 next, 3 pause. */
-   private static void key(Canvas c, int x, int y, int w, int h, int col, int kind) {
-      c.card(x, y, w, h, 0x2AFFFFFF, 0x1AFFFFFF, 1, 5.0F);
-      int cx = x + w / 2;
-      int cy = y + h / 2;
-      switch (kind) {
-         case 0 -> {
-            c.roundRect(cx - 4, cy - 3, 2, 6, 1.0F, col);
-            triLeft(c, cx - 2, cy - 3, 6, col);
-         }
-         case 1 -> triRight(c, cx - 2, cy - 3, 6, col);
-         case 2 -> {
-            triRight(c, cx - 4, cy - 3, 6, col);
-            c.roundRect(cx + 3, cy - 3, 2, 6, 1.0F, col);
-         }
-         default -> {
-            c.roundRect(cx - 3, cy - 3, 2, 6, 1.0F, col);
-            c.roundRect(cx + 1, cy - 3, 2, 6, 1.0F, col);
-         }
+   /** Previous / play-pause / next, drawn as glyphs centred at (cx, cy). */
+   private static void transport(Canvas c, int cx, int cy, boolean playing, int main, int side) {
+      int s = 7;
+      // previous: bar, then a triangle pointing left
+      int px = cx - 18;
+      c.fill(px, cy - 3, px + 2, cy + 4, side);
+      triLeft(c, px + 3, cy - 3, s, side);
+      // play / pause
+      if (playing) {
+         c.fill(cx - 3, cy - 3, cx - 1, cy + 4, main);
+         c.fill(cx + 1, cy - 3, cx + 3, cy + 4, main);
+      } else {
+         triRight(c, cx - 2, cy - 3, s, main);
       }
+
+      // next: a triangle pointing right, then a bar
+      int nx = cx + 8;
+      triRight(c, nx, cy - 3, s, side);
+      c.fill(nx + s + 1, cy - 3, nx + s + 3, cy + 4, side);
+   }
+
+   private static void small(Canvas c, String s, int x, int y, int argb) {
+      c.pushScale(x, y, SMALL);
+      c.text(s, 0, 0, argb, false);
+      c.popScale();
+   }
+
+   private static String fitScaled(Canvas c, String s, int maxW) {
+      return fit(c, s, Math.round(maxW / SMALL));
    }
 
    @Override
@@ -238,8 +402,14 @@ public final class MusicElement extends HudElement {
          for (int i = 0; i < s.length() && c.textWidth(sb.toString() + s.charAt(i)) + ew <= maxW; i++) {
             sb.append(s.charAt(i));
          }
+
          return sb.append("…").toString();
       }
+   }
+
+   private static int withAlpha(int argb, float k) {
+      int a = Math.round((argb >>> 24) * Math.max(0.0F, Math.min(1.0F, k)));
+      return a << 24 | argb & 0xFFFFFF;
    }
 
    private static int clamp255(int v) {
@@ -248,6 +418,6 @@ public final class MusicElement extends HudElement {
 
    private static String mmss(long ms) {
       long s = Math.max(0L, ms / 1000L);
-      return s / 60L + ":" + String.format("%02d", s % 60L);
+      return s / 60L + ":" + String.format(Locale.ROOT, "%02d", s % 60L);
    }
 }

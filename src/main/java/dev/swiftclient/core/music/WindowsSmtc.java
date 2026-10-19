@@ -196,6 +196,12 @@ public final class WindowsSmtc {
               $artist = Esc $props.Artist
               $playing = if ([int]$pb.PlaybackStatus -eq 4) { 'true' } else { 'false' }
               $pos = [int64]$tl.Position.TotalMilliseconds
+              # Position is where playback was at LastUpdatedTime (Spotify only refreshes it on seek/pause/track):
+              # move it forward to now while playing, so the HUD and the lyrics follow the real song.
+              if ([int]$pb.PlaybackStatus -eq 4) {
+                $since = [int64]([DateTimeOffset]::Now - $tl.LastUpdatedTime).TotalMilliseconds
+                if ($since -gt 0 -and $since -lt 86400000) { $pos += $since }
+              }
               $dur = [int64](($tl.EndTime - $tl.StartTime).TotalMilliseconds)
               if ($dur -lt 0) { $dur = 0 }
               $tid = [Math]::Abs(($title + '|' + $artist).GetHashCode())

@@ -8,6 +8,8 @@ import dev.swiftclient.core.hud.HudVisibilite;
 import dev.swiftclient.core.mods.ModsScreen;
 import dev.swiftclient.core.screen.RadialScreen;
 import dev.swiftclient.core.mods.ModuleManager;
+import dev.swiftclient.modules.AutoReconnectModule;
+import dev.swiftclient.visuals.LowHealthWarningModule;
 import dev.swiftclient.input.SwiftKeys;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.modules.*;
@@ -97,6 +99,7 @@ public final class HudClient {
          }
 
          ModuleManager.tick();
+         AutoReconnectModule.track();
          devShots(mc);
          CombatTracker.tick();
          PickupTracker.tick(ModuleManager.active("hud_itemtracker"));
@@ -105,6 +108,10 @@ public final class HudClient {
          VanillaHudElements.MISC_OVERLAYS, Identifier.fromNamespaceAndPath("swiftclient", "hud"), (graphics, deltaTracker) -> {
             Minecraft mc = Minecraft.getInstance();
             ModuleManager.render(deltaTracker.getGameTimeDeltaPartialTick(false));
+            if (!mc.gui.hud.isHidden()) {
+               LowHealthWarningModule.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+            }
+
             Screen ecran = mc.gui.screen();
             if (HudVisibilite.afficher(ecran != null, ecran instanceof ChatScreen)) {
                HudManager.setGuiScale(mc.getWindow().getGuiScale());

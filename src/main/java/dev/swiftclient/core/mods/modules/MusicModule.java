@@ -16,8 +16,8 @@ public final class MusicModule extends Module {
       this.settings.add(ModuleSetting.toggle("hud_music", "progress", "Progress bar", true).desc("Draw a progress bar under the title.").group("Display"));
       this.settings
          .add(
-            ModuleSetting.toggle("hud_music", "controls", "Show controls", false)
-               .desc("Show previous / play / next buttons. They act on the player that is running.")
+            ModuleSetting.toggle("hud_music", "controls", "Show controls", true)
+               .desc("Show the previous / play / next keys next to the time.")
                .group("Display")
          );
       this.settings
@@ -26,6 +26,24 @@ public final class MusicModule extends Module {
                .desc("Show the next track in the queue. Spotify only, and needs the account linked below.")
                .group("Display")
          );
+      this.settings
+         .add(
+            ModuleSetting.toggle("hud_music", "lyrics", "Synced lyrics", false)
+               .desc("Show the lyrics line by line, in time with the song (from LRCLIB, when the song is known there).")
+               .group("Lyrics")
+         );
+      this.settings
+         .add(ModuleSetting.slider("hud_music", "lyric_lines", "Lyric lines", 2.0, 1.0, 3.0, 1.0, "").desc("The current line, then the next ones.").group("Lyrics"));
+      this.settings
+         .add(
+            ModuleSetting.cycle("hud_music", "lyric_highlight", "Lyric highlight", new String[]{"Karaoke", "Line", "Off"}, 0)
+               .desc("Karaoke: the sung line lights up as it goes. Line: the whole line is lit. Off: plain white.")
+               .group("Lyrics")
+         );
+      this.settings
+         .add(ModuleSetting.color("hud_music", "col_highlight", "Highlight color", 0xFF6FA8FF).desc("Colour of the lit part of the line being sung.").group("Lyrics"));
+      this.settings
+         .add(ModuleSetting.color("hud_music", "col_lyric", "Lyrics color", -1).desc("Colour of the line being sung when the highlight is Off.").group("Lyrics"));
       this.settings
          .add(
             ModuleSetting.action(

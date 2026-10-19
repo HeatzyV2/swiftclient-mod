@@ -29,6 +29,8 @@ public class GameRendererBlurMixin {
          sat.isEnabled() ? (float)(sat.saturation.value() / 100.0) : -1.0F,
          (float)(sat.contrast.value() / 100.0),
          (float)(sat.brightness.value() / 100.0),
+         (float)(sat.warmth.value() / 100.0),
+         (float)(sat.vignette.value() / 100.0),
          motion.isEnabled() && mc.gui.screen() == null ? (float)(motion.strength.value() / 100.0) : 0.0F
       );
       GuiBlurModule m = ModuleManager.get(GuiBlurModule.class);

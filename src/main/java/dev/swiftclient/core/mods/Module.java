@@ -95,6 +95,11 @@ public abstract class Module {
       return s;
    }
 
+   /** A key of the module's own, as a GLFW key code ({@code -1} = none). */
+   protected final ModuleSetting key(String settingId, String label, int defGlfwKey) {
+      return this.add(ModuleSetting.key(this.id, settingId, label, defGlfwKey));
+   }
+
    // --- Display (translated; the fields above stay the identity used in config and code) ---
 
    /** Name shown in menus: {@code swift.module.<id>.name}, or the declared name. */
