@@ -1560,5 +1560,10 @@
   "swift.module.slow_swing.name": "Slow Swing",
   "swift.module.slow_swing.desc": "Slows down your hand swing animation. Only the animation changes, not your attacks.",
   "swift.module.slow_swing.setting.speed.name": "Speed",
-  "swift.module.slow_swing.setting.speed.desc": "Speed of the swing. 1 is vanilla, lower is slower."
+  "swift.module.slow_swing.setting.speed.desc": "Speed of the swing. 1 is vanilla, lower is slower.",
+  "swift.session.reload.tooltip": "Reload session",
+  "swift.session.reload.title": "Session",
+  "swift.session.reload.ok": "Session reloaded for %s.",
+  "swift.session.reload.failed": "Could not refresh the token. The current session was kept.",
+  "swift.session.reload.none": "No active Swift account. Add your Microsoft account in the Accounts menu."
 }

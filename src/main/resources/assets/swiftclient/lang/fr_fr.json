@@ -1560,5 +1560,10 @@
   "swift.module.slow_swing.name": "Coup lent",
   "swift.module.slow_swing.desc": "Ralentit l'animation de coup de ta main. Seule l'animation change, pas tes attaques.",
   "swift.module.slow_swing.setting.speed.name": "Vitesse",
-  "swift.module.slow_swing.setting.speed.desc": "Vitesse du coup. 1 = vanilla, plus bas = plus lent."
+  "swift.module.slow_swing.setting.speed.desc": "Vitesse du coup. 1 = vanilla, plus bas = plus lent.",
+  "swift.session.reload.tooltip": "Recharger la session",
+  "swift.session.reload.title": "Session",
+  "swift.session.reload.ok": "Session rechargée pour %s.",
+  "swift.session.reload.failed": "Impossible de rafraîchir le jeton. La session actuelle est conservée.",
+  "swift.session.reload.none": "Aucun compte Swift actif. Ajoute ton compte Microsoft dans le menu Comptes."
 }
