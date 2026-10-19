@@ -33,6 +33,18 @@ public final class ZoomModule extends Module {
          .desc("Slow the mouse down in proportion to the zoom, so aiming stays precise when zoomed in.");
    }
 
+   private static volatile boolean zooming;
+
+   /** True while the zoom drives the FOV option (zoomed or easing back). */
+   public static boolean zooming() {
+      return zooming;
+   }
+
+   /** The FOV the zoom starts from and comes back to: the player's, or Custom FOV's. */
+   private int baseFov() {
+      return dev.swiftclient.visuals.CustomFovModule.base(this.savedFov);
+   }
+
    private static OptionInstance<Integer> fovOption() {
       return Minecraft.getInstance().options.fov();
    }
@@ -46,16 +58,17 @@ public final class ZoomModule extends Module {
       if (ZoomState.holding) {
          if (this.savedFov == null) {
             this.savedFov = fovOption().get();
-            ZoomState.depuis(this.savedFov);
+            ZoomState.depuis(this.baseFov());
          }
 
          ZoomState.viser(ZoomState.target(), this.smooth.boolValue(), this.duration.value());
       } else if (this.savedFov != null) {
-         ZoomState.viser(this.savedFov, this.smooth.boolValue(), this.duration.value());
+         ZoomState.viser(this.baseFov(), this.smooth.boolValue(), this.duration.value());
       }
 
       this.applyFrame();
       this.applySensitivity();
+      zooming = this.savedFov != null;
    }
 
    /** Mouse sensitivity follows the zoom: the narrower the view, the slower the mouse. */
@@ -67,7 +80,7 @@ public final class ZoomModule extends Module {
             this.savedSensitivity = sens.get();
          }
 
-         double ratio = Math.max(0.15, Math.min(1.0, ZoomState.courant() / Math.max(30.0, this.savedFov)));
+         double ratio = Math.max(0.15, Math.min(1.0, ZoomState.courant() / Math.max(30.0, this.baseFov())));
          ((SimpleOptionAccessor)(Object)sens).swiftclient$setRaw(this.savedSensitivity * ratio);
       } else {
          this.restoreSensitivity();
@@ -92,7 +105,9 @@ public final class ZoomModule extends Module {
          if (!ZoomState.holding && ZoomState.arrive()) {
             fovOption().set(this.savedFov);
             this.savedFov = null;
+            zooming = false;
          } else {
+            zooming = true;
             ((SimpleOptionAccessor)(Object)fovOption()).swiftclient$setRaw((int)Math.round(ZoomState.courant()));
          }
       }
@@ -102,6 +117,7 @@ public final class ZoomModule extends Module {
    protected void onDisable() {
       this.restoreSensitivity();
       ZoomState.stop();
+      zooming = false;
       if (this.savedFov != null) {
          fovOption().set(this.savedFov);
          this.savedFov = null;

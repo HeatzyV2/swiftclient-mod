@@ -1552,5 +1552,13 @@
   "swift.module.kill_effect.setting.sound.name": "Sound",
   "swift.module.kill_effect.setting.sound.desc": "Plays the sound of the effect.",
   "swift.module.kill_effect.setting.flash.name": "Screen flash",
-  "swift.module.kill_effect.setting.flash.desc": "A short flash and a kill counter on screen."
+  "swift.module.kill_effect.setting.flash.desc": "A short flash and a kill counter on screen.",
+  "swift.module.custom_fov.name": "Custom FOV",
+  "swift.module.custom_fov.desc": "Sets your field of view freely, up to 160, past the limit of the vanilla slider.",
+  "swift.module.custom_fov.setting.fov.name": "FOV",
+  "swift.module.custom_fov.setting.fov.desc": "Your field of view. Vanilla goes from 30 to 110.",
+  "swift.module.slow_swing.name": "Slow Swing",
+  "swift.module.slow_swing.desc": "Slows down your hand swing animation. Only the animation changes, not your attacks.",
+  "swift.module.slow_swing.setting.speed.name": "Speed",
+  "swift.module.slow_swing.setting.speed.desc": "Speed of the swing. 1 is vanilla, lower is slower."
 }

@@ -52,6 +52,8 @@ public final class PlatformModules {
          new dev.swiftclient.visuals.HandsModule(),
          new dev.swiftclient.visuals.HandModelModule(),
          new dev.swiftclient.visuals.ViewModelModule(),
+         new dev.swiftclient.visuals.CustomFovModule(),
+         new dev.swiftclient.visuals.SlowSwingModule(),
          new dev.swiftclient.visuals.ShulkerTooltipModule(),
          new dev.swiftclient.visuals.DamageIndicatorModule(),
          new dev.swiftclient.visuals.ArmorWarningModule(),

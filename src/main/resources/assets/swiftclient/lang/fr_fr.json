@@ -1552,5 +1552,13 @@
   "swift.module.kill_effect.setting.sound.name": "Son",
   "swift.module.kill_effect.setting.sound.desc": "Joue le son de l'effet.",
   "swift.module.kill_effect.setting.flash.name": "Flash d'écran",
-  "swift.module.kill_effect.setting.flash.desc": "Un court flash et un compteur de kills à l'écran."
+  "swift.module.kill_effect.setting.flash.desc": "Un court flash et un compteur de kills à l'écran.",
+  "swift.module.custom_fov.name": "FOV personnalisé",
+  "swift.module.custom_fov.desc": "Règle ton champ de vision librement, jusqu'à 160, au-delà de la limite du curseur vanilla.",
+  "swift.module.custom_fov.setting.fov.name": "FOV",
+  "swift.module.custom_fov.setting.fov.desc": "Ton champ de vision. En vanilla, il va de 30 à 110.",
+  "swift.module.slow_swing.name": "Coup lent",
+  "swift.module.slow_swing.desc": "Ralentit l'animation de coup de ta main. Seule l'animation change, pas tes attaques.",
+  "swift.module.slow_swing.setting.speed.name": "Vitesse",
+  "swift.module.slow_swing.setting.speed.desc": "Vitesse du coup. 1 = vanilla, plus bas = plus lent."
 }

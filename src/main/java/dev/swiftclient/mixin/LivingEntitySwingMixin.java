@@ -1,6 +1,7 @@
 package dev.swiftclient.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import dev.swiftclient.visuals.SlowSwingModule;
 import dev.swiftclient.visuals.SwingAnimationModule;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
@@ -10,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Swing Animation: swing speed (Tempo) and the combat-only check, for your own player only. */
+/** Swing Animation and Slow Swing: swing speed (Tempo, Slow Swing) and the combat-only check, for your own player only. */
 @Mixin({LivingEntity.class})
 public abstract class LivingEntitySwingMixin {
    @ModifyExpressionValue(
@@ -21,8 +22,14 @@ public abstract class LivingEntitySwingMixin {
       )
    )
    private int swiftclient$swingTempo(int ticks) {
+      if ((Object)this != Minecraft.getInstance().player) {
+         return ticks;
+      }
+
       SwingAnimationModule module = SwingAnimationModule.active;
-      return module != null && (Object)this == Minecraft.getInstance().player ? module.swingTicks(ticks) : ticks;
+      SlowSwingModule slow = SlowSwingModule.active;
+      int tempo = module != null ? module.swingTicks(ticks) : ticks;
+      return slow != null ? slow.swingTicks(tempo) : tempo;
    }
 
    @Inject(

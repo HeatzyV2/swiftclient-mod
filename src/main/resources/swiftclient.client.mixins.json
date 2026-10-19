@@ -57,6 +57,7 @@
     "LivingEntitySwingMixin",
     "ItemInHandAnimationsMixin",
     "ViewModelFovMixin",
+    "CustomFovMixin",
     "ShulkerTooltipMixin",
     "ShulkerTooltipRenderMixin",
     "TooltipPlusMixin",
