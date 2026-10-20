@@ -30,6 +30,10 @@ class UiPreviewTest {
    }
 
    private static void shot(String name, int w, int h, UiScreen screen, Consumer<UiScreen> before) throws Exception {
+      shot(name, w, h, screen, before, w / 2, h / 2);
+   }
+
+   private static void shot(String name, int w, int h, UiScreen screen, Consumer<UiScreen> before, int mouseX, int mouseY) throws Exception {
       screen.layout(w, h);
       if (before != null) {
          before.accept(screen);
@@ -37,7 +41,7 @@ class UiPreviewTest {
 
       PreviewCanvas c = new PreviewCanvas(w, h, 3);
       for (int i = 0; i < 3; i++) {
-         screen.draw(c, w / 2, h / 2, 0.0F);
+         screen.draw(c, mouseX, mouseY, 0.0F);
       }
 
       c.save(OUT.resolve(name + ".png"));
@@ -52,6 +56,8 @@ class UiPreviewTest {
       }
 
       shot("mods-enabled-640x360", 640, 360, new ModsScreen(), null);
+      // Mouse on the fourth hotbar slot (Host World): its label over the bar
+      shot("mods-hotbar-tip-640x360", 640, 360, new ModsScreen(), null, 298, 314);
    }
 
    /** Fills the private state of a screen (the real one comes from the backend). */

@@ -49,11 +49,8 @@ public final class ModsScreen extends UiScreen {
    private static final int TILE_HOV = 0xFF1C2029;
    private static final int BTN = 0xFF22262E; // options button
    private static final int BTN_HOV = 0xFF2B303A;
-   private static final int OFF_BG = 0xFF1F2229; // disabled bar
-   private static final int OFF_TEXT = 0xFF8A93A0;
    private static final int ACCENT_HOV = 0xFF5B9BFF;
    private static final int RAIL = 0xFF0B0D12;
-   private static final int ACCENT_SOFT = 0x333B82F6; // accent @ 20%
    private static final float CARD_R = 8.0F;
    private static final float PILL_R = 6.0F;
    private static final int S_MODS = 0;
@@ -243,15 +240,9 @@ public final class ModsScreen extends UiScreen {
       return new int[]{this.gridLeft() + col * (w + TILE_GAP), this.gridTop() + row * (TILE_H + TILE_GAP) - this.grille.px(), w, TILE_H};
    }
 
-   /** Settings button, at the right end of the tile's bottom row. */
+   /** Settings button, in the tile's top right corner. */
    private static int[] gearRect(int[] card) {
-      return new int[]{card[0] + card[2] - 4 - BAR_H, card[1] + card[3] - 4 - BAR_H, BAR_H, BAR_H};
-   }
-
-   /** Enabled / Disabled bar along the bottom of the tile (leaves room for the settings button). */
-   private static int[] stateRect(int[] card, boolean withGear) {
-      int w = card[2] - 8 - (withGear ? BAR_H + 3 : 0);
-      return new int[]{card[0] + 4, card[1] + card[3] - 4 - BAR_H, w, BAR_H};
+      return new int[]{card[0] + card[2] - 5 - BAR_H, card[1] + 4, BAR_H, BAR_H};
    }
 
    private int[] closeRect() {
@@ -399,6 +390,7 @@ public final class ModsScreen extends UiScreen {
       // Swift shell: one dark slab, the rail is an inset slab on its left
       c.card(px, py, pw, ph, 0xF2090C12, 0xFF222B42, 1, 6.0F);
       this.drawTopBar(c);
+      this.tipLabel = null;
       this.drawHotbar(c, mouseX, mouseY);
       int slide = Math.round((1.0F - intro(this.contentChangedAt, 200.0F)) * 6.0F);
       if (slide != 0) {
@@ -438,6 +430,10 @@ public final class ModsScreen extends UiScreen {
 
             this.drawScrollbar(c, this.grille, this.gridTop(), this.gridBottom());
          }
+      }
+
+      if (this.tipLabel != null) {
+         this.hotbarTip(c, this.tipLabel, this.tipX, this.tipBottom);
       }
 
       if (slide != 0) {
@@ -555,6 +551,10 @@ public final class ModsScreen extends UiScreen {
    }
 
    private final List<int[]> hotHits = new ArrayList<>();
+   /** Hotbar label to draw once everything else is drawn, so the grid never covers it. */
+   private String tipLabel;
+   private int tipX;
+   private int tipBottom;
    private final long t0 = System.nanoTime();
 
    /** Top bar: Zip, the wordmark and its speed streak. The search, back and close controls sit on the same row. */
@@ -625,16 +625,32 @@ public final class ModsScreen extends UiScreen {
       }
 
       if (hoverLabel != null) {
-         int tw = c.textWidth(hoverLabel) + 10;
-         int tx = Math.max(this.panelX() + 6, Math.min(hoverX - tw / 2, this.panelX() + this.panelW() - tw - 6));
-         c.card(tx, by - 24, tw, 14, 0xFF000000, 0xFF3A4766, 1, 2.0F);
-         c.text(hoverLabel, tx + 5, by - 20, TEXT, false);
+         this.tipLabel = hoverLabel;
+         this.tipX = hoverX;
+         this.tipBottom = by - 5;
       }
 
       int[] hud = this.editHudRect();
       boolean hudOver = in(mouseX, mouseY, hud);
       dev.swiftclient.core.ui.Px.button(c, hud[0], hud[1], hud[2], hud[3], trunc(c, this.panelW() < 520 ? "EDIT HUD" : Tr.of("swift.menu.edit_hud").toUpperCase(Locale.ROOT), hud[2] - 8), hudOver, true);
       this.drawAccountCard(c, this.panelX(), this.panelW(), mouseX, mouseY);
+   }
+
+   /** Label over a hotbar slot: a crisp box (plain fills, no rounding at this size) with a small arrow below. */
+   private void hotbarTip(Canvas c, String label, int cx, int bottom) {
+      int th = 15;
+      int tw = c.textWidth(label) + 12;
+      int tx = Math.max(this.panelX() + 6, Math.min(cx - tw / 2, this.panelX() + this.panelW() - tw - 6));
+      int ty = bottom - th;
+      c.fill(tx, ty, tx + tw, ty + th, 0xF20B0F17);
+      c.fill(tx, ty, tx + tw, ty + 1, 0x33FFFFFF);
+      c.fill(tx, ty + th - 1, tx + tw, ty + th, 0x33FFFFFF);
+      c.fill(tx, ty, tx + 1, ty + th, 0x33FFFFFF);
+      c.fill(tx + tw - 1, ty, tx + tw, ty + th, 0x33FFFFFF);
+      c.fill(cx - 2, ty + th, cx + 3, ty + th + 1, 0xF20B0F17);
+      c.fill(cx - 1, ty + th + 1, cx + 2, ty + th + 2, 0xF20B0F17);
+      c.fill(cx, ty + th + 2, cx + 1, ty + th + 3, 0xF20B0F17);
+      c.text(label, tx + 6, ty + (th - c.lineHeight()) / 2 + 1, TEXT, false);
    }
 
    private int editW() {
@@ -790,8 +806,9 @@ public final class ModsScreen extends UiScreen {
    }
 
    /**
-    * A module tile, Lunar style: the icon and name centred on top, an Enabled / Disabled bar along the
-    * bottom and the settings button next to it. A lit module gets an accent frame and a soft halo.
+    * A module tile, cut like the Swift S: two corners chamfered on the diagonal, the name in capitals on top,
+    * the icon large and cropped as a watermark, a slanted ON / OFF tag. A lit module gets an accent frame,
+    * a tinted body and speed lines.
     */
    private void drawModCard(Canvas c, Module m, int[] r, int mouseX, int mouseY) {
       boolean on = m.isEnabled();
@@ -800,32 +817,54 @@ public final class ModsScreen extends UiScreen {
       int x = r[0];
       int y = r[1];
       int w = r[2];
-      c.card(x, y, w, r[3], hover ? TILE_HOV : TILE, on ? withAlpha(ACCENT, 0.7F) : (hover ? 0x26FFFFFF : 0x12FFFFFF), 1, 6.0F);
+      int h = r[3];
+      int cut = 7;
+      float lit = this.ease("tile:" + m.id, on ? 1.0F : 0.0F, 14.0F);
+      int frame = on ? ACCENT : (hover ? 0xFF3A4560 : 0xFF222838);
+      int body = on ? 0xFF0F1830 : (hover ? 0xFF161B26 : 0xFF11141B);
+      chamfer(c, x, y, w, h, cut, frame);
+      chamfer(c, x + 1, y + 1, w - 2, h - 2, cut - 1, body);
 
-      int is = 16;
-      int cx = x + w / 2;
-      int iy = y + 7;
-      if (on) {
-         c.roundRect(cx - 11, iy - 3, 22, 22, 11.0F, ACCENT_SOFT);
+      c.pushScissor(x + 1, y + 1, w - 2, h - 2);
+      int mark = 40;
+      c.icon(m.icon == null ? "mods" : m.icon, x + w - mark + 6, y + h - mark + 8, mark, on ? withAlpha(ACCENT, 0.30F) : (hover ? 0x14FFFFFF : 0x0CFFFFFF));
+      c.popScissor();
+
+      String name = m.displayName().toUpperCase(Locale.ROOT);
+      c.text(trunc(c, name, w - 30), x + 9, y + 9, on || hover ? TEXT : 0xFFB4BDCC, false);
+
+      int tagW = 30;
+      int tagH = 11;
+      int tx = x + 9;
+      int ty = y + h - tagH - 8;
+      chamfer(c, tx, ty, tagW, tagH, 3, on ? ACCENT : 0xFF232A3A);
+      String state = on ? "ON" : "OFF";
+      c.text(state, tx + (tagW - c.textWidth(state)) / 2, ty + 2, on ? TEXT : 0xFF7D8799, false);
+      if (lit > 0.01F) {
+         int sx = tx + tagW + 4;
+         int sy = ty + tagH / 2;
+         int[] lens = {14, 6, 2};
+         for (int i = 0; i < lens.length; i++) {
+            c.fill(sx, sy - 1, sx + Math.round(lens[i] * lit), sy + 1, withAlpha(ACCENT, (0.9F - i * 0.3F) * lit));
+            sx += lens[i] + 3;
+         }
       }
 
-      c.icon(m.icon == null ? "mods" : m.icon, cx - is / 2, iy, is, on ? TEXT : (hover ? 0xFFE6ECF7 : 0xFF98A3B8));
-      c.centeredText(trunc(c, m.displayName(), w - 10), cx, y + 27, on || hover ? TEXT : DIM, false);
-
-      boolean has = m.hasSettings();
-      int[] bar = stateRect(r, has);
-      boolean barOver = inGrid && in(mouseX, mouseY, bar);
-      int fill = on ? (barOver ? ACCENT_HOV : ACCENT) : (barOver ? 0xFF262A33 : OFF_BG);
-      c.card(bar[0], bar[1], bar[2], bar[3], fill, 0, 0, 4.0F);
-      String state = Tr.of(on ? "swift.mods.enabled" : "swift.mods.disabled").toUpperCase(Locale.ROOT);
-      spacedCentered(c, state, bar[0] + bar[2] / 2, bar[1] + (BAR_H - 8) / 2 + 1, on ? TEXT : OFF_TEXT, bar[2] - 4);
-
-      if (has) {
+      if (m.hasSettings()) {
          int[] g = gearRect(r);
          boolean gOver = inGrid && in(mouseX, mouseY, g);
-         c.card(g[0], g[1], g[2], g[3], gOver ? BTN_HOV : BTN, 0, 0, 4.0F);
-         c.icon("gear", g[0] + 2, g[1] + 2, BAR_H - 4, gOver ? TEXT : DIM);
+         c.icon("gear", g[0] + 2, g[1] + 2, BAR_H - 4, gOver ? TEXT : (hover || on ? 0xFF98A3B8 : FAINT));
       }
+   }
+
+   /** Rectangle with its top-left and bottom-right corners cut on the diagonal (the slant of the Swift S). */
+   private static void chamfer(Canvas c, int x, int y, int w, int h, int cut, int argb) {
+      for (int i = 0; i < cut; i++) {
+         c.fill(x + cut - i, y + i, x + w, y + i + 1, argb);
+         c.fill(x, y + h - 1 - i, x + w - cut + i, y + h - i, argb);
+      }
+
+      c.fill(x, y + cut, x + w, y + h - cut, argb);
    }
 
    private static final int LETTER_SPACING = 1;
