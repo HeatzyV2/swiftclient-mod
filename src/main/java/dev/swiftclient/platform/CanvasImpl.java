@@ -177,6 +177,14 @@ public final class CanvasImpl implements Canvas {
       this.ctx.blit(RenderPipelines.GUI_TEXTURED, SWIFT_LOGO, x, y, 0.0F, 0.0F, size, size, size, size, size, size);
    }
 
+   private static final Map<String, Identifier> SPRITES = new HashMap<>();
+
+   @Override
+   public void sprite(String texture, int x, int y, int w, int h, int u, int v, int regionW, int regionH, int texW, int texH) {
+      Identifier id = SPRITES.computeIfAbsent(texture, t -> Identifier.fromNamespaceAndPath("swiftclient", "textures/gui/" + t));
+      this.ctx.blit(RenderPipelines.GUI_TEXTURED, id, x, y, u, v, w, h, regionW, regionH, texW, texH);
+   }
+
    @Override
    public void textureRegion(Object handle, int x, int y, int w, int h, int u, int v, int regionW, int regionH, int texW, int texH) {
       if (handle instanceof Identifier id) {

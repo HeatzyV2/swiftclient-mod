@@ -46,6 +46,10 @@ public interface Canvas {
    default void icon(String name, int x, int y, int size, int argb) {
    }
 
+   /** Part of a texture shipped with the mod (assets/swiftclient/textures/gui/{texture}), scaled to w×h. */
+   default void sprite(String texture, int x, int y, int w, int h, int u, int v, int regionW, int regionH, int texW, int texH) {
+   }
+
    default boolean richText(Object handle, int x, int y, int argb, boolean shadow) {
       return false;
    }

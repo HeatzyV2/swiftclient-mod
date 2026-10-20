@@ -4,30 +4,21 @@ import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.platform.Account;
 import dev.swiftclient.core.platform.Platform;
 
-/** Minimal top account control — text only. */
+/**
+ * Account button of the title screen, top right corner: a chamfered slot like the menu buttons, with the active
+ * account's head and name (or "+ Account" when signed out) and a chevron. Clicking it opens the accounts.
+ */
 public final class AccountBadge {
-   private static final int CARD_W = 100;
-   private static final int CARD_H = 16;
+   private static final int H = 22;
+   private static final int MARGIN = 8;
+   private static final int MAX_NAME = 110;
+   /** Where the button was last drawn: x, y, w, h (its width follows the name). */
+   private static final int[] LAST = new int[]{-1, -1, 0, 0};
 
    private AccountBadge() {
    }
 
-   private static int posX(int screenW) {
-      // Stay clear of Essential's right column when present
-      if (dev.swiftclient.core.ModCompat.essentialLoaded()) {
-         return 36;
-      }
-      return screenW - CARD_W - 14;
-   }
-
-   private static int posY() {
-      return dev.swiftclient.core.ModCompat.essentialLoaded() ? 14 : 14;
-   }
-
    public static void render(Canvas c, int screenW, int mouseX, int mouseY) {
-      int x = posX(screenW);
-      int y = posY();
-      boolean hover = mouseX >= x && mouseX < x + CARD_W && mouseY >= y && mouseY < y + CARD_H;
       Account active = null;
       for (Account a : Platform.game().accounts()) {
          if (a.active()) {
@@ -36,10 +27,26 @@ public final class AccountBadge {
          }
       }
 
-      String label = active != null ? trim(c, active.username(), CARD_W - 12) : tr("swift.account.add");
-      int col = hover ? -12877066 : -4473925;
-      c.text(label, x, y + 2, col, false);
-      c.text("▾", x + c.textWidth(label) + 4, y + 2, -10066330, false);
+      String label = active != null ? trim(c, active.username(), MAX_NAME) : tr("swift.account.add");
+      int head = active != null ? 14 : 0;
+      int w = 8 + (head > 0 ? head + 7 : 0) + c.textWidth(label) + 18;
+      // Stay clear of Essential's right column when present
+      int x = dev.swiftclient.core.ModCompat.essentialLoaded() ? 36 : screenW - w - MARGIN;
+      int y = MARGIN;
+      LAST[0] = x;
+      LAST[1] = y;
+      LAST[2] = w;
+      LAST[3] = H;
+      boolean hover = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + H;
+      Px.slot(c, x, y, w, H, 5, hover ? 0xF0151C2C : 0xE611141B, hover ? Px.ACCENT : 0xFF222838);
+      int tx = x + 8;
+      if (head > 0) {
+         c.playerHead(active.uuid(), tx, y + (H - head) / 2, head);
+         tx += head + 7;
+      }
+
+      c.text(label, tx, y + (H - c.lineHeight()) / 2 + 1, hover ? 0xFFFFFFFF : 0xFFC9D3E6, false);
+      c.icon("chevron_down", x + w - 14, y + (H - 8) / 2, 8, hover ? Px.ACCENT : 0xFF98A3B8);
    }
 
    private static String tr(String key) {
@@ -51,9 +58,7 @@ public final class AccountBadge {
    }
 
    public static boolean isOnBadge(int screenW, double mouseX, double mouseY) {
-      int x = posX(screenW);
-      int y = posY();
-      return mouseX >= x && mouseX < x + CARD_W && mouseY >= y && mouseY < y + CARD_H;
+      return LAST[0] >= 0 && mouseX >= LAST[0] && mouseX < LAST[0] + LAST[2] && mouseY >= LAST[1] && mouseY < LAST[1] + LAST[3];
    }
 
    private static String trim(Canvas c, String s, int maxW) {

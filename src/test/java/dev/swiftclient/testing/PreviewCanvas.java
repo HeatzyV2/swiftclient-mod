@@ -224,6 +224,21 @@ public final class PreviewCanvas implements Canvas {
    }
 
    @Override
+   public void sprite(String texture, int x, int y, int w, int h, int u, int v, int regionW, int regionH, int texW, int texH) {
+      BufferedImage img = ICONS.computeIfAbsent("sprite:" + texture, n -> {
+         try (InputStream in = PreviewCanvas.class.getResourceAsStream("/assets/swiftclient/textures/gui/" + texture)) {
+            return in == null ? null : ImageIO.read(in);
+         } catch (IOException e) {
+            return null;
+         }
+      });
+      if (img != null) {
+         this.g.setComposite(AlphaComposite.SrcOver);
+         this.g.drawImage(img, x, y, x + w, y + h, u, v, u + regionW, v + regionH, null);
+      }
+   }
+
+   @Override
    public void logo(int x, int y, int size) {
       this.g.setColor(new Color(0x3B82F6));
       this.g.fillRoundRect(x, y, size, size, size / 4, size / 4);

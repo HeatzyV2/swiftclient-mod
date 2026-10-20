@@ -85,6 +85,32 @@ public final class Px {
       c.roundRect(x + 46, y, 4, 2, 1.0F, ACCENT & 0x00FFFFFF | 0x55000000);
    }
 
+   /** Rectangle with its top-left and bottom-right corners cut on the diagonal (the slant of the Swift S). */
+   public static void chamfer(Canvas c, int x, int y, int w, int h, int cut, int argb) {
+      for (int i = 0; i < cut; i++) {
+         c.fill(x + cut - i, y + i, x + w, y + i + 1, argb);
+         c.fill(x, y + h - 1 - i, x + w - cut + i, y + h - i, argb);
+      }
+
+      c.fill(x, y + cut, x + w, y + h - cut, argb);
+   }
+
+   /** Chamfered panel with a 1px frame: the Swift slot shape (module tiles, language slots, fields). */
+   public static void slot(Canvas c, int x, int y, int w, int h, int cut, int body, int frame) {
+      chamfer(c, x, y, w, h, cut, frame);
+      chamfer(c, x + 1, y + 1, w - 2, h - 2, Math.max(1, cut - 1), body);
+   }
+
+   /** Speed streak drawn in place: three dashes, shorter and fainter towards the right. */
+   public static void dashes(Canvas c, int x, int cy, int color) {
+      int[] lens = {14, 6, 2};
+      int[] alpha = {0xE6, 0x99, 0x4D};
+      for (int i = 0; i < lens.length; i++) {
+         c.fill(x, cy - 1, x + lens[i], cy + 1, alpha[i] << 24 | color & 0xFFFFFF);
+         x += lens[i] + 3;
+      }
+   }
+
    /** Section title: capitals with a soft shadow, then the streak. */
    public static void title(Canvas c, String s, int x, int y) {
       c.text(s.toUpperCase(java.util.Locale.ROOT), x, y, TEXT, true);

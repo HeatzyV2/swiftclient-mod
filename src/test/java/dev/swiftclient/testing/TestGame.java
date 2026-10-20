@@ -72,6 +72,25 @@ public final class TestGame {
          case "configDir" -> Path.of("build", "test-config");
          case "config" -> store;
          case "translate" -> translate((String)args[0], args.length > 1 ? (Object[])args[1] : new Object[0]);
+         case "languages" -> java.util.List.of(
+            new dev.swiftclient.core.platform.Lang("en_us", "English", "United States"),
+            new dev.swiftclient.core.platform.Lang("fr_fr", "Français", "France"),
+            new dev.swiftclient.core.platform.Lang("de_de", "Deutsch", "Deutschland"),
+            new dev.swiftclient.core.platform.Lang("es_es", "Español", "España"),
+            new dev.swiftclient.core.platform.Lang("it_it", "Italiano", "Italia"),
+            new dev.swiftclient.core.platform.Lang("pt_br", "Português", "Brasil"),
+            new dev.swiftclient.core.platform.Lang("ja_jp", "日本語", "日本"),
+            new dev.swiftclient.core.platform.Lang("nl_nl", "Nederlands", "Nederland"),
+            new dev.swiftclient.core.platform.Lang("pl_pl", "Polski", "Polska"),
+            new dev.swiftclient.core.platform.Lang("ru_ru", "Русский", "Россия"),
+            new dev.swiftclient.core.platform.Lang("sv_se", "Svenska", "Sverige"),
+            new dev.swiftclient.core.platform.Lang("tr_tr", "Türkçe", "Türkiye"),
+            new dev.swiftclient.core.platform.Lang("en_pt", "Pirate Speak", "The Seven Seas"));
+         case "currentLanguage" -> "fr_fr";
+         case "accounts" -> java.util.List.of(
+            new dev.swiftclient.core.platform.Account("u1", "Zor4tox_", true, false, false),
+            new dev.swiftclient.core.platform.Account("u2", "HeatzyV2", false, false, false),
+            new dev.swiftclient.core.platform.Account("u3", "Steve", false, false, true));
          case "inSingleplayer" -> SINGLEPLAYER[0];
          case "worldName" -> SINGLEPLAYER[0] ? "Elysia Survival" : null;
          case "readClipboard" -> CLIPBOARD[0];

@@ -214,6 +214,17 @@ class UiPreviewTest {
    }
 
    @Test
+   void language() throws Exception {
+      TestGame.CONFIG.put("lang.favorites", "en_us");
+      shot("language-460x250", 460, 250, new dev.swiftclient.core.screen.LanguageScreen(), null, 120, 60);
+   }
+
+   @Test
+   void accounts() throws Exception {
+      shot("accounts-460x250", 460, 250, new dev.swiftclient.core.screen.AccountScreen(), null, 200, 106);
+   }
+
+   @Test
    void sessionAndPerf() throws Exception {
       java.util.Random rnd = new java.util.Random(7);
       for (int i = 0; i < 90; i++) {

@@ -822,8 +822,7 @@ public final class ModsScreen extends UiScreen {
       float lit = this.ease("tile:" + m.id, on ? 1.0F : 0.0F, 14.0F);
       int frame = on ? ACCENT : (hover ? 0xFF3A4560 : 0xFF222838);
       int body = on ? 0xFF0F1830 : (hover ? 0xFF161B26 : 0xFF11141B);
-      chamfer(c, x, y, w, h, cut, frame);
-      chamfer(c, x + 1, y + 1, w - 2, h - 2, cut - 1, body);
+      dev.swiftclient.core.ui.Px.slot(c, x, y, w, h, cut, body, frame);
 
       c.pushScissor(x + 1, y + 1, w - 2, h - 2);
       int mark = 40;
@@ -837,7 +836,7 @@ public final class ModsScreen extends UiScreen {
       int tagH = 11;
       int tx = x + 9;
       int ty = y + h - tagH - 8;
-      chamfer(c, tx, ty, tagW, tagH, 3, on ? ACCENT : 0xFF232A3A);
+      dev.swiftclient.core.ui.Px.chamfer(c, tx, ty, tagW, tagH, 3, on ? ACCENT : 0xFF232A3A);
       String state = on ? "ON" : "OFF";
       c.text(state, tx + (tagW - c.textWidth(state)) / 2, ty + 2, on ? TEXT : 0xFF7D8799, false);
       if (lit > 0.01F) {
@@ -855,16 +854,6 @@ public final class ModsScreen extends UiScreen {
          boolean gOver = inGrid && in(mouseX, mouseY, g);
          c.icon("gear", g[0] + 2, g[1] + 2, BAR_H - 4, gOver ? TEXT : (hover || on ? 0xFF98A3B8 : FAINT));
       }
-   }
-
-   /** Rectangle with its top-left and bottom-right corners cut on the diagonal (the slant of the Swift S). */
-   private static void chamfer(Canvas c, int x, int y, int w, int h, int cut, int argb) {
-      for (int i = 0; i < cut; i++) {
-         c.fill(x + cut - i, y + i, x + w, y + i + 1, argb);
-         c.fill(x, y + h - 1 - i, x + w - cut + i, y + h - i, argb);
-      }
-
-      c.fill(x, y + cut, x + w, y + h - cut, argb);
    }
 
    private static final int LETTER_SPACING = 1;

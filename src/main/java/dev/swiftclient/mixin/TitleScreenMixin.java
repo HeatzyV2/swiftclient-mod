@@ -15,12 +15,13 @@ import dev.swiftclient.core.screen.WardrobeScreen;
 import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.core.ui.AccountBadge;
 import dev.swiftclient.core.ui.SwiftIntro;
-import dev.swiftclient.core.ui.widget.NavRowWidget;
-import dev.swiftclient.core.ui.widget.TextLinkWidget;
+import dev.swiftclient.core.ui.Px;
+import dev.swiftclient.core.ui.widget.SwiftMenuButton;
 import dev.swiftclient.platform.CanvasImpl;
 import dev.swiftclient.platform.CoreScreenHost;
 import dev.swiftclient.ui.CanvasWidget;
-import dev.swiftclient.ui.LogoButton;
+import java.util.Locale;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -97,73 +98,66 @@ public abstract class TitleScreenMixin extends Screen {
    }
 
    @Unique
-   private int swiftclient$railX = 0;
+   private int swiftclient$colX = 24;
    @Unique
-   private int swiftclient$railW = 220;
+   private int swiftclient$colW = 210;
    @Unique
-   private int swiftclient$layoutTop = 28;
+   private int swiftclient$top = 28;
    @Unique
-   private int swiftclient$logoSize = 52;
-
+   private int swiftclient$logo = 40;
    @Unique
-   private void swiftclient$computeLayout() {
-      int marginL = ModCompat.essentialLoaded() ? 170 : 24;
-      int marginR = ModCompat.essentialLoaded() ? 64 : 24;
-      int usable = Math.max(160, this.width - marginL - marginR);
-      this.swiftclient$railW = Math.min(220, usable);
-      this.swiftclient$railX = marginL + (usable - this.swiftclient$railW) / 2;
-
-      int topPad = 18;
-      int bottomPad = 28;
-      int avail = Math.max(160, this.height - topPad - bottomPad);
-
-      int logo = 48;
-      int afterLogo = 30;
-      int ctaH = 32;
-      int afterCta = 10;
-      int rowH = 22;
-      int gap = 3;
-      int afterRealms = 12;
-      int quitH = 16;
-      int secondary = 6;
-      int need = logo + afterLogo + ctaH + afterCta + secondary * rowH + (secondary - 1) * gap + afterRealms + quitH;
-
-      if (need > avail) {
-         float k = (float)avail / (float)need;
-         logo = Math.max(28, Math.round(logo * k));
-         afterLogo = Math.max(18, Math.round(afterLogo * k));
-         ctaH = Math.max(24, Math.round(ctaH * k));
-         afterCta = Math.max(6, Math.round(afterCta * k));
-         rowH = Math.max(16, Math.round(rowH * k));
-         gap = Math.max(1, Math.round(gap * k));
-         afterRealms = Math.max(6, Math.round(afterRealms * k));
-         need = logo + afterLogo + ctaH + afterCta + secondary * rowH + (secondary - 1) * gap + afterRealms + quitH;
-      }
-
-      // Bias upward: small top breathing room, never pin Quit to the bezel
-      int slack = Math.max(0, avail - need);
-      this.swiftclient$layoutTop = topPad + Math.min(slack / 4, 24);
-      this.swiftclient$logoSize = logo;
-      this.swiftclient$afterLogo = afterLogo;
-      this.swiftclient$ctaH = ctaH;
-      this.swiftclient$afterCta = afterCta;
-      this.swiftclient$rowH = rowH;
-      this.swiftclient$gap = gap;
-      this.swiftclient$afterRealms = afterRealms;
-   }
-
+   private int swiftclient$afterLogo = 16;
    @Unique
-   private int swiftclient$afterLogo = 30;
-   @Unique
-   private int swiftclient$ctaH = 32;
-   @Unique
-   private int swiftclient$afterCta = 10;
+   private int swiftclient$ctaH = 30;
    @Unique
    private int swiftclient$rowH = 22;
    @Unique
-   private int swiftclient$gap = 3;
+   private int swiftclient$gap = 4;
    @Unique
-   private int swiftclient$afterRealms = 12;
+   private int swiftclient$smallH = 18;
+
+   /** Left column: the menu sits on the left so the panorama stays free on the right. */
+   @Unique
+   private void swiftclient$computeLayout() {
+      int marginL = ModCompat.essentialLoaded() ? 170 : Math.max(24, Math.round(this.width * 0.06F));
+      this.swiftclient$colX = marginL;
+      this.swiftclient$colW = Math.max(150, Math.min(190, this.width - marginL - 24));
+
+      int logo = 42;
+      int afterLogo = 16;
+      int ctaH = 30;
+      int afterCta = 8;
+      int rowH = 22;
+      int gap = 4;
+      int afterRows = 8;
+      int smallH = 18;
+      int rows = 4;
+      int need = logo + afterLogo + ctaH + afterCta + rows * rowH + (rows - 1) * gap + afterRows + smallH;
+      int avail = Math.max(150, this.height - 44);
+      if (need > avail) {
+         float k = (float)avail / need;
+         logo = Math.max(26, Math.round(logo * k));
+         afterLogo = Math.max(8, Math.round(afterLogo * k));
+         ctaH = Math.max(22, Math.round(ctaH * k));
+         rowH = Math.max(16, Math.round(rowH * k));
+         gap = Math.max(2, Math.round(gap * k));
+         smallH = Math.max(14, Math.round(smallH * k));
+         need = logo + afterLogo + ctaH + afterCta + rows * rowH + (rows - 1) * gap + afterRows + smallH;
+      }
+
+      this.swiftclient$top = Math.max(16, (this.height - need) / 2 - 6);
+      this.swiftclient$logo = logo;
+      this.swiftclient$afterLogo = afterLogo;
+      this.swiftclient$ctaH = ctaH;
+      this.swiftclient$rowH = rowH;
+      this.swiftclient$gap = gap;
+      this.swiftclient$smallH = smallH;
+   }
+
+   @Unique
+   private CanvasWidget swiftclient$button(int x, int y, int w, int h, String key, String icon, Runnable click, SwiftMenuButton.Style style, int index) {
+      return new CanvasWidget(x, y, w, h, Component.translatable(key), new SwiftMenuButton(() -> tr(key), icon, click, style, index));
+   }
 
    @Inject(
       method = {"init"},
@@ -180,114 +174,68 @@ public abstract class TitleScreenMixin extends Screen {
 
       TitleScreen self = (TitleScreen)(Object)this;
       Minecraft mc = Minecraft.getInstance();
+      int x = this.swiftclient$colX;
+      int w = this.swiftclient$colW;
+      int y = this.swiftclient$top;
+      int logo = this.swiftclient$logo;
 
-      int railX = this.swiftclient$railX;
-      int railW = this.swiftclient$railW;
-      int logo = this.swiftclient$logoSize;
-      int y = this.swiftclient$layoutTop;
-
-      this.addRenderableWidget(new LogoButton(railX + (railW - logo) / 2, y, logo));
       y += logo + this.swiftclient$afterLogo;
+
+      this.addRenderableWidget(this.swiftclient$button(x, y, w, this.swiftclient$ctaH, "menu.singleplayer", "play",
+         () -> mc.setScreenAndShow(new SelectWorldScreen(self)), SwiftMenuButton.Style.PRIMARY, 0));
+      y += this.swiftclient$ctaH + 8;
 
       int rowH = this.swiftclient$rowH;
       int gap = this.swiftclient$gap;
-      int ctaH = this.swiftclient$ctaH;
-      int idx = 0;
+      this.addRenderableWidget(this.swiftclient$button(x, y, w, rowH, "menu.multiplayer", "globe", () -> {
+         if (mc.options.skipMultiplayerWarning) {
+            mc.setScreenAndShow(new JoinMultiplayerScreen(self));
+         } else {
+            mc.setScreenAndShow(new SafetyScreen(self));
+         }
+      }, SwiftMenuButton.Style.ROW, 1));
+      y += rowH + gap;
+      this.addRenderableWidget(this.swiftclient$button(x, y, w, rowH, "swift.menu.mods", "mods",
+         () -> mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), self)), SwiftMenuButton.Style.ROW, 2));
+      y += rowH + gap;
+      this.addRenderableWidget(this.swiftclient$button(x, y, w, rowH, "swift.menu.cosmetics", "shirt",
+         () -> mc.setScreenAndShow(new CoreScreenHost(new WardrobeScreen(), self)), SwiftMenuButton.Style.ROW, 3));
+      y += rowH + gap;
+      this.addRenderableWidget(this.swiftclient$button(x, y, w, rowH, "menu.options", "gear",
+         () -> mc.setScreenAndShow(new OptionsScreen(self, mc.options, false)), SwiftMenuButton.Style.ROW, 4));
+      y += rowH + 8;
 
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            ctaH,
-            Component.translatable("menu.singleplayer"),
-            new NavRowWidget(() -> tr("menu.singleplayer"), () -> mc.setScreenAndShow(new SelectWorldScreen(self)), true, idx++)
-         )
-      );
-      y += ctaH + this.swiftclient$afterCta;
+      int sh = this.swiftclient$smallH;
+      int sgap = 4;
+      int sw = (w - 2 * sgap) / 3;
+      this.addRenderableWidget(this.swiftclient$button(x, y, sw, sh, "swift.menu.language", "globe",
+         () -> mc.setScreenAndShow(new CoreScreenHost(new LanguageScreen(), self)), SwiftMenuButton.Style.SMALL, 5));
+      this.addRenderableWidget(this.swiftclient$button(x + sw + sgap, y, sw, sh, "swift.menu.realms", "cloud",
+         () -> mc.setScreenAndShow(new RealmsMainScreen(self)), SwiftMenuButton.Style.SMALL, 6));
+      this.addRenderableWidget(this.swiftclient$button(x + 2 * (sw + sgap), y, w - 2 * (sw + sgap), sh, "swift.menu.quit", "close",
+         () -> mc.stop(), SwiftMenuButton.Style.DANGER, 7));
+   }
 
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            rowH,
-            Component.translatable("menu.multiplayer"),
-            new NavRowWidget(() -> tr("menu.multiplayer"), () -> {
-               if (mc.options.skipMultiplayerWarning) {
-                  mc.setScreenAndShow(new JoinMultiplayerScreen(self));
-               } else {
-                  mc.setScreenAndShow(new SafetyScreen(self));
-               }
-            }, false, idx++)
-         )
-      );
-      y += rowH + gap;
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            rowH,
-            Component.translatable("swift.menu.mods"),
-            new NavRowWidget(() -> tr("swift.menu.mods"), () -> mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), self)), false, idx++)
-         )
-      );
-      y += rowH + gap;
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            rowH,
-            Component.translatable("swift.menu.cosmetics"),
-            new NavRowWidget(() -> tr("swift.menu.cosmetics"), () -> mc.setScreenAndShow(new CoreScreenHost(new WardrobeScreen(), self)), false, idx++)
-         )
-      );
-      y += rowH + gap;
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            rowH,
-            Component.translatable("menu.options"),
-            new NavRowWidget(() -> tr("menu.options"), () -> mc.setScreenAndShow(new OptionsScreen(self, mc.options, false)), false, idx++)
-         )
-      );
-      y += rowH + gap;
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            rowH,
-            Component.translatable("swift.menu.language"),
-            new NavRowWidget(() -> tr("swift.menu.language"), () -> mc.setScreenAndShow(new CoreScreenHost(new LanguageScreen(), self)), false, idx++)
-         )
-      );
-      y += rowH + gap;
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX,
-            y,
-            railW,
-            rowH,
-            Component.translatable("menu.online"),
-            new NavRowWidget(() -> tr("menu.online"), () -> mc.setScreenAndShow(new RealmsMainScreen(self)), false, idx++)
-         )
-      );
-      y += rowH + this.swiftclient$afterRealms;
-      this.addRenderableWidget(
-         new CanvasWidget(
-            railX + (railW - 70) / 2,
-            y,
-            70,
-            16,
-            Component.translatable("swift.menu.quit"),
-            new TextLinkWidget(() -> tr("swift.menu.quit"), () -> mc.stop(), idx)
-         )
-      );
+   /** Dark veil behind the column, fading out to the right, so the menu reads on any panorama. */
+   @Inject(
+      method = {"extractRenderState"},
+      at = {@At("HEAD")}
+   )
+   private void swiftclient$veil(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+      if (ModuleManager.get(VanillaUiModule.class).isEnabled()) {
+         return;
+      }
+
+      int solid = this.swiftclient$colX + this.swiftclient$colW / 2;
+      int fade = this.swiftclient$colW + 120;
+      ctx.fill(0, 0, solid, this.height, 0xA0060910);
+      int steps = 24;
+      for (int i = 0; i < steps; i++) {
+         int x0 = solid + fade * i / steps;
+         int x1 = solid + fade * (i + 1) / steps;
+         int alpha = Math.round(0xA0 * (1.0F - (i + 0.5F) / steps));
+         ctx.fill(x0, 0, x1, this.height, alpha << 24 | 0x060910);
+      }
    }
 
    @Inject(
@@ -298,41 +246,70 @@ public abstract class TitleScreenMixin extends Screen {
       CanvasImpl c = new CanvasImpl(ctx);
       SwiftIntro.tickSounds();
       if (!ModuleManager.get(VanillaUiModule.class).isEnabled()) {
-         int railX = this.swiftclient$railX;
-         int railW = this.swiftclient$railW;
-         int logo = this.swiftclient$logoSize;
-         int brandY = this.swiftclient$layoutTop + logo + Math.max(6, this.swiftclient$afterLogo / 3);
-         float ba = SwiftIntro.brandAlpha();
-         if (ba > 0.02F) {
-            String swift = tr("swift.brand.swift");
-            String client = tr("swift.brand.client");
-            int wordW = c.textWidth(swift) + 6 + c.textWidth(client);
-            int bx = railX + (railW - wordW) / 2 + Math.round((1.0F - ba) * 24.0F);
-            int a = Math.round(255 * ba) << 24;
-            c.text(swift, bx, brandY, -12877066 & 16777215 | a, false);
-            c.text(client, bx + c.textWidth(swift) + 6, brandY, -1 & 16777215 | a, false);
-            c.fill(bx, brandY + 12, bx + wordW, brandY + 13, 1715176182 & 16777215 | a);
-         }
-
-         // Speed streaks behind the logo during Swift In
-         float sa = SwiftIntro.streakAlpha();
-         if (sa > 0.02F) {
-            int logoCx = railX + railW / 2 + SwiftIntro.logoOffsetX();
-            int logoCy = this.swiftclient$layoutTop + logo / 2;
-            int streakA = Math.round(180 * sa) << 24;
-            int col = -12877066 & 16777215 | streakA;
-            for (int i = 0; i < 5; i++) {
-               int ly = logoCy - 14 + i * 7;
-               int len = 40 + i * 18;
-               int lx = logoCx - len - 20 - i * 8;
-               c.fill(lx, ly, lx + len, ly + 1, col);
-            }
-         }
+         this.swiftclient$wordmark(ctx, c);
       }
 
       if (!ModCompat.essentialLoaded()) {
          AccountBadge.render(c, this.width, mouseX, mouseY);
       }
+   }
+
+   /** Height of a capital of the bold UI font at scale 1, and its distance below the text origin. */
+   @Unique
+   private static final float SWIFTCLIENT$CAP_H = 6.25F;
+   @Unique
+   private static final float SWIFTCLIENT$CAP_TOP = 0.85F;
+   /** Slant of the S in logo.png (its edges move 0.21 px right per px up): the name leans the same way. */
+   @Unique
+   private static final float SWIFTCLIENT$SLANT = 0.21F;
+
+   /**
+    * SWIFT CLIENT in large bold capitals, slanted like the S of the logo, with the streak and the game version
+    * underneath.
+    */
+   @Unique
+   private void swiftclient$wordmark(GuiGraphicsExtractor ctx, CanvasImpl c) {
+      float ba = SwiftIntro.brandAlpha();
+      if (ba <= 0.02F) {
+         return;
+      }
+
+      int head = this.swiftclient$logo;
+      Font font = Minecraft.getInstance().font;
+      net.minecraft.network.chat.Style bold = net.minecraft.network.chat.Style.EMPTY
+         .withFont(new net.minecraft.network.chat.FontDescription.Resource(net.minecraft.resources.Identifier.fromNamespaceAndPath("swiftclient", "ui_title")));
+      Component swift = Component.literal(tr("swift.brand.swift").toUpperCase(Locale.ROOT)).setStyle(bold);
+      Component client = Component.literal(tr("swift.brand.client").toUpperCase(Locale.ROOT)).setStyle(bold);
+      int gap = 3;
+      // As tall as half the header, narrowed if needed so the slanted name stays within the button column
+      float capH = head * 0.5F;
+      float k = capH / SWIFTCLIENT$CAP_H;
+      float units = font.width(swift) + gap + font.width(client) + SWIFTCLIENT$SLANT * SWIFTCLIENT$CAP_H;
+      if (units * k > this.swiftclient$colW) {
+         k = this.swiftclient$colW / units;
+         capH = k * SWIFTCLIENT$CAP_H;
+      }
+
+      float capTop = this.swiftclient$top + (head - capH) * 0.35F;
+      float startX = this.swiftclient$colX + SWIFTCLIENT$SLANT * capH - (1.0F - ba) * 24.0F;
+      int a = Math.round(255 * ba) << 24;
+
+      var pose = ctx.pose();
+      pose.pushMatrix();
+      pose.translate(startX, capTop - SWIFTCLIENT$CAP_TOP * k);
+      pose.mul(new org.joml.Matrix3x2f(1.0F, 0.0F, -SWIFTCLIENT$SLANT, 1.0F, 0.0F, 0.0F));
+      pose.scale(k, k);
+      ctx.text(font, swift, 0, 0, Px.ACCENT & 0xFFFFFF | a, false);
+      ctx.text(font, client, font.width(swift) + gap, 0, 0xFFFFFF | a, false);
+      pose.popMatrix();
+
+      int under = Math.round(capTop + capH + 6.0F);
+      int x = Math.round(startX - SWIFTCLIENT$SLANT * (capH + 6.0F));
+      Px.dashes(c, x, under, Px.ACCENT & 0xFFFFFF | a);
+      String version = SharedConstants.getCurrentVersion().name();
+      int tx = x + 36;
+      Px.chamfer(c, tx, under - 5, c.textWidth(version) + 10, 11, 3, Math.round(0xD0 * ba) << 24 | 0x232A3A);
+      c.text(version, tx + 5, under - 3, 0xB4BDCC | a, false);
    }
 
    @Inject(

@@ -14,8 +14,9 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Language picker, Swift style: a grid of "slots", each with a code plate, the language name and a star.
- * The selected slot is framed in white like the selected hotbar slot; favourites float to the top.
+ * Language picker, Swift style: a grid of chamfered slots (the shape of the module tiles), each with its country
+ * flag (or its code on a slanted tag for invented languages), the language name and a star. The chosen one is framed in accent with the speed streak;
+ * favourites float to the top.
  */
 public class LanguageScreen extends UiScreen {
    private static final String FAV_KEY = "lang.favorites";
@@ -158,8 +159,9 @@ public class LanguageScreen extends UiScreen {
    private void drawSearch(Canvas c, int mouseX, int mouseY) {
       int[] r = this.searchRect();
       boolean over = mouseX >= r[0] && mouseX < r[0] + r[2] && mouseY >= r[1] && mouseY < r[1] + r[3];
-      c.card(r[0], r[1], r[2], r[3], 0xFF0C0F16, this.searchFocused ? Px.ACCENT : (over ? 0xFF3A4766 : 0), 1, 2.0F);
-      int tx = r[0] + 6;
+      Px.slot(c, r[0], r[1], r[2], r[3], 5, 0xFF0C0F16, this.searchFocused ? Px.ACCENT : (over ? 0xFF3A4560 : 0xFF222838));
+      c.icon("zoom", r[0] + 7, r[1] + (r[3] - 10) / 2, 10, this.searchFocused ? Px.ACCENT : Px.FAINT);
+      int tx = r[0] + 21;
       int ty = r[1] + (r[3] - c.lineHeight()) / 2 + 1;
       if (this.query.isEmpty() && !this.searchFocused) {
          c.text(Tr.of("swift.language.search"), tx, ty, Px.FAINT, false);
@@ -167,42 +169,54 @@ public class LanguageScreen extends UiScreen {
          c.text(this.query, tx, ty, Px.TEXT, false);
          if (this.searchFocused && this.caretBlink % 40L < 20L) {
             int cx = tx + c.textWidth(this.query) + 1;
-            c.fill(cx, r[1] + 4, cx + 2, r[1] + r[3] - 4, Px.TEXT);
+            c.fill(cx, r[1] + 5, cx + 1, r[1] + r[3] - 5, Px.ACCENT);
          }
       }
    }
 
+   /** A language slot: chamfered like the module tiles, the code on a slanted tag, a streak on the chosen one. */
    private void drawTile(Canvas c, Row row, int[] r, int mouseX, int mouseY, boolean inView) {
       boolean sel = row.lang().code().equals(this.selected);
       boolean over = inView && mouseX >= r[0] && mouseX < r[0] + r[2] && mouseY >= r[1] && mouseY < r[1] + r[3];
       boolean overStar = over && mouseX >= r[0] + r[2] - 22;
-      int y = r[1] - (over && !sel ? 2 : 0);
-      c.card(r[0], y, r[2], r[3], sel ? 0xFF1D2535 : (over ? 0xFF182033 : 0xFF11151F), sel ? 0xFFFFFFFF : 0, sel ? 1 : 0, 3.0F);
+      int x = r[0];
+      int y = r[1];
+      int w = r[2];
+      int h = r[3];
+      Px.slot(c, x, y, w, h, 6, sel ? 0xFF0F1830 : (over ? 0xFF161B26 : 0xFF11141B), sel ? Px.ACCENT : (over ? 0xFF3A4560 : 0xFF222838));
 
-      // Code plate: the language code on an accent block
-      String code = row.lang().code().split("[_-]")[0].toUpperCase(Locale.ROOT);
-      int plate = 22;
-      int px = r[0] + 5;
-      int py = y + (r[3] - plate) / 2;
-      c.card(px, py, plate, plate, sel ? Px.ACCENT : 0xFF222B42, 0, 0, 2.0F);
-      c.centeredText(code.length() > 3 ? code.substring(0, 3) : code, px + plate / 2, py + (plate - 8) / 2 + 1, Px.TEXT, true);
+      int tagW = 24;
+      int tx = x + 8;
+      int cell = Flags.cell(row.lang().code());
+      if (cell >= 0) {
+         int fh = 18;
+         int fy = y + (h - fh) / 2;
+         Px.chamfer(c, tx, fy, tagW, fh, 3, sel ? Px.ACCENT : 0xFF2A3142);
+         Flags.draw(c, cell, tx + 2, fy + 2, tagW - 4, fh - 4);
+      } else {
+         String code = row.lang().code().split("[_-]")[0].toUpperCase(Locale.ROOT);
+         code = code.length() > 3 ? code.substring(0, 3) : code;
+         int tagH = 13;
+         int ty = y + (h - tagH) / 2;
+         Px.chamfer(c, tx, ty, tagW, tagH, 3, sel ? Px.ACCENT : 0xFF232A3A);
+         c.text(code, tx + (tagW - c.textWidth(code)) / 2, ty + 3, sel ? Px.TEXT : 0xFFB4BDCC, false);
+      }
 
-      int tx = px + plate + 7;
-      int maxW = r[0] + r[2] - 26 - tx;
-      c.text(fit(c, row.lang().name(), maxW), tx, y + 6, sel ? Px.TEXT : (over ? Px.TEXT : 0xFFC9D3E6), true);
+      int nx = tx + tagW + 8;
+      int streakW = sel ? 34 : 0;
+      int maxW = x + w - 24 - streakW - nx;
+      c.text(fit(c, row.lang().name(), maxW), nx, y + 6, sel || over ? Px.TEXT : 0xFFC9D3E6, false);
       String region = row.lang().region();
       if (region != null && !region.isBlank()) {
-         c.text(fit(c, region, maxW), tx, y + 17, Px.FAINT, false);
+         c.text(fit(c, region, maxW), nx, y + 17, sel ? 0xFF8FA8D6 : Px.FAINT, false);
       }
 
-      // Star
-      int sx = r[0] + r[2] - 17;
-      int sy = y + (r[3] - 9) / 2;
-      boolean fav = row.fav();
-      c.icon("star", sx - 1, sy - 1, 11, fav ? 0xFFFFD23F : (overStar ? Px.TEXT : 0xFF3A4152));
       if (sel) {
-         Px.lamp(c, r[0] + r[2] - 14, y + r[3] - 9, true);
+         Px.dashes(c, x + w - 24 - streakW + 2, y + h / 2, Px.ACCENT);
       }
+
+      boolean fav = row.fav();
+      c.icon("star", x + w - 18, y + (h - 11) / 2, 11, fav ? 0xFFFFD23F : (overStar ? Px.TEXT : 0xFF3A4152));
    }
 
    private static String fit(Canvas c, String s, int maxW) {
@@ -307,5 +321,50 @@ public class LanguageScreen extends UiScreen {
    }
 
    private record Row(Lang lang, boolean fav) {
+   }
+
+   /** Country flags of the languages (textures/gui/flags.png, built by tools/gen_flags.mjs from flag-icons). */
+   private static final class Flags {
+      private static final String TEXTURE = "flags.png";
+      private static java.util.Map<String, Integer> cells;
+      private static int cellW;
+      private static int cellH;
+      private static int cols;
+      private static int texW;
+      private static int texH;
+
+      static int cell(String lang) {
+         if (cells == null) {
+            load();
+         }
+
+         Integer i = cells.get(lang.toLowerCase(Locale.ROOT));
+         return i == null ? -1 : i;
+      }
+
+      static void draw(Canvas c, int cell, int x, int y, int w, int h) {
+         c.sprite(TEXTURE, x, y, w, h, cell % cols * cellW, cell / cols * cellH, cellW, cellH, texW, texH);
+      }
+
+      private static void load() {
+         cells = new java.util.HashMap<>();
+         try (java.io.InputStream in = LanguageScreen.class.getResourceAsStream("/assets/swiftclient/textures/gui/flags.json")) {
+            if (in == null) {
+               return;
+            }
+
+            com.google.gson.JsonObject o = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+            cellW = o.get("cellW").getAsInt();
+            cellH = o.get("cellH").getAsInt();
+            cols = o.get("cols").getAsInt();
+            texW = o.get("width").getAsInt();
+            texH = o.get("height").getAsInt();
+            for (var e : o.getAsJsonObject("langs").entrySet()) {
+               cells.put(e.getKey(), e.getValue().getAsInt());
+            }
+         } catch (java.io.IOException | RuntimeException e) {
+            cells = new java.util.HashMap<>();
+         }
+      }
    }
 }
