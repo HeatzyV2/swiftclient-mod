@@ -1565,5 +1565,7 @@
   "swift.session.reload.title": "Session",
   "swift.session.reload.ok": "Session rechargée pour %s.",
   "swift.session.reload.failed": "Impossible de rafraîchir le jeton. La session actuelle est conservée.",
-  "swift.session.reload.none": "Aucun compte Swift actif. Ajoute ton compte Microsoft dans le menu Comptes."
+  "swift.session.reload.none": "Aucun compte Swift actif. Ajoute ton compte Microsoft dans le menu Comptes.",
+  "swift.loading.resources": "Chargement",
+  "swift.loading.world": "Entrée dans le monde"
 }

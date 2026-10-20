@@ -1565,5 +1565,7 @@
   "swift.session.reload.title": "Session",
   "swift.session.reload.ok": "Session reloaded for %s.",
   "swift.session.reload.failed": "Could not refresh the token. The current session was kept.",
-  "swift.session.reload.none": "No active Swift account. Add your Microsoft account in the Accounts menu."
+  "swift.session.reload.none": "No active Swift account. Add your Microsoft account in the Accounts menu.",
+  "swift.loading.resources": "Loading",
+  "swift.loading.world": "Entering world"
 }

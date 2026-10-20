@@ -107,6 +107,7 @@ public final class HudClient {
       HudElementRegistry.attachElementAfter(
          VanillaHudElements.MISC_OVERLAYS, Identifier.fromNamespaceAndPath("swiftclient", "hud"), (graphics, deltaTracker) -> {
             Minecraft mc = Minecraft.getInstance();
+            dev.swiftclient.ui.SwiftLoadingScreen.fadeOut(graphics);
             ModuleManager.render(deltaTracker.getGameTimeDeltaPartialTick(false));
             if (!mc.gui.hud.isHidden()) {
                LowHealthWarningModule.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
