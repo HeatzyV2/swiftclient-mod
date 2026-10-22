@@ -24,18 +24,71 @@ public final class ModuleManager {
     * modules interleaved. "@hud" stands for the generic HUD element modules. Unknown ids are appended.
     */
    private static final List<String> ORDER = List.of(
-      "friends", "hud_minimap", "waypoints", "motion_blur", "atmosphere", "hud_pvpinfo", "weapon_inspect", "combat_recap", "hud_combo", "saturation",
-      "swing_animation", "freelook", "hud_keystrokes", "custom_glint", "jump_circles", "hand_pose", "hand_aura", "low_health_warning", "totem_spirit", "hand_model",
-      "hit_particles", "skin_change", "coord_snapper", "hide_inventory", "auto_reconnect", "friend_guard", "weather_notifier", "borderless",
-      "relic_particles", "floating_relics", "pharaoh_headdress", "elytra_swap",
-      "item_physics", "hud_direction", "time_changer", "nametags", "hud_cps", "chunk_borders", "zoom", "fog", "hud_reach", "hud_bossbar",
-      "hit_color", "hud_music", "hud_fps", "hud_perf", "particles", "snaplook", "worldedit_cui", "old_visuals", "hud_ping", "hud_armor", "uhc_overlay",
-      "hud_itemcounter", "clear_glass", "team_view", "hud_cooldowns", "crosshair", "hud_scoreboard", "weather_changer", "hud_server",
-      "light_overlay", "hitboxes", "hud_notifications", "fullbright", "hud_itemtracker", "items_2d", "hud_tnt", "tab_editor", "chat",
-      "hud_memory", "hide_foliage", "hud_stopwatch", "togglesprint", "togglesneak", "hud_togglestatus", "fire", "hud_playtime",
-      "better_foliage", "streamer", "autoprofile", "aura", "updates", "nick_hider", "titles", "hud_packs", "blockoverlay", "screenshot", "gui_blur", "hud_speed", "autojump", "@hud",
-      "hud_biome", "mod_menu", "discord_rpc", "vanillaui"
+      "friends_group", "hud_minimap", "waypoints_group", "combat", "weapon_inspect", "image", "environment", "animations", "freelook_group",
+      "keystrokes_group", "custom_glint", "hands", "cosmetic_effects", "infos", "zoom", "damage", "items_hud", "toggle_move", "nametags",
+      "crosshair", "particles_group", "hud_music", "dropped_items", "armor_group", "team_view", "hitboxes", "tooltips", "elytra_swap",
+      "fullbright", "server_hud", "blocks", "custom_fov", "hud_tnt", "build_tools", "chat", "streamer_group", "hud_stopwatch",
+      "profiles_auto", "screenshot", "gui_blur", "autojump", "notifications_group", "discord_rpc", "client_settings", "@hud"
    );
+   /**
+    * Tiles that stand for several modules. The parts keep their ids (configs and profiles stay valid) and are
+    * shown as the tabs of their group instead of tiles of their own.
+    */
+   private static List<ModuleGroup> groups() {
+      return List.of(
+         new ModuleGroup("toggle_move", "Toggle Sprint/Sneak", "Sprint and sneak with one press, and see on screen when they are toggled.", "PvP", "togglesprint",
+            "togglesprint", "togglesneak", "hud_togglestatus"),
+         new ModuleGroup("freelook_group", "Freelook", "Look around without turning (Freelook) or glance behind you (Snaplook).", "PvP", "freelook",
+            "freelook", "snaplook"),
+         new ModuleGroup("combat", "Combat", "Everything about your fights: reach, combo, opponent card and a recap at the end.", "PvP", "sword",
+            "hud_pvpinfo", "hud_reach", "hud_combo", "combat_recap"),
+         new ModuleGroup("keystrokes_group", "Keystrokes", "Movement keys, mouse buttons and clicks per second.", "PvP", "keyboard",
+            "hud_keystrokes", "hud_cps"),
+         new ModuleGroup("infos", "Infos", "Small HUD lines: FPS, ping, coordinates, clock, biome... Pick the ones you want, each one moves on its own in the HUD Editor.", "HUD", "info",
+            "hud_fps", "hud_perf", "hud_ping", "hud_coords", "hud_direction", "hud_speed", "hud_biome", "hud_server", "hud_playtime",
+            "hud_clock", "hud_date", "hud_days", "hud_effects", "hud_memory", "hud_packs"),
+         new ModuleGroup("items_hud", "Items", "What you carry: item and totem counters, pickups and cooldowns.", "HUD", "stack",
+            "hud_itemcounter", "totem_counter", "hud_itemtracker", "hud_cooldowns"),
+         new ModuleGroup("armor_group", "Armor", "Your armor on screen, and a warning before it breaks.", "HUD", "shield",
+            "hud_armor", "armor_warning"),
+         new ModuleGroup("server_hud", "Server HUD", "Restyle what the server shows: scoreboard, boss bars, titles and the player list.", "HUD", "list",
+            "hud_scoreboard", "hud_bossbar", "titles", "tab_editor"),
+         new ModuleGroup("hands", "Hands", "Position, field of view and 3D arm of your first-person hands.", "Visual", "hand",
+            "hand_pose", "view_model", "hand_model"),
+         new ModuleGroup("animations", "Animations", "Swing, item switch and 1.7 animations.", "Visual", "swap",
+            "swing_animation", "slow_swing", "hotbar_swap", "old_visuals"),
+         new ModuleGroup("environment", "Environment", "Your own time, weather, sky and fog. Only on your screen.", "Visual", "sunrise",
+            "time_changer", "weather_changer", "atmosphere", "fog"),
+         new ModuleGroup("image", "Image", "Colour grading and motion blur on the world image.", "Visual", "saturation",
+            "saturation", "motion_blur"),
+         new ModuleGroup("particles_group", "Particles", "More useful particles, fewer distracting ones, and bursts where your hits land.", "Visual", "sparkles",
+            "particles", "hit_particles"),
+         new ModuleGroup("damage", "Damage", "How damage looks: hit colour, camera tilt, fire, low health and damage numbers.", "Visual", "heart",
+            "hit_color", "damage_tilt", "fire", "low_health_warning", "damage_indicator"),
+         new ModuleGroup("dropped_items", "Dropped Items", "How items on the ground look: physics or flat, and valuable loot drawn bigger.", "Visual", "physics",
+            "item_physics", "items_2d", "uhc_overlay").exclusive("item_physics", "items_2d"),
+         new ModuleGroup("tooltips", "Tooltips", "Shulker and Ender Chest previews, and more details in item tooltips.", "Visual", "layers",
+            "shulker_tooltip", "ender_preview", "tooltip_plus"),
+         new ModuleGroup("blocks", "Blocks", "Block outline, clear glass and foliage.", "Visual", "blockoverlay",
+            "blockoverlay", "clear_glass", "hide_foliage", "better_foliage").exclusive("hide_foliage", "better_foliage"),
+         new ModuleGroup("cosmetic_effects", "Effects", "Cosmetic effects only you see: aura, relics, jump circles, kill effect, skin...", "Visual", "star",
+            "aura", "floating_relics", "pharaoh_headdress", "relic_particles", "hand_aura", "jump_circles", "kill_effect", "totem_spirit", "skin_change"),
+         new ModuleGroup("waypoints_group", "Waypoints", "Mark places, find where you died and copy coordinates with one key.", "World", "pin",
+            "waypoints", "death_marker", "coord_snapper"),
+         new ModuleGroup("build_tools", "Build Tools", "Chunk borders, mob spawn spots and your WorldEdit selection.", "World", "worldedit",
+            "chunk_borders", "light_overlay", "worldedit_cui"),
+         new ModuleGroup("streamer_group", "Streamer Mode", "Hide what should stay private on a stream: server, coordinates, messages, your name and inventory.", "Interface", "eye",
+            "streamer", "nick_hider", "hide_inventory"),
+         new ModuleGroup("profiles_auto", "Auto Profiles", "Switch profile by itself: by server, by situation or with a key.", "Interface", "profiles",
+            "autoprofile", "scenes"),
+         new ModuleGroup("friends_group", "Friends", "Your Swift friends, shared with the launcher, and no hits on them by mistake.", "Interface", "friends",
+            "friends", "friend_guard"),
+         new ModuleGroup("notifications_group", "Notifications", "Swift toasts: friends online, screenshots, weather changes and updates.", "Interface", "bell",
+            "hud_notifications", "weather_notifier", "updates"),
+         new ModuleGroup("client_settings", "Client", "Settings of the client itself: menu key, main menu, fullscreen, reconnect, session stats.", "Interface", "gear",
+            "mod_menu", "vanillaui", "borderless", "auto_reconnect", "session").alwaysOn()
+      );
+   }
    /** Category chips, in this order. */
    public static final List<String> CATEGORIES = List.of("HUD", "PvP", "Visual", "World", "Interface");
    private static final Set<String> HOOKS = Set.of("onEnable", "onDisable", "onTick", "onRender");
@@ -113,6 +166,10 @@ public final class ModuleManager {
             byId.put(m.id, m);
          }
 
+         for (ModuleGroup g : groups()) {
+            byId.put(g.id, g);
+         }
+
          for (String id : ORDER) {
             if ("@hud".equals(id)) {
                for (HudElement el : HudManager.elements()) {
@@ -130,6 +187,12 @@ public final class ModuleManager {
 
          for (Module m : byId.values()) {
             register(m);
+         }
+
+         for (Module m : List.copyOf(MODULES)) {
+            if (m instanceof ModuleGroup g) {
+               g.link(ModuleManager::byId);
+            }
          }
 
          LOG.info("{} module(s) enregistre(s)", MODULES.size());
@@ -173,7 +236,7 @@ public final class ModuleManager {
       }
 
       MODULES.add(m);
-      if (!(m instanceof HudModule)) {
+      if (!(m instanceof HudModule) && !(m instanceof ModuleGroup)) {
          BY_CLASS.put(m.getClass(), m);
       }
 
@@ -253,6 +316,15 @@ public final class ModuleManager {
             safely(m, "enable", m::fireEnable);
          } else {
             safely(m, "disable", m::fireDisable);
+         }
+
+         if (m instanceof ModuleGroup g) {
+            // The master switch starts or stops every part that is switched on.
+            for (Module c : g.children()) {
+               if (c.rawEnabled()) {
+                  onToggled(c);
+               }
+            }
          }
       }
    }

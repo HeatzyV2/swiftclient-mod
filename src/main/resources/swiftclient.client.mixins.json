@@ -82,7 +82,8 @@
     "HideInventoryHudMixin",
     "HideInventoryScreenMixin",
     "HandAuraGameRendererMixin",
-    "StreamOverlayFrameMixin"
+    "StreamOverlayFrameMixin",
+    "PlayerInfoSkinMixin"
   ],
   "injectors": {
     "defaultRequire": 1

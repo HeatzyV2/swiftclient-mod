@@ -26,6 +26,8 @@ public abstract class Module {
    public final boolean swiftPlus;
    private boolean enabled;
    private final boolean defEnabled;
+   /** The group this module is shown in (its tile is hidden from the grid), or null. Set by ModuleManager. */
+   ModuleGroup parent;
    protected final List<ModuleSetting> settings = new ArrayList<>();
 
    protected Module(String id, String name, String description, String category, String icon, boolean defEnabled) {
@@ -123,15 +125,43 @@ public abstract class Module {
 
    /** On in the player's settings, and not switched off remotely by the Swift admin (kill switch for a broken module). */
    public boolean isEnabled() {
-      return this.enabled && !dev.swiftclient.core.net.PlatformFeed.isDisabled(this.id);
+      return this.enabled && !dev.swiftclient.core.net.PlatformFeed.isDisabled(this.id) && (this.parent == null || this.parent.isEnabled());
+   }
+
+   /** The player's own switch, ignoring the group the module belongs to. */
+   public boolean rawEnabled() {
+      return this.enabled;
+   }
+
+   public ModuleGroup parent() {
+      return this.parent;
    }
 
    public void setEnabled(boolean e) {
       if (this.enabled != e) {
          this.enabled = e;
          this.save();
+         if (this instanceof ModuleGroup g && e) {
+            g.ensureOneChild();
+         }
+
+         if (this.parent != null && e) {
+            this.parent.childEnabled(this);
+            if (!this.parent.rawEnabled()) {
+               // Switching a part on switches its group on too, which starts this part along with the others.
+               this.parent.setEnabled(true);
+               return;
+            }
+         }
+
          ModuleManager.onToggled(this);
       }
+   }
+
+   /** Sets the switch without lifecycle calls (group defaults, before ModuleManager fires them). */
+   void setRaw(boolean e) {
+      this.enabled = e;
+      this.save();
    }
 
    public void toggle() {

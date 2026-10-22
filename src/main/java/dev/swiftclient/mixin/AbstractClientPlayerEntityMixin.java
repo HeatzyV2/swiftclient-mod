@@ -1,6 +1,7 @@
 package dev.swiftclient.mixin;
 
 import dev.swiftclient.modules.SkinChangeModule;
+import dev.swiftclient.skin.OfflineSkin;
 import dev.swiftclient.ui.SkinRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -38,15 +39,20 @@ public class AbstractClientPlayerEntityMixin {
       }
    }
 
-   /** Skin Change: the skin chosen in the module, for you and/or the other players. */
+   /**
+    * Your skin, then Skin Change. An offline account wears the skin chosen in the launcher (only you see it);
+    * the Skin Change module, when on, still has the last word.
+    */
    @Inject(
       method = {"getSkin"},
       at = {@At("RETURN")},
       cancellable = true
    )
    private void swiftclient$skinChange(CallbackInfoReturnable<PlayerSkin> cir) {
+      AbstractClientPlayer self = (AbstractClientPlayer)(Object)this;
       PlayerSkin original = cir.getReturnValue();
-      PlayerSkin swapped = SkinChangeModule.swap((AbstractClientPlayer)(Object)this, original);
+      PlayerSkin base = OfflineSkin.configured() && OfflineSkin.isSelf(self.getUUID()) ? OfflineSkin.apply(original) : original;
+      PlayerSkin swapped = SkinChangeModule.swap(self, base);
       if (swapped != original) {
          cir.setReturnValue(swapped);
       }
