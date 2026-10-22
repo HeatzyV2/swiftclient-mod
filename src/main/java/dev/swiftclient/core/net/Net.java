@@ -20,10 +20,14 @@ public final class Net {
    public static final ExecutorService IO = Executors.newFixedThreadPool(4, daemon("swiftclient-io"));
    /** Periodic and delayed tasks. Must stay short: hand real work to {@link #IO}. */
    public static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor(daemon("swiftclient-scheduler"));
+   /**
+    * Keeps the JDK's own executor on purpose. The blocking {@code send} calls run on {@link #IO}; if the client
+    * also completed its exchanges on IO, four requests in flight would leave no thread to finish them and every
+    * call would end in a timeout (seen in game as "Backend Swift : indisponible (HttpTimeoutException)").
+    */
    public static final HttpClient HTTP = HttpClient.newBuilder()
       .connectTimeout(Duration.ofSeconds(8L))
       .followRedirects(HttpClient.Redirect.NORMAL)
-      .executor(IO)
       .build();
 
    private Net() {
