@@ -128,7 +128,7 @@ deps.ferritecore = "9.0.0-fabric"
 deps.viafabricplus = "5.0.2"
 
 ["26.3"]
-mod.features = "fog,glyphs,pets,skins,submit"
+mod.features = "fog,gpu,glyphs,pets,skins,submit"
 mod.mc_compat = "~26.3"
 deps.fabric_api = "0.165.0+26.3"
 deps.geckolib = "kSxHvs99"

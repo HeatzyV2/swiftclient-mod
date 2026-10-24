@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.swiftclient.modules.PlatformModules;
+import dev.swiftclient.compat.Features;
 import dev.swiftclient.testing.TestGame;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,8 @@ class ModuleGroupTest {
    @Test
    void theMenuShowsFewTiles() {
       List<Module> tiles = tiles();
-      assertEquals(44, tiles.size(), "tiles: " + tiles.stream().map(m -> m.id).toList());
+      int expected = 44 - (Features.GPU ? 0 : 1) - (Features.SUBMIT ? 0 : 1);
+      assertEquals(expected, tiles.size(), "tiles: " + tiles.stream().map(m -> m.id).toList());
       for (Module m : tiles) {
          assertTrue(ModuleManager.CATEGORIES.contains(m.category), m.id + " is in " + m.category);
       }

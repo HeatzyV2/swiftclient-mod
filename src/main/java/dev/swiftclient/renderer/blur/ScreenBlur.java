@@ -103,10 +103,10 @@ public final class ScreenBlur {
             );
 
             try {
-               pass.setPipeline(pipeline);
+               dev.swiftclient.compat.Gpu.setPipeline(pass, pipeline);
                pass.bindTexture("Sampler0", captureView, sampler);
                pass.setUniform("Uniforms", uniformBuffer);
-               pass.draw(0, 6, 0, 1);
+               pass.draw(6, 1, 0, 0);
             } catch (Throwable e) {
                if (pass != null) {
                   try {

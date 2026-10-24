@@ -130,6 +130,7 @@ stonecutter parameters {
         // 26.1 renames (vanilla and Fabric API moved to Mojang's names).
         for ((new, old) in renames26_1) rename("26.1", new, old)
         rename("1.21.11", "RenderTypes", "RenderType")
+        rename("1.21.9", "AvatarRenderState", "PlayerRenderState")
         // 1.21.11: ResourceKey.location() became identifier() with the Identifier rename; ARGB.lerp became srgbLerp.
         rename("1.21.11", "identifier", "location")
         rename("1.21.11", "srgbLerp", "lerp")
@@ -168,12 +169,17 @@ stonecutter parameters {
         fun since(version: String, pattern: String, replacement: String) = regex(mc >= version) {
             replace(pattern, replacement, never, replacement)
         }
+        since("26.3", "BindGroupLayouts\\.MATRICES_PROJECTION", "BindGroupLayouts.PROJECTION")
+        since("26.3", "\\.bindTexture\\(", ".setUniform(")
+        for (sampler in listOf("Sampler0", "InSampler", "CaptureSampler", "HaloSampler")) {
+            since("26.3", "\\.withSampler\\(\"$sampler\"\\)", ".withUniform(\"$sampler\", UniformType.COMBINED_IMAGE_SAMPLER)")
+        }
         // 26.3: first-person hands moved to a render-state renderer.
         since("26.3", "\\bItemInHandRenderer\\b", "FirstPersonHandsAndItemsRenderer")
         // 26.3: PoseStack.mulPose(Quaternion) became rotate(Quaternion) (mulPose(Matrix4f) stays).
         since(
             "26.3",
-            "(?<=\\b(?:pose|poseStack|matrices|stack))\\.mulPose\\((?=Axis\\.|camera\\.orientation|\\(new Quaternionf)",
+            "(?<=\\b(?:pose|poseStack|matrices|stack|turning))\\.mulPose\\((?=Axis\\.|camera\\.orientation|\\(new Quaternionf)",
             ".rotate("
         )
         // 26.3: the generic entity glint is gone; the shield one is the same glint texture and texturing.

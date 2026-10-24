@@ -125,7 +125,7 @@ final class SkyMesh {
             RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> this.label, target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty());
 
             try {
-               pass.setPipeline(this.pipeline);
+               dev.swiftclient.compat.Gpu.setPipeline(pass, this.pipeline);
                RenderSystem.bindDefaultUniforms(pass);
                pass.setUniform("DynamicTransforms", transforms);
                pass.setVertexBuffer(0, this.buffer.slice());

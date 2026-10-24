@@ -21,7 +21,7 @@ public final class ModuleGroup extends Module {
 
    public ModuleGroup(String id, String name, String description, String category, String icon, String... childIds) {
       super(id, name, description, category, icon, false);
-      this.childIds = List.of(childIds);
+      this.childIds = new ArrayList<>(List.of(childIds));
    }
 
    /** Only one of {@code a} and {@code b} can be on: switching one on switches the other off. */
@@ -67,11 +67,16 @@ public final class ModuleGroup extends Module {
 
    /** Attaches the parts, once they are all registered. A group never saved yet is on when one of its parts is. */
    void link(Function<String, Module> lookup) {
-      for (String id : this.childIds) {
+      for (java.util.Iterator<String> it = this.childIds.iterator(); it.hasNext();) {
+         String id = it.next();
          Module m = lookup.apply(id);
          if (m != null && m != this && m.parent == null && !(m instanceof ModuleGroup)) {
             m.parent = this;
             this.children.add(m);
+         } else {
+            // A part may be absent in this Minecraft version, or already belong to a more specific group.
+            // Keep the tile's declared tabs in sync with the modules it can actually expose.
+            it.remove();
          }
       }
 

@@ -49,8 +49,10 @@ final class ItemIcons {
       POSE.pushPose();
       POSE.translate(left + px / 2.0F, top + px / 2.0F, 0.0F);
       POSE.scale(px, -px, px);
+      //? if <26.3 {
       RenderSystem.outputColorTextureOverride = color;
       RenderSystem.outputDepthTextureOverride = depth;
+      //?}
       PROJECTION.setupOrtho(-1000.0F, 1000.0F, width, height, true);
       RenderSystem.setProjectionMatrix(projectionBuffer.getBuffer(PROJECTION), ProjectionType.ORTHOGRAPHIC);
       // Scissor uses the bottom-left origin of the GPU target.
@@ -58,11 +60,20 @@ final class ItemIcons {
       mc.gameRenderer.lighting().setupFor(state.usesBlockLight() ? Lighting.Entry.ITEMS_3D : Lighting.Entry.ITEMS_FLAT);
       try {
          state.submit(POSE, STORAGE, 15728880, OverlayTexture.NO_OVERLAY, 0);
+         //? if >=26.3 {
+         /*try (var frame = mc.gameRenderer.featureRenderDispatcher().prepareFrame(STORAGE);
+              var pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Swift item icon", color, java.util.Optional.empty(), depth, java.util.OptionalDouble.empty())) {
+            RenderSystem.bindDefaultUniforms(pass);
+            net.minecraft.client.renderer.feature.FeatureRenderDispatcher.renderAllFeatures(pass, frame);
+         }
+         *///?} else
          mc.gameRenderer.featureRenderDispatcher().renderAllFeatures(STORAGE);
       } finally {
          RenderSystem.disableScissorForRenderTypeDraws();
+         //? if <26.3 {
          RenderSystem.outputColorTextureOverride = null;
          RenderSystem.outputDepthTextureOverride = null;
+         //?}
          POSE.popPose();
       }
    }

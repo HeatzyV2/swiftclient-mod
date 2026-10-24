@@ -82,7 +82,7 @@ final class AtmosphereShaderSky {
 
       GpuDevice device = RenderSystem.getDevice();
       RenderPipeline pipeline = pipeline();
-      if (!device.precompilePipeline(pipeline).isValid()) {
+      if (!dev.swiftclient.compat.Gpu.compiled(pipeline)) {
          if (!this.invalidLogged) {
             this.invalidLogged = true;
             LOGGER.warn("Atmosphere sky shader did not compile; using the gradient sky");
@@ -118,7 +118,7 @@ final class AtmosphereShaderSky {
          .writeTransform(new Matrix4f(RenderSystem.getModelViewStack()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
       RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
       try (RenderPass pass = encoder.createRenderPass(() -> "Swift sky theme", target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty())) {
-         pass.setPipeline(pipeline);
+         dev.swiftclient.compat.Gpu.setPipeline(pass, pipeline);
          RenderSystem.bindDefaultUniforms(pass);
          pass.setUniform("DynamicTransforms", transforms);
          pass.setUniform("SwiftSky", this.uniforms.slice());

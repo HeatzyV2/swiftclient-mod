@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
 class CircuitBreakerTest {
    @Test
-   void opensAfterThresholdAndLetsOneTrialThroughAfterTheDelay() throws Exception {
-      CircuitBreaker b = new CircuitBreaker("test", 2, 50L, 1000L);
+   void opensAfterThresholdAndLetsOneTrialThroughAfterTheDelay() {
+      AtomicLong now = new AtomicLong();
+      CircuitBreaker b = new CircuitBreaker("test", 2, 50L, 1000L, now::get);
       assertTrue(b.allow());
       b.failure("x");
       assertTrue(b.allow(), "one failure is below the threshold");
@@ -17,7 +19,7 @@ class CircuitBreakerTest {
       assertFalse(b.allow(), "open after two consecutive failures");
       assertTrue(b.isOpen());
 
-      Thread.sleep(80L);
+      now.addAndGet(50L);
       assertTrue(b.allow(), "half-open: first caller gets the trial");
       assertFalse(b.allow(), "only one trial at a time");
       b.success();
@@ -26,24 +28,31 @@ class CircuitBreakerTest {
    }
 
    @Test
-   void delayDoublesOnEachReopeningAndIsCapped() throws Exception {
-      CircuitBreaker b = new CircuitBreaker("test", 1, 40L, 100L);
+   void delayDoublesOnEachReopeningAndIsCapped() {
+      AtomicLong now = new AtomicLong();
+      CircuitBreaker b = new CircuitBreaker("test", 1, 40L, 100L, now::get);
       b.failure("x");
-      Thread.sleep(50L);
+      now.addAndGet(40L);
       assertTrue(b.allow());
       b.failure("x");
-      Thread.sleep(50L);
+      now.addAndGet(79L);
       assertFalse(b.allow(), "second opening waits 80 ms");
-      Thread.sleep(40L);
+      now.incrementAndGet();
       assertTrue(b.allow());
-      assertEquals(2, b.openings());
+      b.failure("x");
+      now.addAndGet(99L);
+      assertFalse(b.allow(), "the next delay is capped at 100 ms");
+      now.incrementAndGet();
+      assertTrue(b.allow());
+      assertEquals(3, b.openings());
    }
 
    @Test
-   void releaseGivesBackTheTrialWithoutAVerdict() throws Exception {
-      CircuitBreaker b = new CircuitBreaker("test", 1, 20L, 100L);
+   void releaseGivesBackTheTrialWithoutAVerdict() {
+      AtomicLong now = new AtomicLong();
+      CircuitBreaker b = new CircuitBreaker("test", 1, 20L, 100L, now::get);
       b.failure("x");
-      Thread.sleep(30L);
+      now.addAndGet(20L);
       assertTrue(b.allow());
       b.release();
       assertTrue(b.allow(), "trial released, still half-open");

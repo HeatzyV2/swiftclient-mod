@@ -181,10 +181,10 @@ public final class PostFx {
 
    private static void draw(CommandEncoder enc, RenderTarget rt, GpuTextureView source, GpuBuffer uniforms, String label) {
       try (RenderPass pass = enc.createRenderPass(() -> label, rt.getColorTextureView(), Optional.empty(), rt.getDepthTextureView(), OptionalDouble.empty())) {
-         pass.setPipeline(pipeline);
+         dev.swiftclient.compat.Gpu.setPipeline(pass, pipeline);
          pass.bindTexture("Sampler0", source, sampler);
          pass.setUniform("Uniforms", uniforms);
-         pass.draw(0, 6, 0, 1);
+         pass.draw(6, 1, 0, 0);
       }
    }
 }

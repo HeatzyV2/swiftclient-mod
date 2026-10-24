@@ -65,10 +65,13 @@ final class HandAuraPass {
       return pipeline;
    }
 
+   static RenderTarget captureTarget() { return hand; }
+
    static boolean begin() {
-      if (capturing || RenderSystem.outputColorTextureOverride != null || RenderSystem.outputDepthTextureOverride != null) {
-         return false;
-      }
+      //? if >=26.3 {
+      /*if (capturing) return false;
+      *///?} else
+      if (capturing || RenderSystem.outputColorTextureOverride != null || RenderSystem.outputDepthTextureOverride != null) return false;
 
       Minecraft mc = Minecraft.getInstance();
       RenderTarget main = Mc.mainTarget();
@@ -89,8 +92,10 @@ final class HandAuraPass {
 
       // 26.x uses reversed depth: 0 is the far plane.
       device.createCommandEncoder().clearColorAndDepthTextures(hand.getColorTexture(), new Vector4f(0.0F, 0.0F, 0.0F, 0.0F), hand.getDepthTexture(), 0.0);
+      //? if <26.3 {
       RenderSystem.outputColorTextureOverride = hand.getColorTextureView();
       RenderSystem.outputDepthTextureOverride = hand.getDepthTextureView();
+      //?}
       capturing = true;
       return true;
    }
@@ -101,8 +106,10 @@ final class HandAuraPass {
       }
 
       capturing = false;
+      //? if <26.3 {
       RenderSystem.outputColorTextureOverride = null;
       RenderSystem.outputDepthTextureOverride = null;
+      //?}
       return true;
    }
 
@@ -118,7 +125,7 @@ final class HandAuraPass {
       configData.putFloat(44, 0.0F);
       encoder.writeToBuffer(configSlice, configData);
       try (RenderPass pass = encoder.createRenderPass(() -> "Swift hand aura", main.getColorTextureView(), Optional.empty())) {
-         pass.setPipeline(pipeline());
+         dev.swiftclient.compat.Gpu.setPipeline(pass, pipeline());
          pass.setUniform("HandAuraConfig", configSlice);
          pass.bindTexture("CaptureSampler", hand.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
          pass.bindTexture("HaloSampler", halo, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
@@ -134,7 +141,7 @@ final class HandAuraPass {
    }
 
    private static boolean shaderReady(GpuDevice device) {
-      if (device.precompilePipeline(pipeline()).isValid() && AuraBlur.compiled(device)) {
+      if (dev.swiftclient.compat.Gpu.compiled(pipeline()) && AuraBlur.compiled(device)) {
          invalidShaderLogged = false;
          return true;
       }
@@ -148,7 +155,7 @@ final class HandAuraPass {
    }
 
    private static void allocate(int width, int height) {
-      hand = new TextureTarget("Swift hand aura", width, height, true, GpuFormat.RGBA8_UNORM);
+      hand = dev.swiftclient.compat.Gpu.target("Swift hand aura", width, height, true, GpuFormat.RGBA8_UNORM);
       blur = new AuraBlur("Swift hand aura");
       config = RenderSystem.getDevice().createBuffer(() -> "Swift hand aura config", 136, CONFIG_SIZE);
       configSlice = config.slice();

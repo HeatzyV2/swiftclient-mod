@@ -61,6 +61,8 @@ public final class HandAuraModule extends Module {
       return module != null && module.shows() && HandAuraPass.begin();
    }
 
+   public static com.mojang.blaze3d.pipeline.RenderTarget captureTarget() { return HandAuraPass.captureTarget(); }
+
    public static void endCapture(boolean drawn) {
       if (HandAuraPass.end() && drawn) {
          HandAuraModule module = active;

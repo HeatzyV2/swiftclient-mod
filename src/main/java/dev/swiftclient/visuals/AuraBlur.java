@@ -53,7 +53,7 @@ final class AuraBlur {
    }
 
    static boolean compiled(GpuDevice device) {
-      return device.precompilePipeline(pipeline()).isValid();
+      return dev.swiftclient.compat.Gpu.compiled(pipeline());
    }
 
    GpuTextureView spread(CommandEncoder encoder, GpuTextureView source, int width, int height, float reachPx) {
@@ -78,7 +78,7 @@ final class AuraBlur {
       this.configData.putFloat(4, dv);
       encoder.writeToBuffer(slice, this.configData);
       try (RenderPass pass = encoder.createRenderPass(() -> this.name + " spread", into.getColorTextureView(), Optional.empty())) {
-         pass.setPipeline(pipeline());
+         dev.swiftclient.compat.Gpu.setPipeline(pass, pipeline());
          pass.setUniform("AuraSpread", slice);
          pass.bindTexture("InSampler", from, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
          pass.draw(3, 1, 0, 0);
@@ -87,8 +87,8 @@ final class AuraBlur {
 
    private void allocate(int width, int height) {
       GpuDevice device = RenderSystem.getDevice();
-      this.across = new TextureTarget(this.name + " across", width, height, false, GpuFormat.RGBA8_UNORM);
-      this.down = new TextureTarget(this.name + " down", width, height, false, GpuFormat.RGBA8_UNORM);
+      this.across = dev.swiftclient.compat.Gpu.target(this.name + " across", width, height, false, GpuFormat.RGBA8_UNORM);
+      this.down = dev.swiftclient.compat.Gpu.target(this.name + " down", width, height, false, GpuFormat.RGBA8_UNORM);
       this.acrossConfig = device.createBuffer(() -> this.name + " across config", 136, CONFIG_SIZE);
       this.downConfig = device.createBuffer(() -> this.name + " down config", 136, CONFIG_SIZE);
       this.acrossSlice = this.acrossConfig.slice();

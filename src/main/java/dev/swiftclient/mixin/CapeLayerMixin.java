@@ -10,7 +10,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
+//? if >=1.21.9 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//?} else
+/*import net.minecraft.client.renderer.MultiBufferSource;*/
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -38,17 +41,22 @@ public abstract class CapeLayerMixin {
    @Unique
    private static final AtomicBoolean swiftclient$firstResolve = new AtomicBoolean(false);
 
+   //? if >=1.21.9 {
    @Inject(
       method = {"submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V"},
       at = {@At("HEAD")},
       cancellable = true
    )
    private void swiftclient$customCape(PoseStack pose, SubmitNodeCollector collector, int light, AvatarRenderState state, float f1, float f2, CallbackInfo ci) {
+   //?} else {
+   /*@Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V", at = @At("HEAD"), cancellable = true)
+   private void swiftclient$customCape(PoseStack pose, MultiBufferSource collector, int light, AvatarRenderState state, float f1, float f2, CallbackInfo ci) {
+   *///?}
       if (swiftclient$firstFire.compareAndSet(false, true)) {
          Log.get("Cape").debug("Rendu de cape intercepte");
       }
 
-      if (!state.isInvisible) {
+      if (!state.isInvisible && state.showCape) {
          if (state.chestEquipment == null || state.chestEquipment.isEmpty() || !state.chestEquipment.is(Items.ELYTRA)) {
             ClientLevel level = Minecraft.getInstance().level;
             if (level != null) {
@@ -63,12 +71,17 @@ public abstract class CapeLayerMixin {
                            }
 
                            pose.pushPose();
+                           //? if >=1.21.9 {
                            collector.submitModel(
                               //? if >=26.3 {
                               /*this.model, state, pose, RenderTypes.entitySolid(frame), light, OverlayTexture.NO_OVERLAY, state.outlineColor
                               *///?} else
                               this.model, state, pose, RenderTypes.entitySolid(frame), light, OverlayTexture.NO_OVERLAY, state.outlineColor, null
                            );
+                           //?} else {
+                           /*this.model.setupAnim(state);
+                           this.model.renderToBuffer(pose, collector.getBuffer(RenderTypes.entitySolid(frame)), light, OverlayTexture.NO_OVERLAY);
+                           *///?}
 
                            pose.popPose();
                            ci.cancel();

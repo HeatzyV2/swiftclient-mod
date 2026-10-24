@@ -26,6 +26,7 @@ val featureSources: Map<String, List<String>> = mapOf(
     // Custom GPU passes written for the 26.2+ render API: blur / post effects, rounded-rect shader,
     // Atmosphere sky, hand aura, jump circles, custom glint and the Stream Only overlay.
     "gpu" to listOf(
+        "dev/swiftclient/compat/Gpu.java",
         "dev/swiftclient/renderer/PostFx.java", "dev/swiftclient/renderer/blur/**", "dev/swiftclient/renderer/rect/**",
         "dev/swiftclient/streamonly/**", "dev/swiftclient/mixin/StreamOverlayFrameMixin.java",
         "dev/swiftclient/mixin/GameRendererBlurMixin.java",
@@ -43,10 +44,11 @@ val featureSources: Map<String, List<String>> = mapOf(
     // name tag badge on yourself, dropped-item rendering (Item Physics, 2D Items, UHC Overlay), CS knives and
     // the 3D hand.
     "submit" to listOf(
-        "dev/swiftclient/mixin/AvatarNameSelfMixin.java", "dev/swiftclient/mixin/CapeLayerMixin.java", "dev/swiftclient/mixin/WingsLayerMixin.java",
+        "dev/swiftclient/mixin/AvatarNameSelfMixin.java",
         "dev/swiftclient/mixin/HeadCosmeticLayerMixin.java", "dev/swiftclient/mixin/ItemEntityRendererMixin.java",
         "dev/swiftclient/mixin/WorldRendererMixin.java", "dev/swiftclient/mixin/EquipmentLayerRendererMixin.java", "dev/swiftclient/mixin/ItemInHandModelsMixin.java", "dev/swiftclient/mixin/ItemLayerRenderStateAccessor.java",
         "dev/swiftclient/visuals/Knife*.java", "dev/swiftclient/visuals/ModelKnife.java", "dev/swiftclient/visuals/SlashTrail.java",
+        "dev/swiftclient/mixin/WingsLayerMixin.java",
         "dev/swiftclient/visuals/WeaponInspectModule.java", "dev/swiftclient/visuals/FirstPersonArm.java", "dev/swiftclient/visuals/HandModelModule.java",
         "dev/swiftclient/visuals/HeadCosmeticModule.java", "dev/swiftclient/visuals/Pharaoh*.java", "dev/swiftclient/visuals/VoxelModel.java",
     ),

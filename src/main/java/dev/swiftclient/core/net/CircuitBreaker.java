@@ -1,6 +1,7 @@
 package dev.swiftclient.core.net;
 
 import dev.swiftclient.core.log.Log;
+import java.util.function.LongSupplier;
 import org.slf4j.Logger;
 
 /**
@@ -14,23 +15,29 @@ public final class CircuitBreaker {
    private final int threshold;
    private final long baseMs;
    private final long capMs;
+   private final LongSupplier clock;
    private int failures;
    private int openings;
    private long openUntil;
    private boolean trialInFlight;
 
    public CircuitBreaker(String name, int threshold, long baseMs, long capMs) {
+      this(name, threshold, baseMs, capMs, System::currentTimeMillis);
+   }
+
+   CircuitBreaker(String name, int threshold, long baseMs, long capMs, LongSupplier clock) {
       this.name = name;
       this.threshold = Math.max(1, threshold);
       this.baseMs = baseMs;
       this.capMs = capMs;
+      this.clock = clock;
    }
 
    /** True if a call may be made now. In half-open state only the first caller gets through. */
    public synchronized boolean allow() {
       if (this.failures < this.threshold) {
          return true;
-      } else if (System.currentTimeMillis() < this.openUntil || this.trialInFlight) {
+      } else if (this.clock.getAsLong() < this.openUntil || this.trialInFlight) {
          return false;
       } else {
          this.trialInFlight = true;
@@ -40,7 +47,7 @@ public final class CircuitBreaker {
 
    /** Whether calls are currently refused (does not consume the half-open trial). */
    public synchronized boolean isOpen() {
-      return this.failures >= this.threshold && (System.currentTimeMillis() < this.openUntil || this.trialInFlight);
+      return this.failures >= this.threshold && (this.clock.getAsLong() < this.openUntil || this.trialInFlight);
    }
 
    /** Gives back a permit from {@link #allow()} without a verdict (the call was not made). */
@@ -68,7 +75,7 @@ public final class CircuitBreaker {
          }
 
          this.openings++;
-         this.openUntil = System.currentTimeMillis() + delay;
+         this.openUntil = this.clock.getAsLong() + delay;
          LOG.warn("{} : indisponible ({}), nouvel essai dans {} s", this.name, why, delay / 1000L);
       } else {
          LOG.debug("{} : echec {}/{} ({})", this.name, this.failures, this.threshold, why);
