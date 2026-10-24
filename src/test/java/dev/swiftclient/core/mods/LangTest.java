@@ -28,7 +28,9 @@ import org.junit.jupiter.api.Test;
  * {@code -Dswiftclient.langDump=<file>} to write the English defaults of missing keys.
  */
 class LangTest {
-   private static final Path LANG = Path.of("src/main/resources/assets/swiftclient/lang");
+   /** The repository's src/ folder (each Minecraft version runs its tests from versions/<mc>/). */
+   private static final Path SRC = Path.of(System.getProperty("swiftclient.src", "src"));
+   private static final Path LANG = SRC.resolve("main/resources/assets/swiftclient/lang");
    private static final Pattern TR = Pattern.compile("(?:Tr\\.of|Tr\\.orDefault|I18n\\.get)\\(\\s*\"(swift\\.[a-z0-9_.]+|key\\.[a-z0-9_.]+)\"");
 
    private static Map<String, String> read(String lang) throws IOException {
@@ -79,7 +81,7 @@ class LangTest {
 
    static Set<String> sourceKeys() throws IOException {
       Set<String> out = new TreeSet<>();
-      try (Stream<Path> files = Files.walk(Path.of("src/main/java"))) {
+      try (Stream<Path> files = Files.walk(SRC.resolve("main/java"))) {
          for (Path p : files.filter(f -> f.toString().endsWith(".java")).toList()) {
             Matcher m = TR.matcher(Files.readString(p, StandardCharsets.UTF_8));
             while (m.find()) {

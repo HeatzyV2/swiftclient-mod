@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin({ItemStackRenderState.LayerRenderState.class})
 public interface ItemLayerRenderStateAccessor {
-   @Accessor("itemTransform")
+   @Accessor(/*? if >=26.1 {*/"itemTransform"/*?} else {*//*"transform"*//*?}*/)
    ItemTransform swiftclient$itemTransform();
 
    @Accessor("extents")

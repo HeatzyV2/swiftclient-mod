@@ -87,14 +87,14 @@ public final class SwingAnimationModule extends Module {
 
    private static void khopesh(PoseStack pose, float t, int side, float k) {
       float a = crest(t, 0.3F) * k;
-      pose.translate((float)side * -0.3F * a, 0.05F * Mth.sin((double)((float)Math.PI * t)) * k, -0.1F * a);
+      pose.translate((float)side * -0.3F * a, 0.05F * Mth.sin(((float)Math.PI * t)) * k, -0.1F * a);
       pose.mulPose(Axis.YP.rotationDegrees((float)side * 64.0F * a));
       pose.mulPose(Axis.ZP.rotationDegrees((float)side * 48.0F * a));
       pose.mulPose(Axis.XP.rotationDegrees(-14.0F * a));
    }
 
    private static void ankh(PoseStack pose, float t, int side, float k) {
-      float raise = t < 0.28F ? Mth.sin((double)((float)Math.PI * t / 0.28F)) * k : 0.0F;
+      float raise = t < 0.28F ? Mth.sin(((float)Math.PI * t / 0.28F)) * k : 0.0F;
       float strike = t <= 0.18F ? 0.0F : crest((t - 0.18F) / 0.82F, 0.28F) * k;
       pose.translate((float)side * -0.06F * strike, 0.16F * raise - 0.1F * strike, 0.06F * raise - 0.24F * strike);
       pose.mulPose(Axis.XP.rotationDegrees(30.0F * raise - 105.0F * strike));
@@ -113,9 +113,9 @@ public final class SwingAnimationModule extends Module {
 
    private static void scarab(PoseStack pose, float t, int side, float k) {
       float turn = ((float)Math.PI * 2F) * t;
-      float cos = Mth.cos((double)turn);
-      float sin = Mth.sin((double)turn);
-      float body = Mth.sin((double)((float)Math.PI * t)) * k;
+      float cos = Mth.cos(turn);
+      float sin = Mth.sin(turn);
+      float body = Mth.sin(((float)Math.PI * t)) * k;
       float r = 0.17F * k;
       pose.translate((float)side * r * 0.6F * (cos - 1.0F), r * sin, -0.12F * body);
       pose.mulPose(Axis.ZP.rotationDegrees((float)side * 40.0F * sin * k));
@@ -123,7 +123,7 @@ public final class SwingAnimationModule extends Module {
    }
 
    private static void horus(PoseStack pose, float t, int side, float k) {
-      float beat = Mth.sin((double)(((float)Math.PI * 2F) * t));
+      float beat = Mth.sin((((float)Math.PI * 2F) * t));
       float w = beat * beat * (t < 0.5F ? 1.0F : 0.65F) * k;
       pose.translate((float)side * -0.08F * w, 0.06F * w, -0.1F * w);
       pose.mulPose(Axis.YP.rotationDegrees((float)side * 26.0F * w));
@@ -132,7 +132,7 @@ public final class SwingAnimationModule extends Module {
    }
 
    private static void sphinx(PoseStack pose, float t, int side, float k) {
-      float a = (0.5F - 0.5F * Mth.cos((double)(((float)Math.PI * 2F) * t))) * k;
+      float a = (0.5F - 0.5F * Mth.cos((((float)Math.PI * 2F) * t))) * k;
       pose.translate(0.0F, -0.06F * a, -0.1F * a);
       pose.mulPose(Axis.XP.rotationDegrees(-24.0F * a));
       pose.mulPose(Axis.YP.rotationDegrees((float)side * 10.0F * a));

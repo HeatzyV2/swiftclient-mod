@@ -3,6 +3,7 @@ package dev.swiftclient.core.mods;
 import dev.swiftclient.core.hud.HudElement;
 import dev.swiftclient.core.hud.HudManager;
 import dev.swiftclient.core.log.Log;
+import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.core.mods.modules.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -112,6 +113,8 @@ public final class ModuleManager {
          )) {
             byId.put(m.id, m);
          }
+
+         byId.keySet().removeAll(Platform.game().unavailableModules());
 
          for (String id : ORDER) {
             if ("@hud".equals(id)) {

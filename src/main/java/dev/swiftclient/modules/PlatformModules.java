@@ -30,6 +30,7 @@ public final class PlatformModules {
          new OldVisualsModule(),
          new MotionBlurModule(),
          new SaturationModule(),
+         //? if fog
          new FogModule(),
          new TimeChangerModule(),
          new ParticleChangerModule(),
@@ -47,9 +48,11 @@ public final class PlatformModules {
          new AutoProfileModule(),
          new AuraModule(),
          new ModMenuModule(),
+         //? if skins
          new SkinChangeModule(),
          new dev.swiftclient.visuals.SwingAnimationModule(),
          new dev.swiftclient.visuals.HandsModule(),
+         //? if submit
          new dev.swiftclient.visuals.HandModelModule(),
          new dev.swiftclient.visuals.ViewModelModule(),
          new dev.swiftclient.visuals.CustomFovModule(),
@@ -64,14 +67,22 @@ public final class PlatformModules {
          new dev.swiftclient.visuals.DamageTiltModule(),
          new dev.swiftclient.visuals.HotbarSwapModule(),
          new dev.swiftclient.visuals.KillEffectModule(),
+         //? if submit
          new dev.swiftclient.visuals.WeaponInspectModule(),
+         //? if glyphs
          new dev.swiftclient.visuals.TotemSpiritModule(),
+         //? if glyphs
          new dev.swiftclient.visuals.FloatingRelicsModule(),
+         //? if glyphs
          new dev.swiftclient.visuals.RelicParticlesModule(),
+         //? if gpu
          new dev.swiftclient.visuals.JumpCirclesModule(),
+         //? if submit
          new dev.swiftclient.visuals.PharaohHeaddressModule(),
+         //? if gpu
          new dev.swiftclient.visuals.AtmosphereModule(),
          new dev.swiftclient.visuals.LowHealthWarningModule(),
+         //? if gpu
          new dev.swiftclient.visuals.CustomGlintModule(),
          new dev.swiftclient.visuals.HitParticlesModule(),
          new dev.swiftclient.modules.CoordSnapperModule(),
@@ -80,8 +91,9 @@ public final class PlatformModules {
          new dev.swiftclient.modules.WeatherNotifierModule(),
          new dev.swiftclient.modules.FriendGuardModule(),
          new dev.swiftclient.modules.BorderlessModule(),
-         new dev.swiftclient.modules.HideInventoryModule(),
-         new dev.swiftclient.visuals.HandAuraModule()
+         //? if gpu
+         new dev.swiftclient.visuals.HandAuraModule(),
+         new dev.swiftclient.modules.HideInventoryModule()
       );
    }
 }

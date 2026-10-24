@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.input.SwiftKeys;
@@ -23,7 +24,7 @@ public final class SnaplookModule extends Module {
    @Override
    protected void onTick() {
       Minecraft mc = Minecraft.getInstance();
-      boolean down = mc.player != null && mc.gui.screen() == null && SwiftKeys.SNAPLOOK.isDown();
+      boolean down = mc.player != null && Mc.screen() == null && SwiftKeys.SNAPLOOK.isDown();
       if (down && this.saved == null) {
          this.saved = mc.options.getCameraType();
          mc.options.setCameraType(this.view.cycleIndex() == 0 ? CameraType.THIRD_PERSON_FRONT : CameraType.THIRD_PERSON_BACK);

@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.world.Waypoints;
@@ -51,7 +52,7 @@ public final class DeathMarkerModule extends Module {
          String time = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
          Waypoints.addAt(PREFIX + time, at.getX(), at.getY(), at.getZ(), RED);
          if (this.chat.boolValue()) {
-            Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(Component.literal("You died at " + at.getX() + " " + at.getY() + " " + at.getZ()));
+            Mc.chat(Component.literal("You died at " + at.getX() + " " + at.getY() + " " + at.getZ()));
          }
       } else if (!dead && this.autoRemove.boolValue() && player.tickCount % 10 == 0) {
          Waypoints.removeIf(w -> w.name().startsWith(PREFIX) && player.distanceToSqr(w.x() + 0.5, w.y(), w.z() + 0.5) < 9.0);

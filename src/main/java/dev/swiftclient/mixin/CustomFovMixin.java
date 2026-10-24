@@ -8,10 +8,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /** Custom FOV: replaces the FOV option where the camera computes the world FOV (not while Zoom drives it). */
+//? if >=26.1 {
 @Mixin({Camera.class})
+//?} else
+/*@Mixin({net.minecraft.client.renderer.GameRenderer.class})*/
 public abstract class CustomFovMixin {
    @ModifyExpressionValue(
-      method = {"calculateFov"},
+      // Camera.calculateFov since 26.1, GameRenderer.getFov before.
+      method = {"calculateFov", "getFov"},
       at = @At(
          value = "INVOKE",
          target = "Ljava/lang/Integer;intValue()I"

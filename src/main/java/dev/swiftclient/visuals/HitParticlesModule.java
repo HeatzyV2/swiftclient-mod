@@ -103,7 +103,7 @@ public final class HitParticlesModule extends Module {
    }
 
    private static boolean isCritical(LocalPlayer player, Entity target) {
-      return player.getAttackStrengthScale(0.5F) > 0.9F && player.fallDistance > (double)0.0F && !player.onGround() && !player.onClimbable() && !player.isInWater() && !player.isMobilityRestricted() && !player.isPassenger() && !player.isSprinting() && target instanceof LivingEntity;
+      return player.getAttackStrengthScale(0.5F) > 0.9F && player.fallDistance > (double)0.0F && !player.onGround() && !player.onClimbable() && !player.isInWater() && /*? if >=1.21.9 {*/!player.isMobilityRestricted()/*?} else {*//*!player.hasEffect(net.minecraft.world.effect.MobEffects.BLINDNESS)*//*?}*/ && !player.isPassenger() && !player.isSprinting() && target instanceof LivingEntity;
    }
 
    private void spawnBurst(Minecraft mc, ClientLevel level, LocalPlayer player, Entity target) {

@@ -64,6 +64,9 @@ public abstract class CapeLayerMixin {
 
                            pose.pushPose();
                            collector.submitModel(
+                              //? if >=26.3 {
+                              /*this.model, state, pose, RenderTypes.entitySolid(frame), light, OverlayTexture.NO_OVERLAY, state.outlineColor
+                              *///?} else
                               this.model, state, pose, RenderTypes.entitySolid(frame), light, OverlayTexture.NO_OVERLAY, state.outlineColor, null
                            );
 

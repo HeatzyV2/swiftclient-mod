@@ -1,5 +1,6 @@
 package dev.swiftclient.render;
 
+//? if >=1.21.6 {
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
 import net.minecraft.client.renderer.texture.CubeMapTexture;
@@ -30,3 +31,4 @@ public class SafeCubeMapTexture extends CubeMapTexture {
       }
    }
 }
+//?}

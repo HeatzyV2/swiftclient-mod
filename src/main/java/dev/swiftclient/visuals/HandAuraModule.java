@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
@@ -63,7 +64,7 @@ public final class HandAuraModule extends Module {
    public static void endCapture(boolean drawn) {
       if (HandAuraPass.end() && drawn) {
          HandAuraModule module = active;
-         float scale = Math.max(1.0F, Minecraft.getInstance().gameRenderer.mainRenderTarget().height / 1080.0F);
+         float scale = Math.max(1.0F, Mc.mainTarget().height / 1080.0F);
          if (module == null) {
             HandAuraPass.compose(-1, 0.0F, 2.0F, 0.0F, 2.0F * scale, -1, 0.0F, 0.0F);
          } else {

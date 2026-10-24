@@ -49,7 +49,7 @@ final class FirstPersonArm {
       LocalPlayer player = mc.player;
       if (player != null && !player.isInvisible()) {
          EntityRenderDispatcher dispatcher = mc.getEntityRenderDispatcher();
-         AvatarRenderer<AbstractClientPlayer> renderer = dispatcher.getPlayerRenderer(player);
+         AvatarRenderer<AbstractClientPlayer> renderer = (AvatarRenderer<AbstractClientPlayer>)(Object)dispatcher.getRenderer(player);
          PlayerSkin skin = player.getSkin();
          return new Arm(renderer, skin.body().texturePath(), player.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE), player.isModelPartShown(PlayerModelPart.LEFT_SLEEVE), skin.model() == PlayerModelType.SLIM);
       } else {

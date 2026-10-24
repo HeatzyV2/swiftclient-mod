@@ -1,5 +1,6 @@
 package dev.swiftclient.hud;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.hud.HudData;
 import dev.swiftclient.mixin.BossHealthOverlayAccessor;
 import dev.swiftclient.pvp.CombatTracker;
@@ -132,7 +133,10 @@ public final class HudDataImpl implements HudData {
             Objective obj = null;
             PlayerTeam team = sb.getPlayersTeam(this.p().getScoreboardName());
             if (team != null) {
+               //? if >=26.2 {
                DisplaySlot slot = team.getColor().map(c -> c.displaySlot()).orElse(null);
+               //?} else
+               /*DisplaySlot slot = DisplaySlot.teamColorToSlot(team.getColor());*/
                if (slot != null) {
                   obj = sb.getDisplayObjective(slot);
                }
@@ -261,7 +265,7 @@ public final class HudDataImpl implements HudData {
    @Override
    public List<HudData.BossBar> bossBars() {
       List<HudData.BossBar> out = new ArrayList<>();
-      for (LerpingBossEvent e : ((BossHealthOverlayAccessor)this.mc.gui.hud.getBossOverlay()).swiftclient$events().values()) {
+      for (LerpingBossEvent e : ((BossHealthOverlayAccessor)Mc.hud().getBossOverlay()).swiftclient$events().values()) {
          out.add(new HudData.BossBar(e.getName().getString(), e.getName(), e.getProgress(), e.getColor().ordinal()));
       }
 

@@ -1,5 +1,6 @@
 package dev.swiftclient.hud;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.cosmetics.CapeUploadQueue;
 import dev.swiftclient.core.cosmetics.CosmeticHttp;
 import dev.swiftclient.core.cosmetics.HeartbeatManager;
@@ -21,8 +22,10 @@ import dev.swiftclient.platform.CoreScreenHost;
 import java.util.List;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
+//? if >=1.21.6 {
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+//?}
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -54,13 +57,13 @@ public final class HudClient {
 
       devShotTicks++;
       if (devShotTicks == 200 || devShotTicks == 300) {
-         net.minecraft.client.Screenshot.grab(mc, false);
+         Mc.screenshot();
       } else if (devShotTicks == 240) {
          mc.player.setYRot(mc.player.getYRot() + 90.0F);
       } else if (devShotTicks == 340) {
          mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), null));
       } else if (devShotTicks == 380) {
-         net.minecraft.client.Screenshot.grab(mc, false);
+         Mc.screenshot();
       }
    }
 
@@ -77,7 +80,7 @@ public final class HudClient {
          ModuleManager.start();
          CapeUploadQueue.drain(8);
 
-         if (DEV_OPEN != null && !devOpened && mc.gui.screen() instanceof net.minecraft.client.gui.screens.TitleScreen title) {
+         if (DEV_OPEN != null && !devOpened && Mc.screen() instanceof net.minecraft.client.gui.screens.TitleScreen title) {
             devOpened = true;
             if (DEV_OPEN.equals("multiplayer")) {
                mc.setScreenAndShow(new net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen(title));
@@ -87,13 +90,13 @@ public final class HudClient {
          }
 
          while (SwiftKeys.MENU.consumeClick()) {
-            if (mc.gui.screen() == null && mc.player != null) {
+            if (Mc.screen() == null && mc.player != null) {
                mc.setScreenAndShow(new CoreScreenHost(new ModsScreen(), null));
             }
          }
 
          while (SwiftKeys.RADIAL.consumeClick()) {
-            if (mc.gui.screen() == null && mc.player != null) {
+            if (Mc.screen() == null && mc.player != null) {
                mc.setScreenAndShow(new CoreScreenHost(new RadialScreen(), null));
             }
          }
@@ -104,22 +107,26 @@ public final class HudClient {
          CombatTracker.tick();
          PickupTracker.tick(ModuleManager.active("hud_itemtracker"));
       });
-      HudElementRegistry.attachElementAfter(
-         VanillaHudElements.MISC_OVERLAYS, Identifier.fromNamespaceAndPath("swiftclient", "hud"), (graphics, deltaTracker) -> {
-            Minecraft mc = Minecraft.getInstance();
-            dev.swiftclient.ui.SwiftLoadingScreen.fadeOut(graphics);
-            ModuleManager.render(deltaTracker.getGameTimeDeltaPartialTick(false));
-            if (!mc.gui.hud.isHidden()) {
-               LowHealthWarningModule.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
-               dev.swiftclient.visuals.ExtraHud.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
-            }
+      //? if >=1.21.6 {
+      HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, Identifier.fromNamespaceAndPath("swiftclient", "hud"), HudClient::renderHud);
+      //?} else
+      /*net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback.EVENT.register(HudClient::renderHud);*/
+   }
 
-            Screen ecran = mc.gui.screen();
-            if (HudVisibilite.afficher(ecran != null, ecran instanceof ChatScreen)) {
-               HudManager.setGuiScale(mc.getWindow().getGuiScale());
-               HudManager.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), HUD_DATA);
-            }
-         }
-      );
+   /** Swift HUD layer, drawn after the vanilla overlays. */
+   private static void renderHud(net.minecraft.client.gui.GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker deltaTracker) {
+      Minecraft mc = Minecraft.getInstance();
+      dev.swiftclient.ui.SwiftLoadingScreen.fadeOut(graphics);
+      ModuleManager.render(deltaTracker.getGameTimeDeltaPartialTick(false));
+      if (!Mc.hudHidden()) {
+         LowHealthWarningModule.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+         dev.swiftclient.visuals.ExtraHud.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+      }
+
+      Screen ecran = Mc.screen();
+      if (HudVisibilite.afficher(ecran != null, ecran instanceof ChatScreen)) {
+         HudManager.setGuiScale((float)mc.getWindow().getGuiScale());
+         HudManager.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight(), HUD_DATA);
+      }
    }
 }

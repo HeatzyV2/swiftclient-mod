@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
@@ -70,7 +71,7 @@ final class HandAuraPass {
       }
 
       Minecraft mc = Minecraft.getInstance();
-      RenderTarget main = mc.gameRenderer.mainRenderTarget();
+      RenderTarget main = Mc.mainTarget();
       if (mc.level == null || main == null || main.getColorTexture() == null || main.width <= 0 || main.height <= 0) {
          return false;
       }
@@ -106,7 +107,7 @@ final class HandAuraPass {
    }
 
    static void compose(int tintArgb, float aura, float reachPx, float rim, float rimPx, int sheenArgb, float sheen, float phase) {
-      RenderTarget main = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+      RenderTarget main = Mc.mainTarget();
       CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
       GpuTextureView halo = aura > 0.0F ? blur.spread(encoder, hand.getColorTextureView(), hand.width, hand.height, reachPx) : hand.getColorTextureView();
       putColor(0, tintArgb, aura);

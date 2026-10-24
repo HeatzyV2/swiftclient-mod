@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import net.minecraft.client.renderer.BindGroupLayouts;
@@ -120,7 +121,7 @@ final class SkyMesh {
          try {
             modelView.mul(pose.last().pose());
             GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(new Matrix4f(modelView), new Vector4f(1.0F, 1.0F, 1.0F, alpha), new Vector3f(), new Matrix4f());
-            RenderTarget target = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+            RenderTarget target = Mc.mainTarget();
             RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> this.label, target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty());
 
             try {

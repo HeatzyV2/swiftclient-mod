@@ -1,7 +1,10 @@
 package dev.swiftclient.mixin;
 
 import com.mojang.blaze3d.platform.Monitor;
+//? if >=26.2 {
 import com.mojang.blaze3d.platform.MonitorManager;
+//?} else
+/*import com.mojang.blaze3d.platform.ScreenManager;*/
 import com.mojang.blaze3d.platform.VideoMode;
 import com.mojang.blaze3d.platform.Window;
 import dev.swiftclient.modules.BorderlessModule;
@@ -20,12 +23,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin({Window.class})
 public abstract class BorderlessWindowMixin implements BorderlessModule.Switchable {
-   @Shadow
+   // "window" before 1.21.9.
+   @Shadow(aliases = {"window"})
    @Final
    private long handle;
    @Shadow
    @Final
+   //? if >=26.2 {
    private MonitorManager monitorManager;
+   //?} else
+   /*private ScreenManager screenManager;*/
    @Shadow
    private boolean fullscreen;
    @Shadow
@@ -56,7 +63,10 @@ public abstract class BorderlessWindowMixin implements BorderlessModule.Switchab
    )
    private void swiftclient$setMode(CallbackInfo ci) {
       if (this.fullscreen && BorderlessModule.wanted()) {
+         //? if >=26.2 {
          Monitor monitor = this.monitorManager.findBestMonitor((Window)(Object)this);
+         //?} else
+         /*Monitor monitor = this.screenManager.findBestMonitor((Window)(Object)this);*/
          if (monitor != null) {
             boolean exclusive = GLFW.glfwGetWindowMonitor(this.handle) != 0L;
             if (!exclusive && !this.swiftclient$borderless) {
@@ -66,9 +76,15 @@ public abstract class BorderlessWindowMixin implements BorderlessModule.Switchab
                this.windowedHeight = this.height;
             }
 
+            //? if >=26.2 {
             VideoMode mode = monitor.currentMode();
             this.x = monitor.x();
             this.y = monitor.y();
+            //?} else {
+            /*VideoMode mode = monitor.getCurrentMode();
+            this.x = monitor.getX();
+            this.y = monitor.getY();
+            *///?}
             this.width = mode.getWidth();
             this.height = mode.getHeight();
             GLFW.glfwSetWindowAttrib(this.handle, GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);

@@ -2,8 +2,13 @@ package dev.swiftclient.modules;
 
 import dev.swiftclient.core.log.Log;
 import dev.swiftclient.core.mods.Module;
+//? if >=1.21.11 {
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
+//?} else {
+/*import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+*///?}
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -26,7 +31,11 @@ public abstract class BuiltinPackModule extends Module {
    public static void registerPacks() {
       FabricLoader.getInstance().getModContainer("swiftclient").ifPresent(mod -> {
          for (String[] p : new String[][]{{"clear_glass", "Swift - Clear Glass"}, {"hide_foliage", "Swift - Hide Foliage"}, {"better_foliage", "Swift - Better Foliage"}}) {
-            if (!ResourceLoader.registerBuiltinPack(Identifier.fromNamespaceAndPath("swiftclient", p[0]), mod, Component.literal(p[1]), PackActivationType.NORMAL)) {
+            //? if >=1.21.11 {
+            boolean ok = ResourceLoader.registerBuiltinPack(Identifier.fromNamespaceAndPath("swiftclient", p[0]), mod, Component.literal(p[1]), PackActivationType.NORMAL);
+            //?} else
+            /*boolean ok = ResourceManagerHelper.registerBuiltinResourcePack(Identifier.fromNamespaceAndPath("swiftclient", p[0]), mod, Component.literal(p[1]), ResourcePackActivationType.NORMAL);*/
+            if (!ok) {
                Log.get("Packs").warn("Pack integre {} non enregistre", p[0]);
             }
          }

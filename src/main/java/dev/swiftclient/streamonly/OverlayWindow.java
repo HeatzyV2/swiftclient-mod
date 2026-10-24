@@ -14,7 +14,6 @@ import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
-import org.lwjgl.glfw.GLFWNativeWin32;
 
 final class OverlayWindow {
    private static final String CLASS_NAME = "SwiftClientStreamOverlay";
@@ -37,7 +36,7 @@ final class OverlayWindow {
    private int capacityHeight;
    private boolean visible;
 
-   OverlayWindow(long glfwWindow) {
+   OverlayWindow() {
       WinDef.HINSTANCE instance = Kernel32.INSTANCE.GetModuleHandle((String)null);
       if (!classRegistered) {
          WinUser.WNDCLASSEX cls = new WinUser.WNDCLASSEX();
@@ -51,7 +50,7 @@ final class OverlayWindow {
          classRegistered = true;
       }
 
-      WinDef.HWND owner = new WinDef.HWND(new Pointer(GLFWNativeWin32.glfwGetWin32Window(glfwWindow)));
+      WinDef.HWND owner = new WinDef.HWND(new Pointer(dev.swiftclient.compat.Input.win32Hwnd()));
       this.hwnd = User32.INSTANCE.CreateWindowEx(134742176, "SwiftClientStreamOverlay", "", Integer.MIN_VALUE, 0, 0, 1, 1, owner, (WinDef.HMENU)null, instance, (WinDef.LPVOID)null);
       if (this.hwnd == null) {
          throw failure("CreateWindowEx");

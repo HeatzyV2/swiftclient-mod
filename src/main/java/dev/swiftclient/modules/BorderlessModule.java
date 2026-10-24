@@ -41,7 +41,7 @@ public final class BorderlessModule extends Module {
    public static void reapply() {
       try {
          Minecraft mc = Minecraft.getInstance();
-         if (mc != null && mc.getWindow() != null && mc.getWindow().isFullscreen() && (Object)mc.getWindow() instanceof Switchable s && s.swiftclient$isBorderless() != wanted()) {
+         if (mc != null && mc.getWindow() != null && dev.swiftclient.compat.Input.isFullscreen() && (Object)mc.getWindow() instanceof Switchable s && s.swiftclient$isBorderless() != wanted()) {
             s.swiftclient$reapplyMode();
          }
       } catch (Throwable ignored) {

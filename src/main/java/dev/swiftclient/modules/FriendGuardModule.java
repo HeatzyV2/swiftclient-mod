@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
@@ -33,7 +34,7 @@ public final class FriendGuardModule extends Module {
       long now = System.currentTimeMillis();
       if (now - m.lastHintAt >= HINT_COOLDOWN_MS) {
          m.lastHintAt = now;
-         Minecraft.getInstance().gui.hud.setOverlayMessage(Component.literal("Held back your hit on " + friend.getGameProfile().name()), false);
+         Mc.hud().setOverlayMessage(Component.literal("Held back your hit on " + friend.getGameProfile().name()), false);
       }
 
       return true;

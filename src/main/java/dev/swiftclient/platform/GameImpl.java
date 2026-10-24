@@ -1,5 +1,6 @@
 package dev.swiftclient.platform;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.log.Log;
 import org.slf4j.Logger;
 import com.mojang.authlib.minecraft.UserApiService;
@@ -147,6 +148,11 @@ public final class GameImpl implements Game {
    }
 
    @Override
+   public java.util.Set<String> unavailableModules() {
+      return dev.swiftclient.compat.Features.unavailableModules();
+   }
+
+   @Override
    public String gameVersion() {
       try {
          return FabricLoader.getInstance().getModContainer("minecraft").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("");
@@ -201,7 +207,10 @@ public final class GameImpl implements Game {
       try {
          Minecraft mc = this.mc();
          User current = mc.getUser();
+         //? if >=1.21.9 {
          User next = new User(username, uuid, accessToken == null ? "" : accessToken, current.getXuid(), current.getClientId());
+         //?} else
+         /*User next = new User(username, uuid, accessToken == null ? "" : accessToken, current.getXuid(), current.getClientId(), current.getType());*/
          MinecraftClientAccessor acc = (MinecraftClientAccessor)mc;
          acc.swiftclient$setUser(next);
          acc.swiftclient$setUserApiService(UserApiService.OFFLINE);
@@ -245,13 +254,13 @@ public final class GameImpl implements Game {
 
    @Override
    public void chat(String message) {
-      this.mc().execute(() -> this.mc().gui.hud.getChat().addClientSystemMessage(Component.literal(message)));
+      this.mc().execute(() -> Mc.chat(Component.literal(message)));
    }
 
    @Override
    public void notify(String title, String message) {
       this.mc().execute(() -> SystemToast.addOrUpdate(
-         this.mc().gui.toastManager(), SWIFT_TOAST, Component.literal(title), message == null ? null : Component.literal(message)
+         Mc.toasts(), SWIFT_TOAST, Component.literal(title), message == null ? null : Component.literal(message)
       ));
    }
 
@@ -334,7 +343,7 @@ public final class GameImpl implements Game {
          int fi = f;
          CapeUploadQueue.enqueue(() -> {
             Identifier id = Identifier.fromNamespaceAndPath("swiftclient", "cape/" + safeId + "/" + fi);
-            this.mc().getTextureManager().register(id, new DynamicTexture(() -> "swiftclient-cape", imgs[fi]));
+            this.mc().getTextureManager().register(id, new DynamicTexture(/*? if >=1.21.5 {*/() -> "swiftclient-cape", /*?}*/imgs[fi]));
             handles[fi] = id;
          });
       }
@@ -353,7 +362,7 @@ public final class GameImpl implements Game {
 
       this.mc().execute(() -> {
          Identifier id = Identifier.fromNamespaceAndPath("swiftclient", "art/nowplaying");
-         this.mc().getTextureManager().register(id, new DynamicTexture(() -> "swiftclient-art", img));
+         this.mc().getTextureManager().register(id, new DynamicTexture(/*? if >=1.21.5 {*/() -> "swiftclient-art", /*?}*/img));
          onReady.accept(key, id);
       });
    }

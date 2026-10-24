@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.ui.Px;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.social.Friends;
@@ -77,7 +78,7 @@ abstract class HeadCosmeticModule extends Module {
       LocalPlayer self = mc.player;
       if (self != null && mc.level != null) {
          if (state.id == self.getId()) {
-            return !mc.options.getCameraType().isFirstPerson() || mc.gui.screen() != null;
+            return !mc.options.getCameraType().isFirstPerson() || Mc.screen() != null;
          } else {
             return this.onFriends() && this.isFriend(mc, state.id);
          }
@@ -132,10 +133,10 @@ abstract class HeadCosmeticModule extends Module {
          float seconds = (float)(now - EPOCH) / 1.0E9F;
          float phase = seconds % 3.6F / 3.6F;
          float sweep = (phase * 2.0F - 1.0F) * (float)Math.PI * 1.25F;
-         float envelope = Mth.sin((double)(phase * (float)Math.PI));
+         float envelope = Mth.sin((phase * (float)Math.PI));
          float gain = this.glints() ? 0.6F * envelope * envelope : 0.0F;
-         float pulse = 0.9F + 0.1F * Mth.sin((double)(seconds * 2.2F));
-         current = new PharaohMesh.Look(this.palette(), this.glows(), Mth.cos((double)sweep), Mth.sin((double)sweep), gain, pulse);
+         float pulse = 0.9F + 0.1F * Mth.sin((seconds * 2.2F));
+         current = new PharaohMesh.Look(this.palette(), this.glows(), Mth.cos(sweep), Mth.sin(sweep), gain, pulse);
          this.look = current;
          this.lookAt = now;
          this.mobileLook = mobile;

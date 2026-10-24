@@ -78,7 +78,7 @@ final class TextPanels {
          shownTooltip = null;
       } else {
          if (tooltipWindow == null) {
-            tooltipWindow = new OverlayWindow(win.handle());
+            tooltipWindow = new OverlayWindow();
          }
 
          boolean changed = stack != shownTooltip || stack.getCount() != shownTooltipCount || stack.getDamageValue() != shownTooltipDamage || scale != shownTooltipScale;
@@ -139,7 +139,7 @@ final class TextPanels {
       ItemStack stack = nameStack;
       if (stack != null && nameAlpha > 0) {
          if (nameWindow == null) {
-            nameWindow = new OverlayWindow(win.handle());
+            nameWindow = new OverlayWindow();
          }
 
          Component name = Component.empty().append(stack.getHoverName()).withStyle(stack.getRarity().color());

@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
@@ -44,7 +45,7 @@ public final class AutoReconnectModule extends Module {
       if (mc.player != null && mc.level != null) {
          ServerData server = mc.isLocalServer() ? null : mc.getCurrentServer();
          m.lastServer = server != null && !server.isLan() && !server.isRealm() ? server : null;
-      } else if (mc.gui.screen() instanceof TitleScreen || mc.gui.screen() instanceof JoinMultiplayerScreen) {
+      } else if (Mc.screen() instanceof TitleScreen || Mc.screen() instanceof JoinMultiplayerScreen) {
          m.lastServer = null;
       }
    }
@@ -77,7 +78,7 @@ public final class AutoReconnectModule extends Module {
    @Override
    protected void onTick() {
       Minecraft mc = Minecraft.getInstance();
-      if (mc.gui.screen() != this.activeScreen || this.activeScreen == null || this.button == null || this.lastServer == null) {
+      if (Mc.screen() != this.activeScreen || this.activeScreen == null || this.button == null || this.lastServer == null) {
          return;
       }
 

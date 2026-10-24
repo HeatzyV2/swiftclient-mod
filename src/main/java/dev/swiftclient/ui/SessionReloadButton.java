@@ -1,5 +1,6 @@
 package dev.swiftclient.ui;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.account.AccountEntry;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.gfx.Canvas;
@@ -56,6 +57,6 @@ public final class SessionReloadButton {
 
    private static void toast(String message) {
       Minecraft mc = Minecraft.getInstance();
-      SystemToast.addOrUpdate(mc.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.literal(Tr.of("swift.session.reload.title")), Component.literal(message));
+      SystemToast.addOrUpdate(Mc.toasts(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.literal(Tr.of("swift.session.reload.title")), Component.literal(message));
    }
 }

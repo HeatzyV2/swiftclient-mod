@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /** Your own arm holds the item in first person (vanilla only shows it when the hand is empty). */
-@ConsumedBy("ItemInHandAnimationsMixin")
+@ConsumedBy("ItemInHandModelsMixin")
 public final class HandModelModule extends Module {
    public static volatile HandModelModule active;
    public final ModuleSetting items;
@@ -76,6 +76,7 @@ public final class HandModelModule extends Module {
          || stack.is(ItemTags.PICKAXES)
          || stack.is(ItemTags.SHOVELS)
          || stack.is(ItemTags.HOES)
+         //? if >=1.21.11
          || stack.is(ItemTags.SPEARS)
          || stack.is(Items.MACE)
          || stack.is(Items.FISHING_ROD)

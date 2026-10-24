@@ -47,7 +47,7 @@ public final class ShulkerTooltipModule extends Module {
    }
 
    private static boolean shown(ShulkerTooltipModule module) {
-      return !module.shiftOnly.boolValue() || Minecraft.getInstance().hasShiftDown();
+      return !module.shiftOnly.boolValue() || dev.swiftclient.compat.Input.shiftDown();
    }
 
    /** The preview for this stack, or empty when the module is off or the stack is not a (visible) shulker box. */

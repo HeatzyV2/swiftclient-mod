@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
@@ -24,11 +25,11 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * CS:GO-style knife: your sword becomes a butterfly knife, karambit or katana, with an inspect animation on a
+ * CS:GO-style knife: your sword becomes a butterfly knife, karambit, katana or kunai, with an inspect animation on a
  * key of your choice (hold the key to keep it spinning), a deploy animation and a slash trail. Only on your
  * screen, first person.
  */
-@ConsumedBy({"ItemInHandAnimationsMixin", "KeyboardHandlerMixin"})
+@ConsumedBy({"ItemInHandModelsMixin", "KeyboardHandlerMixin"})
 public final class WeaponInspectModule extends Module {
    public static volatile WeaponInspectModule active;
    private static final Identifier KNIFE_TEXTURE = Identifier.fromNamespaceAndPath("swiftclient", "textures/misc/knife_base.png");
@@ -72,8 +73,8 @@ public final class WeaponInspectModule extends Module {
 
    public WeaponInspectModule() {
       super("weapon_inspect", "CS Knife", "Knife skins for your sword and CS-style inspects on a key (F by default). Hold the key to keep the knife spinning.", "Visual", "sword", false);
-      this.key = this.key("key", "Inspect key", InputConstants.KEY_F).desc("Press to inspect the held weapon. While you hold a weapon, this key no longer swaps hands.");
-      this.skin = this.cycle("skin", "Knife skin", new String[]{"None", "Butterfly", "Karambit", "Katana"}, 1).desc("The knife your sword turns into. None keeps the sword and only adds the inspect.").group("Knife");
+      this.key = this.key("key", "Inspect key", 70).desc("Press to inspect the held weapon. While you hold a weapon, this key no longer swaps hands.");
+      this.skin = this.cycle("skin", "Knife skin", skinOptions(), 1).desc("The knife your sword turns into. None keeps the sword and only adds the inspect.").group("Knife");
       this.knifeSize = this.slider("knife_size", "Knife size", 1.0, 0.5, 2.0, 0.05, "x").desc("Size of the knife in your hand.").group("Knife");
       this.deploy = this.toggle("deploy", "Deploy animation", true).desc("Play a draw animation when you switch to the knife.").group("Knife");
       this.sparkles = this.toggle("sparkles", "Blade sparkle", true).desc("A glint runs along the blade during the inspect.").group("Knife");
@@ -130,7 +131,7 @@ public final class WeaponInspectModule extends Module {
       if (bound >= 0 && pressed == bound) {
          Minecraft mc = Minecraft.getInstance();
          LocalPlayer player = mc.player;
-         if (mc.gui.screen() == null && player != null && !player.isSpectator()) {
+         if (Mc.screen() == null && player != null && !player.isSpectator()) {
             if (this.sneakSkips.boolValue() && player.isShiftKeyDown()) {
                return false;
             } else {
@@ -156,17 +157,26 @@ public final class WeaponInspectModule extends Module {
    private boolean held() {
       int bound = this.key.keyCode();
       Minecraft mc = Minecraft.getInstance();
-      return bound >= 0 && mc.gui.screen() == null && InputConstants.isKeyDown(mc.getWindow(), bound);
+      return bound >= 0 && Mc.screen() == null && dev.swiftclient.compat.Input.keyDown(dev.swiftclient.compat.Input.fromCoreKey(bound));
    }
 
    private boolean inspectable(ItemStack stack) {
       if (stack.isEmpty()) {
          return false;
       } else if (this.items.cycleIndex() != 2 && !isSword(stack)) {
-         return this.items.cycleIndex() == 1 && (stack.is(ItemTags.AXES) || stack.is(ItemTags.SPEARS) || stack.is(Items.MACE) || stack.is(Items.TRIDENT));
+         return this.items.cycleIndex() == 1 && (stack.is(ItemTags.AXES) || /*? if >=1.21.11 {*/stack.is(ItemTags.SPEARS) ||/*?}*/ stack.is(Items.MACE) || stack.is(Items.TRIDENT));
       } else {
          return true;
       }
+   }
+
+   /** Built-in knives, then the textured model knives (CounterCraft pack). */
+   private static String[] skinOptions() {
+      String[] models = ModelKnife.labels();
+      String[] base = {"None", "Butterfly", "Karambit", "Katana", "Kunai"};
+      String[] all = java.util.Arrays.copyOf(base, base.length + models.length);
+      System.arraycopy(models, 0, all, base.length, models.length);
+      return all;
    }
 
    private String skinLabel() {
@@ -211,7 +221,7 @@ public final class WeaponInspectModule extends Module {
          int selected = player.getInventory().getSelectedSlot();
          if (selected == this.heldSlot && held.is(this.heldItem)) {
             if (this.mode != 0 && !this.easingOut) {
-               if (player.swinging) {
+               if (/*? if >=26.3 {*//*player.isSwinging()*//*?} else {*/player.swinging/*?}*/) {
                   this.mode = 0;
                } else if (player.isUsingItem()) {
                   this.easeOut();
@@ -317,6 +327,12 @@ public final class WeaponInspectModule extends Module {
             this.submitGlow(collector, now, KnifeMaterial.of(stack).glow, 0.0F, (KnifeSkin)null);
          }
 
+         ModelKnife model = sword ? ModelKnife.of(this.skinLabel()) : null;
+         if (model != null) {
+            model.draw(pose, collector, light, side < 0, stack.hasFoil());
+            return true;
+         }
+
          return false;
       } else {
          KnifeMaterial material = KnifeMaterial.of(stack);
@@ -340,8 +356,8 @@ public final class WeaponInspectModule extends Module {
    }
 
    private static KnifeSkin.Sink sink(final SubmitNodeCollector collector, final int light, final int side, final FirstPersonArm.Arm arm, final boolean otherFree, final KnifeMaterial material, final boolean foil) {
-      final RenderType solid = RenderTypes.entityCutout(KNIFE_TEXTURE);
       final int[] palette = material.palette;
+      final RenderType solid = RenderTypes.entityCutout(KNIFE_TEXTURE);
       return new KnifeSkin.Sink() {
          public void part(PoseStack part, KnifeMesh mesh, KnifeMesh.Shine shine) {
             collector.submitCustomGeometry(part, solid, (p, out) -> mesh.emit(p, out, palette, light, shine));

@@ -2,7 +2,10 @@ package dev.swiftclient.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
+//? if >=1.21.6 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+//?} else
+/*import java.util.function.Function;*/
 import dev.swiftclient.modules.HideInventoryModule;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -73,7 +76,7 @@ public abstract class HideInventoryHudMixin {
          target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V"
       )}
    )
-   private boolean swiftclient$hideSelection(GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier sprite, int x, int y, int width, int height) {
+   private boolean swiftclient$hideSelection(GuiGraphicsExtractor graphics, /*? if >=1.21.6 {*/RenderPipeline/*?} else {*//*Function<Identifier, ?>*//*?}*/ pipeline, Identifier sprite, int x, int y, int width, int height) {
       if (HideInventoryModule.hidesSelectedSlot() && SWIFTCLIENT$SELECTION.equals(sprite)) {
          HideInventoryModule.hiddenSelection(x, y);
          return false;

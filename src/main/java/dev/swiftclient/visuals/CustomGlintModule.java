@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.ui.Px;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
@@ -92,7 +93,7 @@ public final class CustomGlintModule extends Module {
 
    private void refresh() {
       Minecraft mc = Minecraft.getInstance();
-      if (mc.level != null && mc.gui.overlay() == null && RenderSystem.tryGetDevice() != null) {
+      if (mc.level != null && Mc.overlay() == null && RenderSystem.tryGetDevice() != null) {
          int itemRgb = this.colorMode.is("Accent") ? Px.ACCENT & 16777215 : (this.itemColor.colorValue() & 0xFFFFFF);
          int armorRgb = this.colorMode.is("Custom") && this.separateArmor.boolValue() ? (this.armorColor.colorValue() & 0xFFFFFF) : itemRgb;
          float strength = this.intensity.floatValue();

@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+//? if skins
 import dev.swiftclient.modules.SkinChangeModule;
 import dev.swiftclient.ui.SkinRenderer;
 import net.minecraft.client.Minecraft;
@@ -38,6 +39,7 @@ public class AbstractClientPlayerEntityMixin {
       }
    }
 
+   //? if skins {
    /** Skin Change: the skin chosen in the module, for you and/or the other players. */
    @Inject(
       method = {"getSkin"},
@@ -51,4 +53,5 @@ public class AbstractClientPlayerEntityMixin {
          cir.setReturnValue(swapped);
       }
    }
+   //?}
 }

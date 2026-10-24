@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.modules.GuiBlurModule;
 import dev.swiftclient.modules.MotionBlurModule;
@@ -31,10 +32,10 @@ public class GameRendererBlurMixin {
          (float)(sat.brightness.value() / 100.0),
          (float)(sat.warmth.value() / 100.0),
          (float)(sat.vignette.value() / 100.0),
-         motion.isEnabled() && mc.gui.screen() == null ? (float)(motion.strength.value() / 100.0) : 0.0F
+         motion.isEnabled() && Mc.screen() == null ? (float)(motion.strength.value() / 100.0) : 0.0F
       );
       GuiBlurModule m = ModuleManager.get(GuiBlurModule.class);
-      if (mc.gui.screen() != null && m.isEnabled()) {
+      if (Mc.screen() != null && m.isEnabled()) {
          float blur = (float)(m.strength.value() / 100.0 * 28.0);
          int dimA = (int)Math.round(m.darkness.value() / 100.0 * 180.0);
          int tint = Math.max(0, Math.min(255, dimA)) << 24;

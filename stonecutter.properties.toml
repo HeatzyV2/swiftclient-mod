@@ -1,0 +1,139 @@
+# Every version number of the mod and its dependencies, for every Minecraft version.
+# Updating a dependency = editing this file. Adding a Minecraft version = a new section here plus its
+# entry in settings.gradle.kts. Versions come from https://fabricmc.net/develop and Modrinth.
+#
+# mod.mc_compat  "minecraft" range written in fabric.mod.json
+# mod.features   optional features that exist on that version (see featureSources in build.gradle.kts):
+#                fog = Fog Customizer (1.21.6+ fog), gpu = custom shaders on the 26.2 render API, glfw = GLFW window (SDL3 from 26.3),
+#                skins = 1.21.9+ skin API (Skin Change), submit = entity rendering of 1.21.9+ (capes, wings, knives, item physics...),
+#                glyphs = relic / totem effects (vanilla gizmos, 1.21.11+), pets = GeckoLib pets
+# deps.<mod>     Modrinth version (empty = not available on that version). GeckoLib uses Modrinth version
+#                ids: its version numbers repeat across Minecraft versions. Pets are written for GeckoLib 5.5
+#                (26.1+); older GeckoLib builds have another API.
+
+mod.version = "2.6.7"
+mod.group = "dev.swiftclient"
+
+deps.fabric_loader = "0.19.5"
+deps.junit = "6.1.3"
+
+["1.21.4"]
+mod.features = "glfw"
+mod.mc_compat = "1.21.4"
+deps.fabric_api = "0.119.4+1.21.4"
+deps.geckolib = ""
+deps.sodium = "mc1.21.4-0.6.13-fabric"
+deps.lithium = "mc1.21.4-0.15.3-fabric"
+deps.immediatelyfast = "1.8.7+1.21.4-fabric"
+deps.ferritecore = "7.1.3-fabric"
+deps.viafabricplus = "4.0.5-BACKPORT"
+
+["1.21.5"]
+mod.features = "glfw"
+mod.mc_compat = "1.21.5"
+deps.fabric_api = "0.128.2+1.21.5"
+deps.geckolib = ""
+deps.sodium = "mc1.21.5-0.6.13-fabric"
+deps.lithium = "mc1.21.5-0.16.3-fabric"
+deps.immediatelyfast = "1.9.7+1.21.5-fabric"
+deps.ferritecore = "8.0.4-fabric"
+deps.viafabricplus = "4.1.5"
+
+["1.21.6"]
+mod.features = "fog,glfw"
+mod.mc_compat = "1.21.6"
+deps.fabric_api = "0.128.2+1.21.6"
+deps.geckolib = ""
+deps.sodium = "mc1.21.8-0.7.3-fabric"
+deps.lithium = "mc1.21.6-0.17.0-fabric"
+deps.immediatelyfast = "1.10.3+1.21.6-fabric"
+deps.ferritecore = "8.0.4-fabric"
+deps.viafabricplus = "4.2.1"
+
+["1.21.7"]
+mod.features = "fog,glfw"
+mod.mc_compat = "1.21.7"
+deps.fabric_api = "0.129.0+1.21.7"
+deps.geckolib = ""
+deps.sodium = "mc1.21.8-0.7.3-fabric"
+deps.lithium = "mc1.21.7-0.18.0-fabric"
+deps.immediatelyfast = "1.11.2+1.21.7-fabric"
+deps.ferritecore = "8.0.4-fabric"
+deps.viafabricplus = "4.2.5"
+
+["1.21.8"]
+mod.features = "fog,glfw"
+mod.mc_compat = "1.21.8"
+deps.fabric_api = "0.136.1+1.21.8"
+deps.geckolib = ""
+deps.sodium = "mc1.21.8-0.7.3-fabric"
+deps.lithium = "mc1.21.8-0.18.1-fabric"
+deps.immediatelyfast = "1.12.6+1.21.8-fabric"
+deps.ferritecore = "8.0.4-fabric"
+deps.viafabricplus = "4.2.5"
+
+["1.21.9"]
+mod.features = "fog,glfw,skins,submit"
+mod.mc_compat = "1.21.9"
+deps.fabric_api = "0.134.1+1.21.9"
+deps.geckolib = ""
+deps.sodium = "mc1.21.10-0.7.3-fabric"
+deps.lithium = "mc1.21.9-0.19.2-fabric"
+deps.immediatelyfast = "1.13.6+1.21.10-fabric"
+deps.ferritecore = "8.1.0-fabric"
+deps.viafabricplus = "4.3.0"
+
+["1.21.10"]
+mod.features = "fog,glfw,skins,submit"
+mod.mc_compat = "1.21.10"
+deps.fabric_api = "0.138.4+1.21.10"
+deps.geckolib = ""
+deps.sodium = "mc1.21.10-0.7.3-fabric"
+deps.lithium = "mc1.21.10-0.20.1-fabric"
+deps.immediatelyfast = "1.13.6+1.21.10-fabric"
+deps.ferritecore = "8.1.0-fabric"
+deps.viafabricplus = "4.3.6"
+
+["1.21.11"]
+mod.features = "fog,glfw,glyphs,skins,submit"
+mod.mc_compat = "1.21.11"
+deps.fabric_api = "0.141.6+1.21.11"
+deps.geckolib = ""
+deps.sodium = "mc1.21.11-0.8.14-fabric"
+deps.lithium = "mc1.21.11-0.21.4-fabric"
+deps.immediatelyfast = "1.14.3+1.21.11-fabric"
+deps.ferritecore = "8.2.0-fabric"
+deps.viafabricplus = "4.4.15"
+
+["26.1.2"]
+mod.features = "fog,glfw,glyphs,pets,skins,submit"
+mod.mc_compat = ">=26.1.2 <26.2"
+deps.fabric_api = "0.155.3+26.1.2"
+deps.geckolib = "XZTmZlwb"
+deps.sodium = "mc26.1.2-0.9.2-fabric"
+deps.lithium = "mc26.1.2-0.24.7-fabric"
+deps.immediatelyfast = "1.15.3+26.1-fabric"
+deps.ferritecore = "9.0.0-fabric"
+deps.viafabricplus = "4.5.6"
+
+["26.2"]
+mod.features = "fog,gpu,glfw,glyphs,pets,skins,submit"
+mod.mc_compat = "~26.2"
+deps.fabric_api = "0.161.0+26.2"
+deps.geckolib = "7gaQHok7"
+deps.sodium = "mc26.2-0.9.2-fabric"
+deps.lithium = "mc26.2-0.25.3-fabric"
+deps.immediatelyfast = "1.16.4+26.2-fabric"
+deps.ferritecore = "9.0.0-fabric"
+deps.viafabricplus = "5.0.2"
+
+["26.3"]
+mod.features = "fog,glyphs,pets,skins,submit"
+mod.mc_compat = "~26.3"
+deps.fabric_api = "0.165.0+26.3"
+deps.geckolib = "kSxHvs99"
+deps.sodium = "mc26.3-0.9.2-fabric"
+deps.lithium = "mc26.3-0.26.2-fabric"
+deps.immediatelyfast = "1.17.1+26.3-fabric"
+deps.ferritecore = "9.0.0-fabric"
+deps.viafabricplus = "5.1.2"

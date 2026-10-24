@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Draw3D;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
@@ -8,8 +9,6 @@ import dev.swiftclient.core.social.Friends;
 import dev.swiftclient.world.WorldOverlays;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.gizmos.Gizmos;
-import net.minecraft.gizmos.TextGizmo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
@@ -64,8 +63,7 @@ public final class TeamViewModule extends Module implements WorldOverlays.WorldO
             Vec3 pos = p.getPosition(partialTick).add(0.0, p.getBbHeight() + 0.9, 0.0);
             int dist = Math.round(p.distanceTo(mc.player));
             int color = p.getTeamColor() == 0xFFFFFF ? 0xFF6BD36B : 0xFF000000 | p.getTeamColor();
-            Gizmos.billboardText(p.getGameProfile().name() + "  " + dist + "m", pos, TextGizmo.Style.forColorAndCentered(color).withScale(0.4F))
-               .setAlwaysOnTop();
+            Draw3D.text(p.getGameProfile().name() + "  " + dist + "m", pos, color, 0.4F);
          }
       }
    }

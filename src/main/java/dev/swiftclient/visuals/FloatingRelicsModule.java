@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.ui.Px;
 import net.minecraft.world.phys.Vec3;
 import dev.swiftclient.world.WorldOverlays;
@@ -175,15 +176,15 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
    private void place(Relic r, double px, double py, double pz) {
       float angle = this.random.nextFloat() * ((float)Math.PI * 2F);
       double radius = (double)(this.spread.floatValue() * r.orbit);
-      r.x = px + (double)Mth.cos((double)angle) * radius;
+      r.x = px + (double)Mth.cos(angle) * radius;
       r.y = py + 0.15;
-      r.z = pz + (double)Mth.sin((double)angle) * radius;
+      r.z = pz + (double)Mth.sin(angle) * radius;
       r.lastX = r.x;
       r.lastY = r.y;
       r.lastZ = r.z;
-      r.vx = -Mth.sin((double)angle) * 0.03F;
+      r.vx = -Mth.sin(angle) * 0.03F;
       r.vy = 0.14F + 0.08F * this.random.nextFloat();
-      r.vz = Mth.cos((double)angle) * 0.03F;
+      r.vz = Mth.cos(angle) * 0.03F;
       r.yaw = this.random.nextFloat() * ((float)Math.PI * 2F);
       r.lastYaw = r.yaw;
       r.turn = r.restTurn * 3.0F;
@@ -212,7 +213,7 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
       double dx = r.x - px;
       double dz = r.z - pz;
       double flat = Math.sqrt(dx * dx + dz * dz);
-      double hover = py + 0.35 + (double)r.lift * ((double)height + 0.2) + 0.16 * (double)Mth.sin((double)(((float)this.age + r.phase * 16.0F) * 0.045F));
+      double hover = py + 0.35 + (double)r.lift * ((double)height + 0.2) + 0.16 * (double)Mth.sin((((float)this.age + r.phase * 16.0F) * 0.045F));
       double leash = (double)this.spread.floatValue() * (double)3.0F + (double)8.0F;
       if (!(flat > leash) && !(Math.abs(r.y - hover) > leash)) {
          float nx = flat > 1.0E-4 ? (float)(dx / flat) : 1.0F;
@@ -222,8 +223,8 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
          r.vx += nx * pull - nz * swirl + moveX * 0.035F;
          r.vz += nz * pull + nx * swirl + moveZ * 0.035F;
          float wander = ((float)this.age + r.phase * 20.0F) * 0.06F;
-         r.vx += Mth.sin((double)wander) * 0.003F;
-         r.vz += Mth.cos((double)(wander * 1.31F)) * 0.003F;
+         r.vx += Mth.sin(wander) * 0.003F;
+         r.vz += Mth.cos((wander * 1.31F)) * 0.003F;
          r.vy -= 0.016F;
          double sink = hover - r.y;
          if (sink > (double)0.0F) {
@@ -360,7 +361,7 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
       if (this.live != 0) {
          Minecraft mc = Minecraft.getInstance();
          if (mc.level != null && mc.player != null) {
-            this.canvas.begin(mc.gameRenderer.mainCamera());
+            this.canvas.begin(Mc.camera());
             float pt = overlayPartialTick;
             float time = (float)(System.nanoTime() - EPOCH) / 1.0E9F;
             boolean mobile = false;
@@ -380,15 +381,15 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
                   float extent = base * r.grain * fits[kind] * appear(since / 12.0F);
                   if (!(extent < 0.004F)) {
                      double x = Mth.lerp((double)pt, r.lastX, r.x);
-                     double y = Mth.lerp((double)pt, r.lastY, r.y) + (double)(extent * 0.2F * Mth.sin((double)(time * 2.4F + r.phase * 3.0F)));
+                     double y = Mth.lerp((double)pt, r.lastY, r.y) + (double)(extent * 0.2F * Mth.sin((time * 2.4F + r.phase * 3.0F)));
                      double z = Mth.lerp((double)pt, r.lastZ, r.z);
                      double reach = renderReach(extent, glow, mobile);
                      if (frustum == null || frustum.isVisible(new AABB(x - reach, y - reach, z - reach, x + reach, y + reach, z + reach))) {
                         float fade = Math.min(1.0F, since / 7.2000003F);
                         float yaw = Mth.lerp(pt, r.lastYaw, r.yaw);
-                        float tiltX = Mth.lerp(pt, r.lastTiltX, r.tiltX) + 0.12F * Mth.sin((double)(time * 1.3F + r.phase));
-                        float tiltZ = Mth.lerp(pt, r.lastTiltZ, r.tiltZ) + 0.12F * Mth.sin((double)(time * 0.9F + r.phase * 2.3F));
-                        float shimmer = glow ? (0.1F + 0.07F * Mth.sin((double)(time * 2.1F + r.phase))) * fade : 0.0F;
+                        float tiltX = Mth.lerp(pt, r.lastTiltX, r.tiltX) + 0.12F * Mth.sin((time * 1.3F + r.phase));
+                        float tiltZ = Mth.lerp(pt, r.lastTiltZ, r.tiltZ) + 0.12F * Mth.sin((time * 0.9F + r.phase * 2.3F));
+                        float shimmer = glow ? (0.1F + 0.07F * Mth.sin((time * 2.1F + r.phase))) * fade : 0.0F;
                         float[] glyph = mobile ? RelicGlyphs.mobile(glyphs[kind]) : glyphs[kind];
                         this.drawRelic(glyph, x, y, z, extent, yaw, tiltX, tiltZ, fade, shimmer);
                      }
@@ -418,12 +419,12 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
    }
 
    private void drawRelic(float[] glyph, double x, double y, double z, float extent, float yaw, float tiltX, float tiltZ, float fade, float shimmer) {
-      float cy = Mth.cos((double)yaw);
-      float sy = Mth.sin((double)yaw);
-      float cx = Mth.cos((double)tiltX);
-      float sx = Mth.sin((double)tiltX);
-      float cz = Mth.cos((double)tiltZ);
-      float sz = Mth.sin((double)tiltZ);
+      float cy = Mth.cos(yaw);
+      float sy = Mth.sin(yaw);
+      float cx = Mth.cos(tiltX);
+      float sx = Mth.sin(tiltX);
+      float cz = Mth.cos(tiltZ);
+      float sz = Mth.sin(tiltZ);
       float ux = cy * cz + sy * sx * sz;
       float uy = cx * sz;
       float uz = -sy * cz + cy * sx * sz;
@@ -489,7 +490,7 @@ public final class FloatingRelicsModule extends Module implements WorldOverlays.
          return 0.0F;
       } else {
          float inv = 1.0F - t;
-         return 1.0F - inv * inv * inv + 0.22F * Mth.sin((double)(t * (float)Math.PI)) * inv;
+         return 1.0F - inv * inv * inv + 0.22F * Mth.sin((t * (float)Math.PI)) * inv;
       }
    }
 

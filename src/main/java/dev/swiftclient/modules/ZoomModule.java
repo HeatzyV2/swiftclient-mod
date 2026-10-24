@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.mods.ZoomState;
@@ -53,7 +54,7 @@ public final class ZoomModule extends Module {
    protected void onTick() {
       Minecraft mc = Minecraft.getInstance();
       ZoomState.ensureTarget(this.fov.value());
-      boolean keyDown = mc.player != null && mc.gui.screen() == null && SwiftKeys.ZOOM.isDown();
+      boolean keyDown = mc.player != null && Mc.screen() == null && SwiftKeys.ZOOM.isDown();
       ZoomState.update(keyDown, this.mode.cycleIndex() == MODE_TOGGLE);
       if (ZoomState.holding) {
          if (this.savedFov == null) {

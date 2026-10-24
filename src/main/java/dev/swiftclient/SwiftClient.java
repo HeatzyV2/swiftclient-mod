@@ -1,5 +1,6 @@
 package dev.swiftclient;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.DisplayModeFix;
 import dev.swiftclient.core.theme.SwiftPanorama;
 import dev.swiftclient.core.badges.BadgeState;
@@ -13,8 +14,10 @@ import dev.swiftclient.core.net.PlatformFeed;
 import dev.swiftclient.core.pet.DynamicPets;
 import dev.swiftclient.core.platform.Platform;
 import dev.swiftclient.hud.HudClient;
+//? if pets {
 import dev.swiftclient.pet.DynamicPetLoader;
 import dev.swiftclient.pet.PetManager;
+//?}
 import dev.swiftclient.platform.GameImpl;
 import dev.swiftclient.rpc.RpcManager;
 import dev.swiftclient.ui.PlayerCache;
@@ -50,6 +53,7 @@ public class SwiftClient implements ClientModInitializer {
       } catch (Throwable t) {
          Log.ROOT.error("Audit des mixins en echec", t);
       }
+
    }
 
    private static void forgetPlayers() {
@@ -70,27 +74,38 @@ public class SwiftClient implements ClientModInitializer {
          FabricLoader.getInstance().getModContainer("minecraft").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?")
       );
       Platform.install(new GameImpl());
+      SwiftPanorama.bind(dev.swiftclient.render.PanoramaSwap::swap);
       HudClient.installModules();
       dev.swiftclient.modules.BuiltinPackModule.registerPacks();
       RpcManager.init();
       AccountManager.get().load();
+      //? if pets {
       PetManager.INSTANCE.init();
       DynamicPets.setSink(new DynamicPetLoader());
+      //?}
       HudClient.init();
       MusicState.boot();
       dev.swiftclient.core.update.ModUpdate.start(FabricLoader.getInstance().getModContainer("swiftclient").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?"));
       PlatformFeed.start(FabricLoader.getInstance().getModContainer("swiftclient").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?"));
       ClientPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, client) -> forgetPlayers());
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> {
-         if (!mixinAuditDone && Boolean.getBoolean("swiftclient.auditMixins")) {
+         if (!mixinAuditDone && (Boolean.getBoolean("swiftclient.auditMixins") || Boolean.getBoolean("swiftclient.auditExit"))) {
             mixinAuditDone = true;
-            auditMixins();
+            if (Boolean.getBoolean("swiftclient.auditMixins")) {
+               auditMixins();
+            }
+
+            // tools/audit-mixins.sh, -PauditExit : close the game once it reached its first tick (and the audit is logged).
+            if (Boolean.getBoolean("swiftclient.auditExit")) {
+               Log.ROOT.info("Premier tick atteint, fermeture du jeu");
+               client.stop();
+            }
          }
 
          DisplayModeFix.tick();
          PlatformFeed.tick(client.level != null);
          dev.swiftclient.core.update.ModUpdate.tick(client.level != null);
-         if (client.gui.overlay() == null) {
+         if (Mc.overlay() == null) {
             SwiftPanorama.applyWhenReady();
          }
          if (client.player != null) {

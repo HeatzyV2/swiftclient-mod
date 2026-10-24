@@ -1,11 +1,11 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Draw3D;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.world.WorldOverlays;
 import net.minecraft.client.Minecraft;
-import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.phys.Vec3;
 
 /** Outlines the chunk you stand in (and the corners of its neighbours), without opening F3. */
@@ -36,24 +36,24 @@ public final class ChunkBordersModule extends Module implements WorldOverlays.Wo
 
       for (int x = 0; x <= 16; x += 16) {
          for (int z = 0; z <= 16; z += 16) {
-            Gizmos.line(new Vec3(cx + x, y0, cz + z), new Vec3(cx + x, y1, cz + z), col, 3.0F);
+            Draw3D.line(new Vec3(cx + x, y0, cz + z), new Vec3(cx + x, y1, cz + z), col, 3.0F);
          }
       }
 
       if (this.grid.boolValue()) {
          for (int i = 2; i < 16; i += 2) {
             for (int side = 0; side <= 16; side += 16) {
-               Gizmos.line(new Vec3(cx + i, y0, cz + side), new Vec3(cx + i, y1, cz + side), faint, 1.0F);
-               Gizmos.line(new Vec3(cx + side, y0, cz + i), new Vec3(cx + side, y1, cz + i), faint, 1.0F);
+               Draw3D.line(new Vec3(cx + i, y0, cz + side), new Vec3(cx + i, y1, cz + side), faint, 1.0F);
+               Draw3D.line(new Vec3(cx + side, y0, cz + i), new Vec3(cx + side, y1, cz + i), faint, 1.0F);
             }
          }
 
          int start = y0 + Math.floorMod(-y0, 2);
          for (int y = start; y <= y1; y += 2) {
-            Gizmos.line(new Vec3(cx, y, cz), new Vec3(cx + 16, y, cz), faint, 1.0F);
-            Gizmos.line(new Vec3(cx, y, cz + 16), new Vec3(cx + 16, y, cz + 16), faint, 1.0F);
-            Gizmos.line(new Vec3(cx, y, cz), new Vec3(cx, y, cz + 16), faint, 1.0F);
-            Gizmos.line(new Vec3(cx + 16, y, cz), new Vec3(cx + 16, y, cz + 16), faint, 1.0F);
+            Draw3D.line(new Vec3(cx, y, cz), new Vec3(cx + 16, y, cz), faint, 1.0F);
+            Draw3D.line(new Vec3(cx, y, cz + 16), new Vec3(cx + 16, y, cz + 16), faint, 1.0F);
+            Draw3D.line(new Vec3(cx, y, cz), new Vec3(cx, y, cz + 16), faint, 1.0F);
+            Draw3D.line(new Vec3(cx + 16, y, cz), new Vec3(cx + 16, y, cz + 16), faint, 1.0F);
          }
       }
 
@@ -62,7 +62,7 @@ public final class ChunkBordersModule extends Module implements WorldOverlays.Wo
          for (int x = -16; x <= 32; x += 16) {
             for (int z = -16; z <= 32; z += 16) {
                if ((x == -16 || x == 32) || (z == -16 || z == 32)) {
-                  Gizmos.line(new Vec3(cx + x, y0, cz + z), new Vec3(cx + x, y1, cz + z), n, 2.0F);
+                  Draw3D.line(new Vec3(cx + x, y0, cz + z), new Vec3(cx + x, y1, cz + z), n, 2.0F);
                }
             }
          }

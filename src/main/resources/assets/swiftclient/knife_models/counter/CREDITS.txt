@@ -1,0 +1,3 @@
+Knife models and textures from the "CounterCraft Knife Pack" ("CS2 Knives Pack") resource pack,
+provided by the Swift Client owner for the CS Knife module. Only the cube geometry, the face UVs,
+the first-person display transforms and the textures are used.

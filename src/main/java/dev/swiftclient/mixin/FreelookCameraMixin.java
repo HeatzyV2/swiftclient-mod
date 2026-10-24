@@ -25,7 +25,8 @@ public abstract class FreelookCameraMixin {
    protected abstract void setRotation(float yaw, float pitch);
 
    @Inject(
-      method = {"alignWithEntity"},
+      // alignWithEntity since 26.1, setup before.
+      method = {"alignWithEntity", "setup"},
       at = {@At(
          value = "INVOKE",
          target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
@@ -33,7 +34,7 @@ public abstract class FreelookCameraMixin {
          shift = Shift.AFTER
       )}
    )
-   private void swiftclient$freelookAlign(float partialTick, CallbackInfo ci) {
+   private void swiftclient$freelookAlign(CallbackInfo ci) {
       if (Freelook.active && this.entity instanceof LocalPlayer) {
          CameraOverriddenEntity o = (CameraOverriddenEntity)this.entity;
          if (this.swiftclient$firstTime && Minecraft.getInstance().player != null) {

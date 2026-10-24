@@ -2,6 +2,7 @@ package dev.swiftclient.mixin;
 
 import dev.swiftclient.input.ModuleKeys;
 import net.minecraft.client.KeyboardHandler;
+//? if >=1.21.9
 import net.minecraft.client.input.KeyEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,8 +17,13 @@ public abstract class KeyboardHandlerMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
+   //? if >=1.21.9 {
    private void swiftclient$moduleKeys(long handle, int action, KeyEvent event, CallbackInfo ci) {
-      if (ModuleKeys.dispatch(event.key(), action)) {
+      int key = event.key();
+   //?} else {
+   /*private void swiftclient$moduleKeys(long handle, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
+   *///?}
+      if (ModuleKeys.dispatch(key, action)) {
          ci.cancel();
       }
    }

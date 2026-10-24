@@ -38,7 +38,10 @@ public final class ShulkerClientTooltip implements ClientTooltipComponent {
       int left = x + (w - width) / 2;
       int top = y + 2;
       graphics.fill(left, top, left + width, top + height, panel);
-      graphics.outline(left, top, width, height, edge);
+      graphics.fill(left, top, left + width, top + 1, edge);
+      graphics.fill(left, top + height - 1, left + width, top + height, edge);
+      graphics.fill(left, top + 1, left + 1, top + height - 1, edge);
+      graphics.fill(left + width - 1, top + 1, left + width, top + height - 1, edge);
       for (int i = 0; i < ShulkerTooltipModule.SLOTS; i++) {
          int cx = left + PAD + i % COLUMNS * CELL;
          int cy = top + PAD + i / COLUMNS * CELL;

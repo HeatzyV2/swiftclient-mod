@@ -1,5 +1,18 @@
 package dev.swiftclient.visuals;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+
 
 final class KnifeModels {
    static final int KARAMBIT_DETAIL = 2;
@@ -195,6 +208,126 @@ final class KnifeModels {
       }
 
       return v.mesh(5.0F * (float)k, 27.0F * (float)k);
+   }
+
+   /** Kunai model (Blockbench cubes, 1/16 block units): scale to knife units and the landmarks used below. */
+   private static final String KUNAI_MODEL = "/assets/swiftclient/knife_models/minato_kunai.json";
+   private static final float KUNAI_SCALE = 2.7F;
+   /** Model point that becomes the knife origin: where the blade meets the handle, on the handle's axis. */
+   private static final float KUNAI_ORIGIN_X = 7.915F;
+   private static final float KUNAI_ORIGIN_Y = 0.67F;
+   private static final float KUNAI_ORIGIN_Z = 8.79F;
+   /** Centre of the ring (model z 13.36), where the finger goes through: the inspect spins the knife around it. */
+   static final float KUNAI_RING_X = (8.79F - 13.36F) * 2.7F;
+   static final float KUNAI_RING_Y = 0.0F;
+   /** Middle of the wrapped handle (model z 10.67), where the fist holds it. */
+   static final float KUNAI_GRIP_X = (8.79F - 10.67F) * 2.7F;
+   /** Blade tip (model z 1.07). */
+   static final float KUNAI_TIP_X = (8.79F - 1.07F) * 2.7F;
+   private static final String[] FACES = {"north", "south", "west", "east", "down", "up"};
+
+   /**
+    * Minato's three-pronged kunai, read from its Blockbench model: every cube face becomes a quad, rotated like in
+    * the model, then turned so the blade runs along +x with the tip forward. Light grey is the blade, dark grey the
+    * blade's darker parts and the beige wrap the handle; the sword's material gives the actual colours.
+    */
+   static KnifeMesh kunai() {
+      JsonObject model;
+      try (InputStream in = KnifeModels.class.getResourceAsStream(KUNAI_MODEL)) {
+         model = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+      } catch (IOException | RuntimeException e) {
+         throw new IllegalStateException("Kunai model", e);
+      }
+
+      List<float[]> quads = new ArrayList<>();
+      List<float[]> normals = new ArrayList<>();
+      List<Byte> inks = new ArrayList<>();
+      for (JsonElement el : model.getAsJsonArray("elements")) {
+         JsonObject e = el.getAsJsonObject();
+         float[] from = floats(e.getAsJsonArray("from"));
+         float[] to = floats(e.getAsJsonArray("to"));
+         Quaternionf turn = new Quaternionf();
+         Vector3f origin = new Vector3f();
+         if (e.has("rotation")) {
+            JsonObject r = e.getAsJsonObject("rotation");
+            float angle = (float)Math.toRadians(r.get("angle").getAsFloat());
+            switch (r.get("axis").getAsString()) {
+               case "x" -> turn.rotationX(angle);
+               case "y" -> turn.rotationY(angle);
+               default -> turn.rotationZ(angle);
+            }
+
+            float[] o = floats(r.getAsJsonArray("origin"));
+            origin.set(o[0], o[1], o[2]);
+         }
+
+         JsonObject faces = e.getAsJsonObject("faces");
+         for (int f = 0; f < FACES.length; f++) {
+            if (!faces.has(FACES[f])) {
+               continue;
+            }
+
+            String texture = faces.getAsJsonObject(FACES[f]).get("texture").getAsString();
+            int ink = texture.equals("#0") ? KnifeMaterial.WRAP : texture.equals("#1") ? KnifeMaterial.BLADE_DARK : KnifeMaterial.BLADE;
+            float[] corners = faceCorners(f, from, to);
+            float[] q = new float[12];
+            Vector3f p = new Vector3f();
+            for (int c = 0; c < 4; c++) {
+               p.set(corners[c * 3], corners[c * 3 + 1], corners[c * 3 + 2]).sub(origin);
+               turn.transform(p).add(origin);
+               q[c * 3] = (KUNAI_ORIGIN_Z - p.z) * KUNAI_SCALE;
+               q[c * 3 + 1] = (KUNAI_ORIGIN_X - p.x) * KUNAI_SCALE;
+               q[c * 3 + 2] = (p.y - KUNAI_ORIGIN_Y) * KUNAI_SCALE;
+            }
+
+            Vector3f n = turn.transform(faceNormal(f));
+            quads.add(q);
+            normals.add(new float[]{-n.z, -n.x, n.y});
+            inks.add((byte)ink);
+         }
+      }
+
+      int count = quads.size();
+      float[] pos = new float[count * 12];
+      float[] normal = new float[count * 3];
+      byte[] material = new byte[count];
+      float[] tone = new float[count];
+      for (int i = 0; i < count; i++) {
+         System.arraycopy(quads.get(i), 0, pos, i * 12, 12);
+         System.arraycopy(normals.get(i), 0, normal, i * 3, 3);
+         material[i] = inks.get(i);
+         tone[i] = 1.0F;
+      }
+
+      return KnifeMesh.quads(pos, normal, material, tone, 0.0F, KUNAI_TIP_X);
+   }
+
+   private static float[] floats(JsonArray a) {
+      return new float[]{a.get(0).getAsFloat(), a.get(1).getAsFloat(), a.get(2).getAsFloat()};
+   }
+
+   /** The four corners of a cube face, in order around it (north, south, west, east, down, up). */
+   private static float[] faceCorners(int face, float[] lo, float[] hi) {
+      float x0 = lo[0], y0 = lo[1], z0 = lo[2], x1 = hi[0], y1 = hi[1], z1 = hi[2];
+      return switch (face) {
+         case 0 -> new float[]{x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0};
+         case 1 -> new float[]{x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1};
+         case 2 -> new float[]{x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0};
+         case 3 -> new float[]{x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1};
+         case 4 -> new float[]{x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1};
+         default -> new float[]{x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0};
+      };
+   }
+
+   private static Vector3f faceNormal(int face) {
+      return switch (face) {
+         case 0 -> new Vector3f(0.0F, 0.0F, -1.0F);
+         case 1 -> new Vector3f(0.0F, 0.0F, 1.0F);
+         case 2 -> new Vector3f(-1.0F, 0.0F, 0.0F);
+         case 3 -> new Vector3f(1.0F, 0.0F, 0.0F);
+         case 4 -> new Vector3f(0.0F, -1.0F, 0.0F);
+         default -> new Vector3f(0.0F, 1.0F, 0.0F);
+      };
    }
 
    static KnifeMesh katanaScabbard() {

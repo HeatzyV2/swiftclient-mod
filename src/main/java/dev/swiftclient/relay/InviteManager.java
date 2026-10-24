@@ -45,7 +45,13 @@ public class InviteManager {
             case "spectator" -> GameType.SPECTATOR;
             default -> GameType.SURVIVAL;
          };
+         //? if >=26.3 {
+         /*server.setDefaultGameType(mode);
+         boolean ok = server.publishServer(net.minecraft.server.MinecraftServer.MultiplayerScope.LAN, triche, freePort);
+         *///?} else if >=26.2 {
          boolean ok = server.publishServer(net.minecraft.server.MinecraftServer.MultiplayerScope.LAN, mode, triche, freePort);
+         //?} else
+         /*boolean ok = server.publishServer(mode, triche, freePort);*/
          if (!ok) {
             result.completeExceptionally(new RuntimeException(Tr.of("swift.host.err.refused", freePort)));
             return result;

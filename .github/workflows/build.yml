@@ -19,12 +19,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
-        run: ./gradlew build --no-daemon
+        run: ./gradlew buildAll --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
           name: swiftclient-mod
-          path: build/libs/*.jar
+          path: build/libs/*/*.jar
           if-no-files-found: error
 
   # Every new mod_version pushed on main becomes a GitHub release with its jar. The launcher downloads
@@ -47,13 +47,22 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          VERSION=$(sed -nE 's/^mod\.version = "([^"]+)"/\1/p' stonecutter.properties.toml)
+          test -n "$VERSION"
           TAG="v$VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists, nothing to publish."
             exit 0
           fi
-          JAR="dist/swiftclient-mod-$VERSION.jar"
+          cd "dist/$VERSION"
+          for MC in $(grep -oE 'versions\(([^)]*)\)' ../../settings.gradle.kts | grep -oE '"[^"]+"' | tr -d '"'); do
+            test -s "swiftclient-mod-$VERSION+$MC.jar"
+          done
+          JAR="swiftclient-mod-$VERSION.jar"
+          cp "swiftclient-mod-$VERSION+26.2.jar" "$JAR"
+          sha256sum *.jar > SHA256SUMS.txt
           test -f "$JAR"
-          gh release create "$TAG" "$JAR" --title "Swift Client mod $VERSION" --target "$GITHUB_SHA" \
-            --notes "Swift Client mod $VERSION for Minecraft 26.2 (Fabric). Installed automatically by the Swift Client launcher; the jar can also go in any Fabric 26.2 mods folder with Fabric API."
+          gh release create "$TAG" "$JAR" --draft --title "Swift Client mod $VERSION" --target "$GITHUB_SHA" \
+            --notes "Swift Client mod $VERSION: Fabric builds for Minecraft 1.21.4–1.21.11, 26.1.2, 26.2 and 26.3. The launcher downloads the matching jar on demand. See README.md for the feature matrix."
+          gh release upload "$TAG" swiftclient-mod-*+*.jar SHA256SUMS.txt
+          gh release edit "$TAG" --draft=false --latest

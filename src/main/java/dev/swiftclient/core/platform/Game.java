@@ -59,6 +59,11 @@ public interface Game {
    default void loadImage(String key, byte[] png, BiConsumer<String, Object> onReady) {
    }
 
+   /** Ids of modules that do nothing on this game version: they are not registered. */
+   default java.util.Set<String> unavailableModules() {
+      return java.util.Set.of();
+   }
+
    default String gameVersion() {
       return "";
    }

@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.PlayerSkinWidget;
 import net.minecraft.client.model.Model;
 import net.minecraft.world.entity.player.PlayerSkin;
-import org.lwjgl.glfw.GLFW;
+import dev.swiftclient.compat.Input;
 
 public final class PlayerSkin3DRenderer {
    private static final Logger LOG = Log.get("Ui");
@@ -49,8 +49,7 @@ public final class PlayerSkin3DRenderer {
 
             widget.setX(x);
             widget.setY(y);
-            long handle = mc.getWindow().handle();
-            boolean lmbDown = GLFW.glfwGetMouseButton(handle, 0) == 1;
+            boolean lmbDown = Input.leftMouseDown();
             boolean insidePanel = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
             if (lmbDown && !dragging && insidePanel) {
                dragging = true;

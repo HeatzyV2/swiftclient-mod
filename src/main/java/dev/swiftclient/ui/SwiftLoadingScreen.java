@@ -1,5 +1,6 @@
 package dev.swiftclient.ui;
 
+import dev.swiftclient.compat.GuiPose;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+//? if >=1.21.11
 import net.minecraft.client.renderer.texture.MipmapStrategy;
 import net.minecraft.client.renderer.texture.ReloadableTexture;
 import net.minecraft.client.renderer.texture.TextureContents;
@@ -19,7 +21,6 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.metadata.texture.TextureMetadataSection;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import org.joml.Matrix3x2fStack;
 
 /**
  * Swift loading screen: the S logo filling up with the progress inside a ring of slowly turning rays, the name
@@ -185,7 +186,7 @@ public final class SwiftLoadingScreen {
       int v = Math.round(edge * 256.0F);
       int rows = 256 - v;
       if (rows > 0) {
-         Matrix3x2fStack p = g.pose();
+         GuiPose p = GuiPose.of(g);
          p.pushMatrix();
          p.translate(cx - size * 0.5F, cy - size * 0.5F);
          p.scale(size / 256.0F, size / 256.0F);
@@ -201,7 +202,7 @@ public final class SwiftLoadingScreen {
 
    /** Thin rays around the ring, long and short in turn, turning slowly. */
    private static void rays(GuiGraphicsExtractor g, float cx, float cy, float ringR, float u, float t, float a) {
-      Matrix3x2fStack p = g.pose();
+      GuiPose p = GuiPose.of(g);
       float thick = Math.max(0.35F, 0.35F * u);
       for (int i = 0; i < RAYS; i++) {
          boolean big = i % 2 == 0;
@@ -218,7 +219,7 @@ public final class SwiftLoadingScreen {
    }
 
    private static void diamond(GuiGraphicsExtractor g, float x, float y, float r, int argb) {
-      Matrix3x2fStack p = g.pose();
+      GuiPose p = GuiPose.of(g);
       p.pushMatrix();
       p.translate(x, y);
       p.rotate((float)(Math.PI / 4.0));
@@ -232,7 +233,7 @@ public final class SwiftLoadingScreen {
          return;
       }
 
-      Matrix3x2fStack p = g.pose();
+      GuiPose p = GuiPose.of(g);
       p.pushMatrix();
       p.translate(x, y);
       p.scale(w / 64.0F, h / 64.0F);
@@ -241,7 +242,7 @@ public final class SwiftLoadingScreen {
    }
 
    private static void image(GuiGraphicsExtractor g, Identifier tex, float cx, float cy, float w, float h, int texW, int texH, int argb) {
-      Matrix3x2fStack p = g.pose();
+      GuiPose p = GuiPose.of(g);
       p.pushMatrix();
       p.translate(cx - w * 0.5F, cy - h * 0.5F);
       p.scale(w / texW, h / texH);
@@ -273,7 +274,7 @@ public final class SwiftLoadingScreen {
                throw new IOException("Missing " + this.path);
             }
 
-            return new TextureContents(NativeImage.read(in), new TextureMetadataSection(true, true, MipmapStrategy.MEAN, 0.0F));
+            return new TextureContents(NativeImage.read(in), new TextureMetadataSection(true, true/*? if >=1.21.11 {*/, MipmapStrategy.MEAN, 0.0F/*?}*/));
          }
       }
    }
@@ -334,7 +335,7 @@ public final class SwiftLoadingScreen {
       /** Draws {@code s} with its capitals from {@code top} to {@code top + capH}; returns the pen position after it. */
       float draw(GuiGraphicsExtractor g, String s, float x, float top, float capH, float spacing, int argb) {
          float k = capH / this.capHeight;
-         Matrix3x2fStack p = g.pose();
+         GuiPose p = GuiPose.of(g);
          for (int i = 0; i < s.length(); i++) {
             int idx = this.index(s.charAt(i));
             if (idx > 0) {

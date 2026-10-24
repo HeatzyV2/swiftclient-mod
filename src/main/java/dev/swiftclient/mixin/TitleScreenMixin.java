@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.compat.GuiPose;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.realmsclient.RealmsMainScreen;
@@ -32,6 +33,7 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.SafetyScreen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
+//? if >=1.21.9
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
@@ -60,18 +62,29 @@ public abstract class TitleScreenMixin extends Screen {
       method = {"extractRenderState"},
       at = {@At(
          value = "INVOKE",
+         //? if >=1.21.6 {
          target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;text(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V"
+         //?} else
+         /*target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;text(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)I"*/
       )}
    )
+   //? if >=1.21.6 {
    private void swiftclient$customVersion(GuiGraphicsExtractor context, Font renderer, String text, int x, int y, int color, Operation<Void> original) {
+   //?} else
+   /*private int swiftclient$customVersion(GuiGraphicsExtractor context, Font renderer, String text, int x, int y, int color, Operation<Integer> original) {*/
+      String shown = text;
+      int shownColor = color;
       if (text.startsWith("Minecraft ")) {
          int slash = text.indexOf(47);
          String versionPart = slash >= 0 ? text.substring(0, slash) : text;
-         String custom = "Swift Client " + versionPart.substring("Minecraft ".length());
-         original.call(new Object[]{context, renderer, custom, x, y, -10066330});
-      } else {
-         original.call(new Object[]{context, renderer, text, x, y, color});
+         shown = "Swift Client " + versionPart.substring("Minecraft ".length());
+         shownColor = -10066330;
       }
+
+      //? if >=1.21.6 {
+      original.call(new Object[]{context, renderer, shown, x, y, shownColor});
+      //?} else
+      /*return original.call(new Object[]{context, renderer, shown, x, y, shownColor});*/
    }
 
    @WrapOperation(
@@ -202,7 +215,7 @@ public abstract class TitleScreenMixin extends Screen {
          () -> mc.setScreenAndShow(new CoreScreenHost(new WardrobeScreen(), self)), SwiftMenuButton.Style.ROW, 3));
       y += rowH + gap;
       this.addRenderableWidget(this.swiftclient$button(x, y, w, rowH, "menu.options", "gear",
-         () -> mc.setScreenAndShow(new OptionsScreen(self, mc.options, false)), SwiftMenuButton.Style.ROW, 4));
+         () -> mc.setScreenAndShow(new OptionsScreen(self, mc.options/*? if >=26.1 <26.3 {*/, false/*?}*/)), SwiftMenuButton.Style.ROW, 4));
       y += rowH + 8;
 
       int sh = this.swiftclient$smallH;
@@ -276,8 +289,7 @@ public abstract class TitleScreenMixin extends Screen {
 
       int head = this.swiftclient$logo;
       Font font = Minecraft.getInstance().font;
-      net.minecraft.network.chat.Style bold = net.minecraft.network.chat.Style.EMPTY
-         .withFont(new net.minecraft.network.chat.FontDescription.Resource(net.minecraft.resources.Identifier.fromNamespaceAndPath("swiftclient", "ui_title")));
+      net.minecraft.network.chat.Style bold = dev.swiftclient.compat.Fonts.style(net.minecraft.resources.Identifier.fromNamespaceAndPath("swiftclient", "ui_title"));
       Component swift = Component.literal(tr("swift.brand.swift").toUpperCase(Locale.ROOT)).setStyle(bold);
       Component client = Component.literal(tr("swift.brand.client").toUpperCase(Locale.ROOT)).setStyle(bold);
       int gap = 3;
@@ -294,7 +306,7 @@ public abstract class TitleScreenMixin extends Screen {
       float startX = this.swiftclient$colX + SWIFTCLIENT$SLANT * capH - (1.0F - ba) * 24.0F;
       int a = Math.round(255 * ba) << 24;
 
-      var pose = ctx.pose();
+      var pose = GuiPose.of(ctx);
       pose.pushMatrix();
       pose.translate(startX, capTop - SWIFTCLIENT$CAP_TOP * k);
       pose.mul(new org.joml.Matrix3x2f(1.0F, 0.0F, -SWIFTCLIENT$SLANT, 1.0F, 0.0F, 0.0F));
@@ -317,8 +329,14 @@ public abstract class TitleScreenMixin extends Screen {
       at = {@At("HEAD")},
       cancellable = true
    )
+   //? if >=1.21.9 {
    private void swiftclient$openAccountSwitcher(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-      if (!ModCompat.essentialLoaded() && AccountBadge.isOnBadge(this.width, click.x(), click.y())) {
+      double mouseX = click.x();
+      double mouseY = click.y();
+   //?} else {
+   /*private void swiftclient$openAccountSwitcher(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+   *///?}
+      if (!ModCompat.essentialLoaded() && AccountBadge.isOnBadge(this.width, mouseX, mouseY)) {
          Minecraft.getInstance().setScreenAndShow(new CoreScreenHost(new AccountScreen(), (TitleScreen)(Object)this));
          cir.setReturnValue(true);
       }

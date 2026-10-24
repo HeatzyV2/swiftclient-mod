@@ -1,12 +1,11 @@
 package dev.swiftclient.world;
 
+import dev.swiftclient.compat.Draw3D;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.ModuleSetting;
 import java.util.Locale;
 import net.minecraft.client.Minecraft;
-import net.minecraft.gizmos.Gizmos;
-import net.minecraft.gizmos.TextGizmo;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.phys.Vec3;
 
@@ -55,7 +54,7 @@ public final class WorldOverlays {
          float secs = Math.max(0.0F, (t.getFuse() - partialTick) / 20.0F);
          int color = secs > 2.0F ? 0xFF6BD36B : (secs > 1.0F ? 0xFFF2C94C : 0xFFFF6B6B);
          Vec3 p = t.getPosition(partialTick).add(0.0, 1.35, 0.0);
-         Gizmos.billboardText(String.format(Locale.ROOT, "%.1fs", secs), p, TextGizmo.Style.forColorAndCentered(color).withScale(0.6F)).setAlwaysOnTop();
+         Draw3D.text(String.format(Locale.ROOT, "%.1fs", secs), p, color, 0.6F);
       }
    }
 }

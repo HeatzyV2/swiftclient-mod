@@ -15,7 +15,11 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin({Font.class})
 public abstract class FontNickMixin {
    @ModifyVariable(
-      method = {"prepareText(Ljava/lang/String;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;"},
+      // Before 1.21.6 text is laid out by renderText.
+      method = {
+         "prepareText(Ljava/lang/String;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;",
+         "renderText(Ljava/lang/String;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)F"
+      },
       at = @At("HEAD"),
       argsOnly = true
    )
@@ -24,7 +28,12 @@ public abstract class FontNickMixin {
    }
 
    @ModifyVariable(
-      method = {"prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;"},
+      // One more boolean since 1.21.11.
+      method = {
+         "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font$PreparedText;",
+         "prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZI)Lnet/minecraft/client/gui/Font$PreparedText;",
+         "renderText(Lnet/minecraft/util/FormattedCharSequence;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/gui/Font$DisplayMode;IIZ)F"
+      },
       at = @At("HEAD"),
       argsOnly = true
    )

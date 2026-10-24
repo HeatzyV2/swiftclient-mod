@@ -46,7 +46,7 @@ final class MinimapRenderer {
          }
 
          size = want;
-         texture = new DynamicTexture(() -> "Swift minimap", size, size, true);
+         texture = new DynamicTexture(/*? if >=1.21.5 {*/() -> "Swift minimap", /*?}*/size, size, true);
          mc.getTextureManager().register(TEXTURE, texture);
          lastBuild = 0L;
       }

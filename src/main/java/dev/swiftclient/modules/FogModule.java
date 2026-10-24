@@ -66,11 +66,19 @@ public final class FogModule extends Module {
          fog.renderDistanceEnd = FAR;
       }
 
-      if (m.tint.boolValue()) {
-         int c = m.color.colorValue();
-         fog.color.set((c >> 16 & 0xFF) / 255.0F, (c >> 8 & 0xFF) / 255.0F, (c & 0xFF) / 255.0F, 1.0F);
-      }
-
+      //? if >=26.1
+      tint(fog.color);
       return fog;
+   }
+
+   /** Custom color: replaces the fog colour vanilla computed. */
+   public static void tint(org.joml.Vector4f color) {
+      if (ModuleManager.isLoaded()) {
+         FogModule m = ModuleManager.get(FogModule.class);
+         if (m.isEnabled() && m.tint.boolValue()) {
+            int c = m.color.colorValue();
+            color.set((c >> 16 & 0xFF) / 255.0F, (c >> 8 & 0xFF) / 255.0F, (c & 0xFF) / 255.0F, 1.0F);
+         }
+      }
    }
 }

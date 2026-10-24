@@ -88,17 +88,17 @@ final class AtmosphereStars {
          if (random.nextFloat() < 0.3F) {
             float along = random.nextFloat() * ((float)Math.PI * 2F);
             float across = (float)random.nextGaussian() * 9.0F * ((float)Math.PI / 180F);
-            float cosAcross = Mth.cos((double)across);
-            float sinAcross = Mth.sin((double)across);
-            x = cosAcross * (Mth.cos((double)along) * a.x + Mth.sin((double)along) * b.x) + sinAcross * BAND_NORMAL.x;
-            y = cosAcross * (Mth.cos((double)along) * a.y + Mth.sin((double)along) * b.y) + sinAcross * BAND_NORMAL.y;
-            z = cosAcross * (Mth.cos((double)along) * a.z + Mth.sin((double)along) * b.z) + sinAcross * BAND_NORMAL.z;
+            float cosAcross = Mth.cos(across);
+            float sinAcross = Mth.sin(across);
+            x = cosAcross * (Mth.cos(along) * a.x + Mth.sin(along) * b.x) + sinAcross * BAND_NORMAL.x;
+            y = cosAcross * (Mth.cos(along) * a.y + Mth.sin(along) * b.y) + sinAcross * BAND_NORMAL.y;
+            z = cosAcross * (Mth.cos(along) * a.z + Mth.sin(along) * b.z) + sinAcross * BAND_NORMAL.z;
          } else {
             y = random.nextFloat() * 2.0F - 1.0F;
             float around = random.nextFloat() * ((float)Math.PI * 2F);
             float flat = Mth.sqrt(1.0F - y * y);
-            x = flat * Mth.cos((double)around);
-            z = flat * Mth.sin((double)around);
+            x = flat * Mth.cos(around);
+            z = flat * Mth.sin(around);
          }
 
          this.dir[i * 3] = x;
@@ -132,7 +132,7 @@ final class AtmosphereStars {
       BufferBuilder builder = this.starMesh.begin();
 
       for(int i = 0; i < 2600; ++i) {
-         float twinkle = 0.62F + 0.38F * Mth.sin((double)(time * this.speed[i] + this.phase[i]));
+         float twinkle = 0.62F + 0.38F * Mth.sin((time * this.speed[i] + this.phase[i]));
          float alpha = Mth.clamp(this.light[i] * twinkle * brightness, 0.0F, 1.0F);
          // One quad per star: a flat "glow" quad around the bright ones showed as a square, not a halo.
          this.star(builder, i, this.size[i], alpha);
@@ -165,8 +165,8 @@ final class AtmosphereStars {
       float vx = y * uz - z * uy;
       float vy = z * ux - x * uz;
       float vz = x * uy - y * ux;
-      float c = Mth.cos((double)this.roll[i]) * half;
-      float s = Mth.sin((double)this.roll[i]) * half;
+      float c = Mth.cos(this.roll[i]) * half;
+      float s = Mth.sin(this.roll[i]) * half;
       float ax = ux * c + vx * s;
       float ay = uy * c + vy * s;
       float az = uz * c + vz * s;
@@ -199,9 +199,9 @@ final class AtmosphereStars {
 
       for(int c = 0; c <= 180; ++c) {
          float along = (float)c / 180.0F * ((float)Math.PI * 2F);
-         float ax = Mth.cos((double)along) * a.x + Mth.sin((double)along) * b.x;
-         float ay = Mth.cos((double)along) * a.y + Mth.sin((double)along) * b.y;
-         float az = Mth.cos((double)along) * a.z + Mth.sin((double)along) * b.z;
+         float ax = Mth.cos(along) * a.x + Mth.sin(along) * b.x;
+         float ay = Mth.cos(along) * a.y + Mth.sin(along) * b.y;
+         float az = Mth.cos(along) * a.z + Mth.sin(along) * b.z;
          float width = 0.55F + 0.45F * fbm(ax * 1.7F, ay * 1.7F, az * 1.7F);
          float rift = 3.0F * (fbm(ax * 2.3F + 5.0F, ay * 2.3F, az * 2.3F) - 0.5F);
          float riftDepth = Mth.clamp(fbm(ax * 1.4F, ay * 1.4F + 9.0F, az * 1.4F) * 1.6F - 0.35F, 0.0F, 1.0F);
@@ -209,8 +209,8 @@ final class AtmosphereStars {
          for(int r = 0; r <= 12; ++r) {
             float acrossDeg = ((float)r / 12.0F * 2.0F - 1.0F) * 17.0F;
             float across = acrossDeg * ((float)Math.PI / 180F);
-            float cosAcross = Mth.cos((double)across);
-            float sinAcross = Mth.sin((double)across);
+            float cosAcross = Mth.cos(across);
+            float sinAcross = Mth.sin(across);
             float x = cosAcross * ax + sinAcross * BAND_NORMAL.x;
             float y = cosAcross * ay + sinAcross * BAND_NORMAL.y;
             float z = cosAcross * az + sinAcross * BAND_NORMAL.z;
@@ -252,9 +252,9 @@ final class AtmosphereStars {
 
          for(int r = 0; r <= 36; ++r) {
             float el = ((float)r / 36.0F - 0.5F) * (float)Math.PI;
-            float x = Mth.cos((double)el) * Mth.cos((double)around);
-            float y = Mth.sin((double)el);
-            float z = Mth.cos((double)el) * Mth.sin((double)around);
+            float x = Mth.cos(el) * Mth.cos(around);
+            float y = Mth.sin(el);
+            float z = Mth.cos(el) * Mth.sin(around);
             px[c][r] = x * 100.0F;
             py[c][r] = y * 100.0F;
             pz[c][r] = z * 100.0F;

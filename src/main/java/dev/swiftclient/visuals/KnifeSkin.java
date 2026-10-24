@@ -13,6 +13,7 @@ final class KnifeSkin {
    static final String BUTTERFLY = "Butterfly";
    static final String KARAMBIT = "Karambit";
    static final String KATANA = "Katana";
+   static final String KUNAI = "Kunai";
    static final int MAX_STREAKS = 2;
    private static final Vector3f OFF_FOREARM = (new Vector3f(0.4F, -0.85F, 0.35F)).normalize();
    private static final Vector3f OFF_AWAY = new Vector3f(-0.3F, -0.75F, 0.1F);
@@ -26,9 +27,34 @@ final class KnifeSkin {
    private static final float[][] KARAMBIT_DEPLOY = new float[][]{{0.0F, 0.02F, -0.14F, 0.02F, 0.0F, -30.0F, -20.0F, 0.0F, 0.0F, -540.0F, 0.0F, 0.0F}, {0.55F, 0.0F, 0.0F, 0.0F, 0.0F, 4.0F, 4.0F, 0.0F, 0.0F, -60.0F, 0.0F, 0.0F}, {0.78F, 0.0F, 0.0F, 0.0F, 0.0F, -2.0F, -2.0F, 0.0F, 0.0F, 12.0F, 0.0F, 0.0F}, {1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F}};
    private static final float[][] KATANA_INSPECT = new float[][]{{0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 4.0F}, {0.1F, -0.06F, 0.12F, 0.06F, 0.0F, 0.0F, 60.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.6F, 4.0F}, {0.15F, -0.07F, 0.14F, 0.08F, -2.0F, 0.0F, 60.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 4.0F}, {0.2F, -0.07F, 0.14F, 0.08F, -2.0F, 0.0F, 60.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 12.0F}, {0.36F, -0.07F, 0.14F, 0.08F, 0.0F, 0.0F, 58.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 44.0F}, {0.4F, -0.07F, 0.14F, 0.08F, 0.0F, 0.0F, 58.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 53.0F}, {0.44F, -0.06F, 0.13F, 0.06F, 2.0F, 1.0F, 54.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.6F, 58.0F}, {0.48F, -0.05F, 0.11F, 0.03F, 4.0F, 2.0F, 42.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}, {0.52F, -0.04F, 0.1F, 0.02F, 0.0F, 4.0F, 20.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}, {0.6F, -0.04F, 0.12F, 0.02F, 0.0F, 4.0F, -160.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}, {0.68F, -0.04F, 0.1F, 0.02F, 0.0F, 4.0F, -340.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}, {0.78F, 0.04F, -0.03F, 0.0F, 0.0F, -6.0F, -400.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}, {0.88F, 0.0F, 0.02F, 0.0F, 0.0F, 2.0F, -365.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}, {1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -360.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 62.0F}};
    private static final float[][] KATANA_DEPLOY = new float[][]{{0.0F, 0.06F, 0.0F, 0.02F, -10.0F, 0.0F, 45.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F}, {0.05F, 0.05F, 0.01F, 0.01F, -12.0F, 0.0F, 47.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 2.0F, 1.0F, 0.0F}, {0.18F, 0.15F, 0.0F, 0.05F, -10.0F, 0.0F, 45.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.3F, 0.0F, 16.0F, 1.0F, 0.0F}, {0.3F, 0.3F, -0.02F, 0.1F, -8.0F, 0.0F, 43.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.9F, 0.0F, 50.0F, 1.0F, 0.0F}, {0.33F, 0.3F, 0.0F, 0.1F, -4.0F, 4.0F, 36.0F, 180.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 52.0F, 1.0F, 0.0F}, {0.41F, 0.08F, 0.12F, 0.04F, 0.0F, 10.0F, -40.0F, 180.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 52.0F, 0.25F, 0.0F}, {0.47F, -0.02F, 0.1F, 0.02F, 5.0F, 8.0F, -100.0F, 180.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 52.0F, 0.0F, 0.0F}, {0.62F, -0.02F, 0.08F, 0.02F, 0.0F, 6.0F, -460.0F, 180.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 52.0F, 0.0F, 0.0F}, {0.71F, 0.04F, -0.04F, 0.0F, 0.0F, -6.0F, -520.0F, 180.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 52.0F, 0.0F, 0.0F}, {0.82F, 0.0F, 0.02F, 0.0F, 0.0F, 2.0F, -370.0F, 300.0F, 0.0F, 0.0F, 0.0F, 2.0F, 0.0F, 52.0F, 0.0F, 0.0F}, {1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -360.0F, 360.0F, 0.0F, 0.0F, 0.0F, 3.0F, 0.0F, 52.0F, 0.0F, 0.0F}};
+   /** Slide that brings the kunai's ring onto the fist (grip minus ring), for the spins around the finger. */
+   private static final float KUNAI_RING_SLIDE = KnifeModels.KUNAI_GRIP_X - KnifeModels.KUNAI_RING_X;
+   // Kunai: t, offset xyz, turn yaw/pitch/roll, flip, -, ring spin, -, shine, slide (grip moved to the ring)
+   private static final float[][] KUNAI_INSPECT = new float[][]{
+      {0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F},
+      {0.1F, -0.1F, 0.12F, 0.06F, -10.0F, 12.0F, 8.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F},
+      {0.16F, -0.12F, 0.14F, 0.06F, -10.0F, 14.0F, 10.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.22F, -0.12F, 0.14F, 0.06F, -10.0F, 14.0F, 10.0F, 0.0F, 0.0F, -90.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.3F, -0.12F, 0.14F, 0.06F, -10.0F, 14.0F, 10.0F, 0.0F, 0.0F, -330.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.41F, -0.12F, 0.14F, 0.06F, -10.0F, 14.0F, 10.0F, 0.0F, 0.0F, -570.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.52F, -0.12F, 0.14F, 0.06F, -10.0F, 14.0F, 10.0F, 0.0F, 0.0F, -810.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.58F, -0.14F, 0.18F, 0.06F, -10.0F, 14.0F, 10.0F, 0.0F, 0.0F, -990.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.65F, -0.16F, 0.2F, 0.05F, -6.0F, 10.0F, 24.0F, 0.0F, 0.0F, -990.0F, 0.0F, 0.0F, 0.0F},
+      {0.73F, -0.16F, 0.2F, 0.05F, -6.0F, 10.0F, 24.0F, 0.0F, 0.0F, -990.0F, 0.0F, 0.0F, 0.0F},
+      {0.82F, -0.08F, 0.08F, 0.04F, -8.0F, 8.0F, 10.0F, 0.0F, 0.0F, -1080.0F, 0.0F, 0.55F, 0.0F},
+      {0.91F, -0.04F, 0.04F, 0.02F, -3.0F, 3.0F, 3.0F, 0.0F, 0.0F, -1080.0F, 0.0F, 0.95F, 0.0F},
+      {1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1080.0F, 0.0F, 1.0F, 0.0F}
+   };
+   private static final float[][] KUNAI_DEPLOY = new float[][]{
+      {0.0F, 0.02F, -0.14F, 0.02F, 0.0F, -30.0F, -20.0F, 0.0F, 0.0F, -540.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 4.0F, 4.0F, 0.0F, 0.0F, -60.0F, 0.0F, 0.0F, KUNAI_RING_SLIDE},
+      {0.75F, 0.0F, 0.0F, 0.0F, 0.0F, -2.0F, -2.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 2.0F},
+      {1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F}
+   };
    private static KnifeSkin butterfly;
    private static KnifeSkin karambit;
    private static KnifeSkin katana;
+   private static KnifeSkin kunai;
    final String name;
    final InspectAnimation.Clip inspect;
    final InspectAnimation.Clip deploy;
@@ -47,6 +73,7 @@ final class KnifeSkin {
    private Centre centre;
    private float bladeFrom;
    private float bladeTo;
+
 
    private KnifeSkin(String name, Part[] parts, Streak[] streaks, float voxel, float gripX, float gripY, Vector3f fist, Vector3f blade, Vector3f spine, InspectAnimation.Clip inspect, InspectAnimation.Clip deploy) {
       this.name = name;
@@ -70,6 +97,7 @@ final class KnifeSkin {
          case "Butterfly" -> var10000 = butterfly != null ? butterfly : (butterfly = butterfly());
          case "Karambit" -> var10000 = karambit != null ? karambit : (karambit = karambit());
          case "Katana" -> var10000 = katana != null ? katana : (katana = katana());
+         case "Kunai" -> var10000 = kunai != null ? kunai : (kunai = kunai());
          default -> var10000 = null;
       }
 
@@ -92,6 +120,12 @@ final class KnifeSkin {
       int k = 2;
       Streak[] streaks = new Streak[]{new Streak(0, 6.0F * (float)k, 0.5F * (float)k, tip[0], tip[1], 1.0F)};
       return new KnifeSkin("Karambit", parts, streaks, 0.022F / (float)k, ringX + 2.0F, ringY, new Vector3f(-0.06F, 0.1F, 0.02F), new Vector3f(-0.6F, 0.7F, -0.2F), new Vector3f(0.7F, 0.65F, 0.1F), new InspectAnimation.Clip(KARAMBIT_INSPECT, 3.2F, 0.14F, 0.4F), new InspectAnimation.Clip(KARAMBIT_DEPLOY, 0.8F));
+   }
+
+   private static KnifeSkin kunai() {
+      Part[] parts = new Part[]{new Part(KnifeModels.kunai(), 8, KnifeModels.KUNAI_RING_X, KnifeModels.KUNAI_RING_Y)};
+      Streak[] streaks = new Streak[]{new Streak(0, 0.0F, 0.0F, KnifeModels.KUNAI_TIP_X, 0.0F, 1.0F)};
+      return new KnifeSkin("Kunai", parts, streaks, 0.021F, KnifeModels.KUNAI_GRIP_X, 0.0F, new Vector3f(-0.06F, 0.06F, 0.02F), new Vector3f(-0.15F, 1.0F, -0.1F), new Vector3f(1.0F, 0.15F, 0.3F), new InspectAnimation.Clip(KUNAI_INSPECT, 3.4F, 0.22F, 0.52F), new InspectAnimation.Clip(KUNAI_DEPLOY, 0.8F));
    }
 
    private static KnifeSkin katana() {
@@ -159,7 +193,7 @@ final class KnifeSkin {
       KnifeMesh.Shine shine = wipe;
       if (wipe == null) {
          float sweep = shinePosition(at[10]);
-         shine = new KnifeMesh.Shine(sweep, sweep > 0.0F ? Mth.sin((double)((float)Math.PI * sweep)) * weight : 0.0F, 0.0F);
+         shine = new KnifeMesh.Shine(sweep, sweep > 0.0F ? Mth.sin(((float)Math.PI * sweep)) * weight : 0.0F, 0.0F);
       }
 
       pose.pushPose();

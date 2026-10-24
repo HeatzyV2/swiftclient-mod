@@ -5,6 +5,7 @@ import dev.swiftclient.renderer.RoundedButtons;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+//? if >=1.21.9
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
@@ -15,7 +16,10 @@ public final class SoftPanelWidget extends AbstractWidget {
       this.active = false;
    }
 
+   //? if >=1.21.9 {
    public void onClick(MouseButtonEvent click, boolean doubled) {
+   //?} else
+   /*public void onClick(double mouseX, double mouseY) {*/
    }
 
    protected void extractWidgetRenderState(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
@@ -23,7 +27,10 @@ public final class SoftPanelWidget extends AbstractWidget {
       RoundedButtons.drawSoftPanel(this.getX(), this.getY(), this.width, this.height);
    }
 
+   //? if >=1.21.9 {
    protected boolean isValidClickButton(MouseButtonEvent click) {
+   //?} else
+   /*protected boolean isValidClickButton(int button) {*/
       return false;
    }
 

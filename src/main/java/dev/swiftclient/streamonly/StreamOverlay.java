@@ -1,5 +1,6 @@
 package dev.swiftclient.streamonly;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -150,7 +151,7 @@ public final class StreamOverlay {
    }
 
    private static boolean hotbarVisible() {
-      Screen screen = Minecraft.getInstance().gui.screen();
+      Screen screen = Mc.screen();
       return screen == null || screen instanceof ChatScreen;
    }
 
@@ -176,7 +177,7 @@ public final class StreamOverlay {
          try {
             Minecraft mc = Minecraft.getInstance();
             Window win = mc.getWindow();
-            if (win.isMinimized()) {
+            if (dev.swiftclient.compat.Input.minimized()) {
                hideAll();
             } else {
                int scale = win.getGuiScale();
@@ -229,11 +230,11 @@ public final class StreamOverlay {
       }
 
       if (slotWindow == null && slotsShown) {
-         slotWindow = new OverlayWindow(win.handle());
+         slotWindow = new OverlayWindow();
       }
 
       if (cursorWindow == null && cursorShown) {
-         cursorWindow = new OverlayWindow(win.handle());
+         cursorWindow = new OverlayWindow();
       }
 
       boolean layout = slotBits != shownMask
@@ -501,7 +502,7 @@ public final class StreamOverlay {
 
    /** The framebuffer rectangle covering every recorded slot: x, y (top-left origin), width, height. */
    private static boolean region(long slotBits, int scale, int[] out) {
-      RenderTarget main = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+      RenderTarget main = Mc.mainTarget();
       int px = 16 * scale;
       int x0 = Integer.MAX_VALUE;
       int y0 = Integer.MAX_VALUE;
@@ -536,7 +537,7 @@ public final class StreamOverlay {
    }
 
    private static void copyRegion(CommandEncoder encoder, GpuBuffer target, long offset, int[] area, Runnable done) {
-      RenderTarget main = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+      RenderTarget main = Mc.mainTarget();
       // Texture rows start at the bottom of the screen.
       encoder.copyTextureToBuffer(main.getColorTexture(), target, offset, done, 0, area[0], main.height - area[1] - area[3], area[2], area[3]);
    }
@@ -600,7 +601,7 @@ public final class StreamOverlay {
          return;
       }
 
-      RenderTarget main = mc.gameRenderer.mainRenderTarget();
+      RenderTarget main = Mc.mainTarget();
       boolean cleared = false;
       int px = 16 * scale;
       RenderSystem.backupProjectionMatrix();

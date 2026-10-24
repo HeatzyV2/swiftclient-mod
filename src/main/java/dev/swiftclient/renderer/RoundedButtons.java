@@ -1,5 +1,7 @@
 package dev.swiftclient.renderer;
 
+import dev.swiftclient.compat.GuiPose;
+//? if gpu
 import dev.swiftclient.renderer.rect.RoundedRectRenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -30,11 +32,12 @@ public class RoundedButtons {
    }
 
    private static float scale() {
-      float gui = Minecraft.getInstance().getWindow().getGuiScale();
-      float matrice = CTX == null ? 1.0F : Math.abs(CTX.pose().m00());
+      float gui = (float)Minecraft.getInstance().getWindow().getGuiScale();
+      float matrice = CTX == null ? 1.0F : Math.abs(GuiPose.of(CTX).m00());
       return matrice > 0.0F ? gui * matrice : gui;
    }
 
+   //? if gpu {
    private static java.lang.reflect.Field guiRenderStateField;
    private static java.lang.reflect.Field scissorStackField;
    private static java.lang.reflect.Method peekMethod;
@@ -65,6 +68,30 @@ public class RoundedButtons {
          }
       }
    }
+   //?} else {
+   /*/^* Without the rounded-rect shader (before 26.2): rows of plain fills, one per pixel of the corners. *^/
+   private static void roundRect(float x, float y, float w, float h, float radius, int color) {
+      if (CTX == null || w <= 0.0F || h <= 0.0F) {
+         return;
+      }
+      int x0 = Math.round(x);
+      int y0 = Math.round(y);
+      int x1 = Math.round(x + w);
+      int y1 = Math.round(y + h);
+      int r = Math.min(Math.round(radius), Math.min(x1 - x0, y1 - y0) / 2);
+      if (r <= 0) {
+         CTX.fill(x0, y0, x1, y1, color);
+         return;
+      }
+      CTX.fill(x0, y0 + r, x1, y1 - r, color);
+      for (int i = 0; i < r; i++) {
+         double dy = r - i - 0.5;
+         int inset = (int)Math.round(r - Math.sqrt(r * r - dy * dy));
+         CTX.fill(x0 + inset, y0 + i, x1 - inset, y0 + i + 1, color);
+         CTX.fill(x0 + inset, y1 - i - 1, x1 - inset, y1 - i, color);
+      }
+   }
+   *///?}
 
    public static void drawButtonBackground(int x, int y, int w, int h, boolean hovered, boolean active) {
       float r = pillRadius(h);

@@ -57,10 +57,13 @@ public final class FakeWorldFactory {
 
       try {
          VanillaPackResources vanillaPack = ServerPacksSource.createVanillaPackSource();
-         rm = new MultiPackResourceManager(PackType.SERVER_DATA, List.of(vanillaPack));
-         Provider builtin = VanillaRegistries.createLookup();
+         rm = new MultiPackResourceManager(PackType.SERVER_DATA, List.<net.minecraft.server.packs.PackResources>of(vanillaPack/*? if >=26.3 {*//*.fullResources()*//*?}*/));
+         Provider builtin = VanillaRegistries./*? if >=26.3 {*//*createWorldLookup*//*?} else {*/createLookup/*?}*/();
          List<RegistryLookup<?>> base = builtin.listRegistries().toList();
-         Frozen loaded = (Frozen)RegistryDataLoader.load(rm, base, RegistryDataLoader.WORLDGEN_REGISTRIES, Runnable::run).join();
+         //? if >=26.1 {
+         Frozen loaded = (Frozen)RegistryDataLoader.load(rm, base, RegistryDataLoader./*? if >=26.3 {*//*WORLD_REGISTRIES*//*?} else {*/WORLDGEN_REGISTRIES/*?}*/, Runnable::run).join();
+         //?} else
+         /*Frozen loaded = RegistryDataLoader.load(rm, base, RegistryDataLoader.WORLDGEN_REGISTRIES);*/
          RegistryCache.set(loaded, null);
          LOG.debug("Registres pre-charges depuis le datapack vanilla");
       } catch (Throwable ex) {
@@ -80,7 +83,7 @@ public final class FakeWorldFactory {
       Holder<DimensionType> dimEntry = RegistryCache.get().lookupOrThrow(Registries.DIMENSION_TYPE).getOrThrow(BuiltinDimensionTypes.OVERWORLD);
       ClientLevelData props = new ClientLevelData(Difficulty.PEACEFUL, false, true);
       ClientLevel fakeWorld = new ClientLevel(
-         mc.getConnection() != null ? mc.getConnection() : RegistryCache.getHandler(), props, Level.OVERWORLD, dimEntry, 8, 8, mc.levelExtractor, false, 0L, 63
+         mc.getConnection() != null ? mc.getConnection() : RegistryCache.getHandler(), props, Level.OVERWORLD, dimEntry, 8, 8, /*? if >=26.2 {*/mc.levelExtractor/*?} else {*//*mc.levelRenderer*//*?}*/, false, 0L, 63
       );
       return new RemotePlayer(fakeWorld, mc.getGameProfile());
    }

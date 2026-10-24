@@ -17,3 +17,7 @@ Thumbs.db
 hs_err_pid*
 replay_pid*
 logs/
+
+# Stonecutter: one Gradle project per Minecraft version
+versions/*/build/
+versions/*/.gradle/

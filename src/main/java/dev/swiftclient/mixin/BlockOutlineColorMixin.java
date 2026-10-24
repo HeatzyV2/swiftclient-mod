@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin({LevelRenderer.class})
 public abstract class BlockOutlineColorMixin {
    @ModifyVariable(
-      method = {"submitHitOutline"},
+      method = {"submitHitOutline", "renderHitOutline"},
       at = @At("HEAD"),
       argsOnly = true,
       ordinal = 0,

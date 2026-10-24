@@ -47,7 +47,16 @@ public final class TestGame {
       return v == null ? key : String.format(v, args);
    }
 
+   private static boolean bootstrapped;
+
    public static void install() {
+      // Platform modules create item stacks: before 26.1 that needs the vanilla registries bootstrapped.
+      if (!bootstrapped) {
+         bootstrapped = true;
+         net.minecraft.SharedConstants.tryDetectVersion();
+         net.minecraft.server.Bootstrap.bootStrap();
+      }
+
       CONFIG.clear();
       java.util.Arrays.fill(PLAYER, null);
       SINGLEPLAYER[0] = false;
@@ -87,6 +96,7 @@ public final class TestGame {
             new dev.swiftclient.core.platform.Lang("tr_tr", "Türkçe", "Türkiye"),
             new dev.swiftclient.core.platform.Lang("en_pt", "Pirate Speak", "The Seven Seas"));
          case "currentLanguage" -> "fr_fr";
+         case "unavailableModules" -> java.util.Set.of();
          case "accounts" -> java.util.List.of(
             new dev.swiftclient.core.platform.Account("u1", "Zor4tox_", true, false, false),
             new dev.swiftclient.core.platform.Account("u2", "HeatzyV2", false, false, false),

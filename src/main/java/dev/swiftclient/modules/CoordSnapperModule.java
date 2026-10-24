@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
@@ -70,7 +71,7 @@ public final class CoordSnapperModule extends Module {
       } else {
          pos = this.raycast(player, level);
          if (pos == null) {
-            Minecraft.getInstance().gui.hud.setOverlayMessage(Component.literal("Nothing copied: no block within " + this.range.intValue() + " blocks of your aim"), false);
+            Mc.hud().setOverlayMessage(Component.literal("Nothing copied: no block within " + this.range.intValue() + " blocks of your aim"), false);
             return;
          }
 
@@ -82,7 +83,7 @@ public final class CoordSnapperModule extends Module {
       String text = this.formatCoords(pos, level.dimension());
       mc.keyboardHandler.setClipboard(text);
       if (this.confirm.boolValue()) {
-         Minecraft.getInstance().gui.hud.setOverlayMessage(Component.literal("Copied " + text), false);
+         Mc.hud().setOverlayMessage(Component.literal("Copied " + text), false);
       }
    }
 

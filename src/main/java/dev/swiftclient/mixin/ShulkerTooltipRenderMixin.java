@@ -14,7 +14,9 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin({GuiGraphicsExtractor.class})
 public abstract class ShulkerTooltipRenderMixin {
    @WrapOperation(
-      method = {"lambda$setTooltipForNextFrame$0", "lambda$setTooltipForNextFrame$1"},
+      // The lambda of setTooltipForNextFrame that turns the tooltip image into a component: its synthetic name
+      // differs between versions (and has no mapping on 1.21.x), so every method calling create(image) is matched.
+      method = {"*"},
       at = {@At(
          value = "INVOKE",
          target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipComponent;create(Lnet/minecraft/world/inventory/tooltip/TooltipComponent;)Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipComponent;"

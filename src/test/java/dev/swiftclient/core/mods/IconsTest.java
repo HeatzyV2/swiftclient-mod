@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test;
 
 /** Every icon name the code can ask for must exist as a texture, otherwise the game draws the purple "missing" tile. */
 class IconsTest {
-   private static final Path ICONS = Path.of("src", "main", "resources", "assets", "swiftclient", "textures", "gui", "icons");
+   /** The repository's src/ folder (each Minecraft version runs its tests from versions/<mc>/). */
+   private static final Path SRC = Path.of(System.getProperty("swiftclient.src", "src"));
+   private static final Path ICONS = SRC.resolve("main/resources/assets/swiftclient/textures/gui/icons");
 
    @BeforeEach
    void setUp() {
@@ -61,7 +63,7 @@ class IconsTest {
    void everyIconNamedInTheSourcesExists() throws IOException {
       Pattern literal = Pattern.compile("\\.icon\\(\"([a-z_0-9]+)\"");
       Set<String> missing = new TreeSet<>();
-      try (Stream<Path> files = Files.walk(Path.of("src", "main", "java"))) {
+      try (Stream<Path> files = Files.walk(SRC.resolve("main/java"))) {
          for (Path f : (Iterable<Path>)files.filter(p -> p.toString().endsWith(".java"))::iterator) {
             Matcher m = literal.matcher(Files.readString(f));
             while (m.find()) {

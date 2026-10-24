@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.ui.Px;
 import dev.swiftclient.core.gfx.Canvas;
 import dev.swiftclient.core.mods.ConsumedBy;
@@ -88,7 +89,7 @@ public final class LowHealthWarningModule extends Module {
       LocalPlayer player = mc.player;
       boolean dead = player == null || player.isDeadOrDying();
       float want = 0.0F;
-      if (!dead && !mc.gui.hud.isHidden() && !player.isSpectator() && !player.getAbilities().invulnerable) {
+      if (!dead && !Mc.hudHidden() && !player.isSpectator() && !player.getAbilities().invulnerable) {
          float health = player.getHealth() + (this.countAbsorption.boolValue() ? player.getAbsorptionAmount() : 0.0F);
          float limit = this.warnBelow.floatValue();
          if (health < limit) {

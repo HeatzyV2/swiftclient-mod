@@ -63,7 +63,10 @@ public abstract class ChatComponentMixin {
          this.swiftclient$lastCount++;
          GuiMessage previous = this.swiftclient$lastMessage;
          this.allMessages.remove(0);
+         //? if >=26.1 {
          this.trimmedMessages.removeIf(line -> line.parent() == previous);
+         //?} else
+         /*this.trimmedMessages.removeIf(line -> line.addedTime() == previous.addedTime());*/
          out = contents.copy().append(Component.literal(" [x" + this.swiftclient$lastCount + "]").withStyle(ChatFormatting.GRAY));
       } else {
          this.swiftclient$lastRaw = raw;

@@ -1,19 +1,24 @@
 package dev.swiftclient.input;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.platform.Platform;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsScreen;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
+import dev.swiftclient.compat.Input;
 
 /**
  * Swift Client key bindings, listed and rebindable in Options > Controls > Key Binds (saved by vanilla
  * in options.txt). Toggle Sprint / Toggle Sneak use the vanilla Sprint and Sneak keys.
  */
 public final class SwiftKeys {
+   //? if >=1.21.9 {
    public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("swiftclient", "main"));
+   //?} else
+   /*public static final String CATEGORY = "key.category.swiftclient.main";*/
    public static KeyMapping MENU;
    public static KeyMapping ZOOM;
    public static KeyMapping FREELOOK;
@@ -28,17 +33,17 @@ public final class SwiftKeys {
    }
 
    public static void register() {
-      MENU = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.modsmenu", GLFW.GLFW_KEY_RIGHT_SHIFT, CATEGORY));
-      ZOOM = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.zoom", legacyKey("mod.zoom.key", GLFW.GLFW_KEY_C), CATEGORY));
+      MENU = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.modsmenu", InputConstants.KEY_RSHIFT, CATEGORY));
+      ZOOM = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.zoom", legacyKey("mod.zoom.key", InputConstants.KEY_C), CATEGORY));
       FREELOOK = KeyMappingHelper.registerKeyMapping(
-         new KeyMapping("key.swiftclient.freelook", legacyKey("mod.freelook.key", GLFW.GLFW_KEY_LEFT_ALT), CATEGORY)
+         new KeyMapping("key.swiftclient.freelook", legacyKey("mod.freelook.key", InputConstants.KEY_LALT), CATEGORY)
       );
-      SNAPLOOK = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.snaplook", GLFW.GLFW_KEY_H, CATEGORY));
-      STOPWATCH = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch", GLFW.GLFW_KEY_K, CATEGORY));
-      STOPWATCH_RESET = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch_reset", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
-      WAYPOINT = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.waypoint", GLFW.GLFW_KEY_J, CATEGORY));
-      RADIAL = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.radial", GLFW.GLFW_KEY_G, CATEGORY));
-      CYCLE_PROFILE = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.cycle_profile", GLFW.GLFW_KEY_UNKNOWN, CATEGORY));
+      SNAPLOOK = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.snaplook", InputConstants.KEY_H, CATEGORY));
+      STOPWATCH = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch", InputConstants.KEY_K, CATEGORY));
+      STOPWATCH_RESET = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.stopwatch_reset", Input.KEY_NONE, CATEGORY));
+      WAYPOINT = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.waypoint", InputConstants.KEY_J, CATEGORY));
+      RADIAL = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.radial", InputConstants.KEY_G, CATEGORY));
+      CYCLE_PROFILE = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.swiftclient.cycle_profile", Input.KEY_NONE, CATEGORY));
    }
 
    /**
@@ -51,7 +56,7 @@ public final class SwiftKeys {
          String v = Platform.game().getConfig(configKey, null);
          if (v != null) {
             int code = (int)Double.parseDouble(v);
-            return code >= 0 ? code : def;
+            return code >= 0 ? Input.fromCoreKey(code) : def;
          }
       } catch (Throwable ignored) {
       }
@@ -67,6 +72,6 @@ public final class SwiftKeys {
    /** Opens vanilla Key Binds on top of the current screen. */
    public static void openControls() {
       Minecraft mc = Minecraft.getInstance();
-      mc.setScreenAndShow(new KeyBindsScreen(mc.gui.screen(), mc.options));
+      mc.setScreenAndShow(new KeyBindsScreen(Mc.screen(), mc.options));
    }
 }

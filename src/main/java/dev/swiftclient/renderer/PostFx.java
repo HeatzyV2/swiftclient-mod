@@ -1,5 +1,6 @@
 package dev.swiftclient.renderer;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.BindGroupLayout;
@@ -96,7 +97,7 @@ public final class PostFx {
       }
 
       try {
-         RenderTarget rt = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+         RenderTarget rt = Mc.mainTarget();
          if (rt == null || rt.getColorTexture() == null || rt.width <= 0 || rt.height <= 0) {
             return;
          }

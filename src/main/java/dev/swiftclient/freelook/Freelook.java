@@ -1,5 +1,6 @@
 package dev.swiftclient.freelook;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.input.SwiftKeys;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
@@ -15,7 +16,7 @@ public final class Freelook {
 
    public static void tick(Minecraft mc, float maxYawDegrees) {
       maxYaw = maxYawDegrees;
-      boolean held = mc.player != null && mc.gui.screen() == null && SwiftKeys.FREELOOK.isDown();
+      boolean held = mc.player != null && Mc.screen() == null && SwiftKeys.FREELOOK.isDown();
       if (held && !active) {
          start(mc);
       } else if (!held && active) {

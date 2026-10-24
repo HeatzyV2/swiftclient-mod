@@ -115,7 +115,7 @@ public final class AtmosphereModule extends Module {
    }
 
    private static float clearNight(float sunAngle) {
-      float dark = Mth.clamp(0.75F - 2.0F * Mth.cos((double)sunAngle), 0.0F, 1.0F);
+      float dark = Mth.clamp(0.75F - 2.0F * Mth.cos(sunAngle), 0.0F, 1.0F);
       return dark * dark;
    }
 

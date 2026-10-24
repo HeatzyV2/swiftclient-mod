@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -90,7 +91,7 @@ final class AtmosphereShaderSky {
          return false;
       }
 
-      RenderTarget target = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+      RenderTarget target = Mc.mainTarget();
       if (target == null || target.width <= 0 || target.height <= 0) {
          return false;
       }

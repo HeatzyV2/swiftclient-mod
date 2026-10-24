@@ -2,7 +2,10 @@ package dev.swiftclient.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+//? if >=1.21.6 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+//?} else
+/*import java.util.function.Function;*/
 import dev.swiftclient.ui.SwiftLoadingScreen;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.LoadingOverlay;
@@ -38,6 +41,7 @@ public abstract class LoadingOverlayMixin {
       SwiftLoadingScreen.registerTextures(textures);
    }
 
+   //? if >=26.2 {
    @ModifyArg(
       method = {"extractRenderState"},
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;fill(IIIII)V"),
@@ -55,6 +59,16 @@ public abstract class LoadingOverlayMixin {
    private int swiftclient$clearColor(int argb) {
       return 0xFF000000 | SwiftLoadingScreen.BACKGROUND;
    }
+   //?} else {
+   /*/^* Before 26.2 the brand colour is read once per use: fills and the clear colour. ^/
+   @com.llamalad7.mixinextras.injector.ModifyExpressionValue(
+      method = {"extractRenderState"},
+      at = @At(value = "INVOKE", target = "Ljava/util/function/IntSupplier;getAsInt()I")
+   )
+   private int swiftclient$background(int argb) {
+      return 0xFF000000 | SwiftLoadingScreen.BACKGROUND;
+   }
+   *///?}
 
    @WrapOperation(
       method = {"extractRenderState"},
@@ -64,12 +78,12 @@ public abstract class LoadingOverlayMixin {
       )
    )
    private void swiftclient$noMojangLogo(
-      GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier texture, int x, int y, float u, float v, int w, int h, int srcW, int srcH,
+      GuiGraphicsExtractor graphics, /*? if >=1.21.6 {*/RenderPipeline/*?} else {*//*Function<Identifier, ?>*//*?}*/ pipeline, Identifier texture, int x, int y, float u, float v, int w, int h, int srcW, int srcH,
       int texW, int texH, int color, Operation<Void> original
    ) {
    }
 
-   @Inject(method = {"extractProgressBar"}, at = {@At("HEAD")}, cancellable = true)
+   @Inject(method = {"extractProgressBar", "drawProgressBar"}, at = {@At("HEAD")}, cancellable = true)
    private void swiftclient$noBar(CallbackInfo ci) {
       ci.cancel();
    }

@@ -1,0 +1,3 @@
+minato_kunai.json: Minato kunai model by TrySayd (from the "minatokunai" OptiFine CIT pack),
+made with Blockbench. Used by the Kunai skin of CS Knife: only its cubes are read, the colours
+follow the material of the held sword.

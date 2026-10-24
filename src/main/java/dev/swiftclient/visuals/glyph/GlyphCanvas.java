@@ -212,8 +212,8 @@ public final class GlyphCanvas implements Gizmo {
 
    public void sprite(float[] shape, double x, double y, double z, float width, float height, float angle, float shiftU, float shiftV, int argb) {
       if (ARGB.alpha(argb) >= 3) {
-         float cos = Mth.cos((double)angle);
-         float sin = Mth.sin((double)angle);
+         float cos = Mth.cos(angle);
+         float sin = Mth.sin(angle);
          double ux = (this.rightX * (double)cos + this.upX * (double)sin) * (double)width;
          double uy = (this.rightY * (double)cos + this.upY * (double)sin) * (double)width;
          double uz = (this.rightZ * (double)cos + this.upZ * (double)sin) * (double)width;
@@ -225,8 +225,8 @@ public final class GlyphCanvas implements Gizmo {
    }
 
    public void flat(float[] shape, double x, double y, double z, float size, float angle, int argb) {
-      float cos = Mth.cos((double)angle) * size;
-      float sin = Mth.sin((double)angle) * size;
+      float cos = Mth.cos(angle) * size;
+      float sin = Mth.sin(angle) * size;
       double flip = this.camY >= y ? (double)-1.0F : (double)1.0F;
       this.shape(shape, x, y, z, (double)cos, (double)0.0F, flip * (double)sin, (double)(-sin), (double)0.0F, flip * (double)cos, argb);
    }
@@ -235,13 +235,13 @@ public final class GlyphCanvas implements Gizmo {
       if (!(outer <= inner) && segments > 0 && ARGB.alpha(argb) >= 3) {
          double flip = this.camY >= y ? (double)-1.0F : (double)1.0F;
          float step = (to - from) / (float)segments;
-         float cosA = Mth.cos((double)from);
-         float sinA = Mth.sin((double)from);
+         float cosA = Mth.cos(from);
+         float sinA = Mth.sin(from);
 
          for(int i = 1; i <= segments; ++i) {
             float angle = from + step * (float)i;
-            float cosB = Mth.cos((double)angle);
-            float sinB = Mth.sin((double)angle);
+            float cosB = Mth.cos(angle);
+            float sinB = Mth.sin(angle);
             this.quad(x + (double)(cosA * inner), y, z + flip * (double)sinA * (double)inner, x + (double)(cosA * outer), y, z + flip * (double)sinA * (double)outer, x + (double)(cosB * outer), y, z + flip * (double)sinB * (double)outer, x + (double)(cosB * inner), y, z + flip * (double)sinB * (double)inner, argb);
             cosA = cosB;
             sinA = sinB;

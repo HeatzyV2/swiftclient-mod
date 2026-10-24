@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Draw3D;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.world.WorldOverlays;
@@ -9,8 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gizmos.GizmoStyle;
-import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -90,7 +89,7 @@ public final class LightOverlayModule extends Module implements WorldOverlays.Wo
          double x = m[0];
          double y = m[1] + 0.01;
          double z = m[2];
-         Gizmos.cuboid(new AABB(x + 0.1, y, z + 0.1, x + 0.9, y + 0.02, z + 0.9), GizmoStyle.fill(color));
+         Draw3D.fill(new AABB(x + 0.1, y, z + 0.1, x + 0.9, y + 0.02, z + 0.9), color);
       }
    }
 }

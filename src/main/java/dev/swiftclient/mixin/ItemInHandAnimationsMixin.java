@@ -4,72 +4,49 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.swiftclient.visuals.HandModelModule;
 import dev.swiftclient.visuals.HandsModule;
 import dev.swiftclient.visuals.SwingAnimationModule;
-import dev.swiftclient.visuals.WeaponInspectModule;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.entity.player.AvatarRenderer;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * First-person hands: Swing Animation (swing motion), Hand Pose (position / rotation / scale), CS Knife
- * (knife models and inspect) and 3D Hand (your arm holding the item, stretched up to the shoulder).
+ * First-person hands: Swing Animation (swing motion) and Hand Pose (position / rotation / scale). The knife
+ * models and the 3D hand are in ItemInHandModelsMixin. Arguments are taken with {@link Local} by type so the
+ * handlers fit every version's signature; the method names list the old ("render...") and new ("submit...")
+ * spellings.
  */
 @Mixin({ItemInHandRenderer.class})
 public abstract class ItemInHandAnimationsMixin {
-   @Inject(
-      method = {"submitHandsWithItems"},
-      at = {@At("HEAD")}
-   )
-   private void swiftclient$inspectHands(float frameInterp, PoseStack poseStack, SubmitNodeCollector collector, LocalPlayer player, int light, CallbackInfo ci) {
-      if (WeaponInspectModule.active != null) {
-         WeaponInspectModule.handsBegin(poseStack);
-      }
+   private static int swiftclient$side(InteractionHand hand) {
+      HumanoidArm main = Minecraft.getInstance().player != null ? Minecraft.getInstance().player.getMainArm() : HumanoidArm.RIGHT;
+      HumanoidArm arm = hand == InteractionHand.MAIN_HAND ? main : main.getOpposite();
+      return arm == HumanoidArm.RIGHT ? 1 : -1;
    }
 
    @Inject(
-      method = {"submitArmWithItem"},
+      method = {"submitArmWithItem", "renderArmWithItem"},
       at = {@At(
          value = "INVOKE",
          target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V",
-         shift = At.Shift.AFTER
+         shift = At.Shift.AFTER,
+         ordinal = 0
       )}
    )
-   private void swiftclient$handPose(
-      AbstractClientPlayer player,
-      float frameInterp,
-      float xRot,
-      InteractionHand hand,
-      float attack,
-      ItemStack stack,
-      float inverseArmHeight,
-      PoseStack poseStack,
-      SubmitNodeCollector collector,
-      int light,
-      CallbackInfo ci
-   ) {
+   private void swiftclient$handPose(CallbackInfo ci, @Local(argsOnly = true) InteractionHand hand, @Local(argsOnly = true) PoseStack poseStack) {
       if (HandsModule.live != null) {
-         boolean mainHand = hand == InteractionHand.MAIN_HAND;
-         HumanoidArm arm = mainHand ? player.getMainArm() : player.getMainArm().getOpposite();
-         HandsModule.shape(poseStack, mainHand, arm == HumanoidArm.RIGHT ? 1 : -1);
+         HandsModule.shape(poseStack, hand == InteractionHand.MAIN_HAND, swiftclient$side(hand));
       }
    }
 
+   //? if >=1.21.11 {
    @WrapOperation(
-      method = {"submitArmWithItem"},
+      method = {"submitArmWithItem", "renderArmWithItem"},
       at = {@At(
          value = "INVOKE",
          target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;swingArm(FLcom/mojang/blaze3d/vertex/PoseStack;ILnet/minecraft/world/entity/HumanoidArm;)V"
@@ -85,79 +62,24 @@ public abstract class ItemInHandAnimationsMixin {
          original.call(renderer, attack, poseStack, side, arm);
       }
    }
-
-   @WrapOperation(
-      method = {"submitArmWithItem"},
+   //?} else {
+   /*@WrapOperation(
+      method = {"renderArmWithItem"},
       at = {@At(
          value = "INVOKE",
-         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V"
+         target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;swingArm(FFLcom/mojang/blaze3d/vertex/PoseStack;ILnet/minecraft/world/entity/HumanoidArm;)V"
       )}
    )
-   private void swiftclient$inspectItem(
-      ItemInHandRenderer renderer,
-      LivingEntity entity,
-      ItemStack stack,
-      ItemDisplayContext context,
-      PoseStack poseStack,
-      SubmitNodeCollector collector,
-      int light,
-      Operation<Void> original,
+   private void swiftclient$swingStyle(
+      ItemInHandRenderer renderer, float attack, float equip, PoseStack poseStack, int side, HumanoidArm arm, Operation<Void> original,
       @Local(argsOnly = true) InteractionHand hand
    ) {
-      boolean mainHand = hand == InteractionHand.MAIN_HAND;
-      boolean nudged = HandModelModule.nudge(poseStack, stack, context, mainHand);
-      if (WeaponInspectModule.active != null) {
-         if (!WeaponInspectModule.renderItem(poseStack, entity, stack, context, collector, light, mainHand)) {
-            original.call(renderer, entity, stack, context, poseStack, collector, light);
-         }
+      SwingAnimationModule module = SwingAnimationModule.active;
+      if (module != null && module.covers(hand == InteractionHand.MAIN_HAND)) {
+         module.pose(poseStack, attack, side);
       } else {
-         if (HandModelModule.active != null) {
-            HandModelModule.renderArm(poseStack, entity, stack, context, collector, light, mainHand);
-         }
-
-         original.call(renderer, entity, stack, context, poseStack, collector, light);
-      }
-
-      if (nudged) {
-         poseStack.popPose();
+         original.call(renderer, attack, equip, poseStack, side, arm);
       }
    }
-
-   @WrapOperation(
-      method = {"renderPlayerArm", "renderMapHand"},
-      at = {@At(
-         value = "INVOKE",
-         target = "Lnet/minecraft/client/renderer/entity/player/AvatarRenderer;renderRightHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Z)V"
-      )}
-   )
-   private void swiftclient$longRightArm(
-      AvatarRenderer<?> renderer, PoseStack pose, SubmitNodeCollector collector, int light, Identifier skin, boolean sleeve, Operation<Void> original
-   ) {
-      original.call(renderer, pose, collector, light, skin, sleeve);
-      if (HandModelModule.active != null) {
-         pose.pushPose();
-         HandModelModule.shoulder(pose, true, renderer);
-         original.call(renderer, pose, collector, light, skin, sleeve);
-         pose.popPose();
-      }
-   }
-
-   @WrapOperation(
-      method = {"renderPlayerArm", "renderMapHand"},
-      at = {@At(
-         value = "INVOKE",
-         target = "Lnet/minecraft/client/renderer/entity/player/AvatarRenderer;renderLeftHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Z)V"
-      )}
-   )
-   private void swiftclient$longLeftArm(
-      AvatarRenderer<?> renderer, PoseStack pose, SubmitNodeCollector collector, int light, Identifier skin, boolean sleeve, Operation<Void> original
-   ) {
-      original.call(renderer, pose, collector, light, skin, sleeve);
-      if (HandModelModule.active != null) {
-         pose.pushPose();
-         HandModelModule.shoulder(pose, false, renderer);
-         original.call(renderer, pose, collector, light, skin, sleeve);
-         pose.popPose();
-      }
-   }
+   *///?}
 }

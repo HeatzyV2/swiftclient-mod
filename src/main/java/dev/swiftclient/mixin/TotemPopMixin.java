@@ -1,7 +1,9 @@
 package dev.swiftclient.mixin;
 
+//? if glyphs {
 import dev.swiftclient.visuals.RelicParticlesModule;
 import dev.swiftclient.visuals.TotemSpiritModule;
+//?}
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
@@ -24,7 +26,10 @@ public abstract class TotemPopMixin {
       method = {"handleEntityEvent"},
       at = {@At(
          value = "INVOKE",
+         //? if >=1.21.9 {
          target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
+         //?} else
+         /*target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V",*/
          shift = At.Shift.AFTER
       )}
    )
@@ -35,8 +40,10 @@ public abstract class TotemPopMixin {
 
       Entity entity = packet.getEntity(this.level);
       if (entity instanceof LivingEntity living && !living.isRemoved()) {
+         //? if glyphs {
          TotemSpiritModule.onTotemPop(living);
          RelicParticlesModule.onTotemPop(living);
+         //?}
          dev.swiftclient.visuals.TotemCounterModule.onTotemPop(living);
       }
    }

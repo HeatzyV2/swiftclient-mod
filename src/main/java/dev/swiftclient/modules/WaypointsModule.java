@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Draw3D;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.core.platform.Tr;
@@ -10,8 +11,6 @@ import dev.swiftclient.world.WaypointCodec;
 import dev.swiftclient.world.Waypoints;
 import dev.swiftclient.world.WorldOverlays;
 import net.minecraft.client.Minecraft;
-import net.minecraft.gizmos.Gizmos;
-import net.minecraft.gizmos.TextGizmo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 
@@ -111,7 +110,10 @@ public final class WaypointsModule extends Module implements WorldOverlays.World
    private static void say(String msg) {
       Minecraft mc = Minecraft.getInstance();
       if (mc.player != null) {
+         //? if >=26.1 {
          mc.player.sendOverlayMessage(Component.literal(msg));
+         //?} else
+         /*mc.player.displayClientMessage(Component.literal(msg), true);*/
       }
 
       Notifications.push(Tr.of("swift.waypoints.title"), msg, "pin");
@@ -138,7 +140,7 @@ public final class WaypointsModule extends Module implements WorldOverlays.World
          }
 
          if (this.beam.boolValue()) {
-            Gizmos.line(base, base.add(0.0, 256.0, 0.0), w.color() & 0x00FFFFFF | 0xAA000000, 4.0F);
+            Draw3D.line(base, base.add(0.0, 256.0, 0.0), w.color() & 0x00FFFFFF | 0xAA000000, 4.0F);
          }
 
          // Far labels are pulled towards you so they stay readable.
@@ -149,8 +151,7 @@ public final class WaypointsModule extends Module implements WorldOverlays.World
 
          // Grows with distance (up to where the label is pulled in) so it stays readable.
          float scale = 0.45F + (float)Math.min(dist, 48.0) * 0.025F;
-         Gizmos.billboardText(w.name() + "  " + Math.round(dist) + "m", label, TextGizmo.Style.forColorAndCentered(w.color() | 0xFF000000).withScale(scale))
-            .setAlwaysOnTop();
+         Draw3D.text(w.name() + "  " + Math.round(dist) + "m", label, w.color() | 0xFF000000, scale);
       }
    }
 }

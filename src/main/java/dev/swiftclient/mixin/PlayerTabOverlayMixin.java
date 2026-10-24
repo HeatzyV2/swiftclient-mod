@@ -1,5 +1,6 @@
 package dev.swiftclient.mixin;
 
+import dev.swiftclient.compat.GuiPose;
 import dev.swiftclient.core.badges.BadgeState;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.TabAnimState;
@@ -56,8 +57,8 @@ public abstract class PlayerTabOverlayMixin {
    private void swiftclient$tabAnimStart(GuiGraphicsExtractor ctx, int scaledWindowWidth, Scoreboard scoreboard, Objective objective, CallbackInfo ci) {
       TabEditorModule m = swiftclient$editor();
       if (m != null && m.slide.boolValue()) {
-         ctx.pose().pushMatrix();
-         ctx.pose().translate(0.0F, TabAnimState.slideY());
+         GuiPose.of(ctx).pushMatrix();
+         GuiPose.of(ctx).translate(0.0F, TabAnimState.slideY());
       }
    }
 
@@ -68,7 +69,7 @@ public abstract class PlayerTabOverlayMixin {
    private void swiftclient$tabAnimEnd(GuiGraphicsExtractor ctx, int scaledWindowWidth, Scoreboard scoreboard, Objective objective, CallbackInfo ci) {
       TabEditorModule m = swiftclient$editor();
       if (m != null && m.slide.boolValue()) {
-         ctx.pose().popMatrix();
+         GuiPose.of(ctx).popMatrix();
       }
    }
 

@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
@@ -122,7 +123,7 @@ public final class ElytraSwapModule extends Module {
          this.groundTicks = 0;
       } else if (this.glided && (player.onGround() || player.isInWater()) && ++this.groundTicks >= 4) {
          this.armed = false;
-         if (mc.gui.screen() == null && inventoryReady(player) && !player.isUsingItem()) {
+         if (Mc.screen() == null && inventoryReady(player) && !player.isUsingItem()) {
             int chestplate = findBestChestplate(player);
             if (chestplate >= 0) {
                equip(mc, player, chestplate);
@@ -145,7 +146,7 @@ public final class ElytraSwapModule extends Module {
    }
 
    private static void say(LocalPlayer player, String text) {
-      Minecraft.getInstance().gui.hud.setOverlayMessage(Component.literal(text), false);
+      Mc.hud().setOverlayMessage(Component.literal(text), false);
    }
 
    private static boolean inventoryReady(LocalPlayer player) {
@@ -206,7 +207,15 @@ public final class ElytraSwapModule extends Module {
 
    private static double armorScore(ItemStack stack) {
       ItemAttributeModifiers modifiers = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
-      return modifiers.compute(Attributes.ARMOR, 0.0, EquipmentSlot.CHEST) + modifiers.compute(Attributes.ARMOR_TOUGHNESS, 0.0, EquipmentSlot.CHEST);
+      double score = 0.0;
+      for (ItemAttributeModifiers.Entry e : modifiers.modifiers()) {
+         if ((e.attribute().equals(Attributes.ARMOR) || e.attribute().equals(Attributes.ARMOR_TOUGHNESS)) && e.slot().test(EquipmentSlot.CHEST)
+            && e.modifier().operation() == net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE) {
+            score += e.modifier().amount();
+         }
+      }
+
+      return score;
    }
 
    private static int durabilityLeft(ItemStack stack) {

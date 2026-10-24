@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+//? if >=1.21.9
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
@@ -23,7 +24,10 @@ public final class CanvasWidget extends AbstractWidget {
       }
    }
 
+   //? if >=1.21.9 {
    public void onClick(MouseButtonEvent click, boolean doubled) {
+   //?} else
+   /*public void onClick(double mouseX, double mouseY) {*/
       if (this.visible && (this.active || this.widget.clickWhenDisabled())) {
          this.widget.onClick();
       }

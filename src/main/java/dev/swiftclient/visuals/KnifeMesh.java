@@ -29,6 +29,11 @@ final class KnifeMesh {
       this.shineTo = shineTo;
    }
 
+   /** A mesh from free quads: 12 floats of positions, 3 of normal, a material and a tone per quad. */
+   static KnifeMesh quads(float[] pos, float[] normal, byte[] material, float[] tone, float shineFrom, float shineTo) {
+      return new KnifeMesh(pos, normal, material, tone, material.length, shineFrom, shineTo);
+   }
+
    void emit(PoseStack.Pose pose, VertexConsumer out, int[] palette, int light, Shine shine) {
       boolean shining = shine.gain() > 0.004F;
 

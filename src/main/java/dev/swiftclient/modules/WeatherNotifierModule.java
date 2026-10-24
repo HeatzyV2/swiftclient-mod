@@ -1,5 +1,6 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.ModuleSetting;
@@ -41,7 +42,7 @@ public final class WeatherNotifierModule extends Module {
          this.changedTicks = 0;
       }
 
-      if (current == null || mc.gui.screen() instanceof LevelLoadingScreen) {
+      if (current == null || Mc.screen() instanceof LevelLoadingScreen) {
          this.changedTicks = 0;
          return;
       }
@@ -73,7 +74,7 @@ public final class WeatherNotifierModule extends Module {
       if (ModuleManager.active(Notifications.MODULE_ID)) {
          Notifications.push(title, body, "cloud");
       } else {
-         SystemToast.add(mc.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.literal(title), Component.literal(body));
+         SystemToast.add(Mc.toasts(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.literal(title), Component.literal(body));
       }
    }
 }

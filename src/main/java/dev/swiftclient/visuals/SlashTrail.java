@@ -92,8 +92,8 @@ final class SlashTrail {
 
       for(int arm = 0; arm < 4; ++arm) {
          float angle = turn + (float)arm * ((float)Math.PI / 2F);
-         float cos = Mth.cos((double)angle);
-         float sin = Mth.sin((double)angle);
+         float cos = Mth.cos(angle);
+         float sin = Mth.sin(angle);
          float length = size * (arm % 2 == 0 ? 1.0F : 0.7F);
          float width = size * 0.16F;
          float tx = x + cos * length;

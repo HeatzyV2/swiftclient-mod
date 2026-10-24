@@ -104,16 +104,16 @@ public final class GlyphSwarm {
                      drag = 1.6F;
                      lift = 0.7F;
                      float[] var10000 = this.vx;
-                     var10000[i] += Mth.sin((double)(a * 2.3F + this.seed[i] * 6.0F)) * 0.35F * dt;
+                     var10000[i] += Mth.sin((a * 2.3F + this.seed[i] * 6.0F)) * 0.35F * dt;
                      var10000 = this.vz;
-                     var10000[i] += Mth.cos((double)(a * 1.9F + this.seed[i] * 6.0F)) * 0.35F * dt;
+                     var10000[i] += Mth.cos((a * 1.9F + this.seed[i] * 6.0F)) * 0.35F * dt;
                      break;
                   case 1:
                      drag = 0.8F;
                      lift = -1.1F;
                      float turn = (this.seed[i] > 0.5F ? 1.8F : -1.8F) * dt;
-                     float cos = Mth.cos((double)turn);
-                     float sin = Mth.sin((double)turn);
+                     float cos = Mth.cos(turn);
+                     float sin = Mth.sin(turn);
                      float nx = this.vx[i] * cos - this.vz[i] * sin;
                      this.vz[i] = this.vx[i] * sin + this.vz[i] * cos;
                      this.vx[i] = nx;
@@ -171,7 +171,7 @@ public final class GlyphSwarm {
                      break;
                   case 1:
                      shape = GlyphShapes.SCARAB;
-                     squash = 0.72F + 0.28F * Math.abs(Mth.sin((double)(this.age[i] * 15.0F + this.seed[i] * 9.0F)));
+                     squash = 0.72F + 0.28F * Math.abs(Mth.sin((this.age[i] * 15.0F + this.seed[i] * 9.0F)));
                      break;
                   case 2:
                      shape = GlyphShapes.GRAIN;
@@ -179,7 +179,7 @@ public final class GlyphSwarm {
                   default:
                      shape = GlyphShapes.SPARK;
                      scale *= 1.0F - 0.6F * t;
-                     fade *= 0.75F + 0.25F * Mth.sin((double)(this.age[i] * 23.0F + this.seed[i] * 12.0F));
+                     fade *= 0.75F + 0.25F * Mth.sin((this.age[i] * 23.0F + this.seed[i] * 12.0F));
                }
 
                float alpha = fade * opacity;

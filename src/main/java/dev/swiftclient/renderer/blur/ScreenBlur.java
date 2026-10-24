@@ -1,5 +1,6 @@
 package dev.swiftclient.renderer.blur;
 
+import dev.swiftclient.compat.Mc;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.BindGroupLayout;
@@ -64,7 +65,7 @@ public final class ScreenBlur {
       init();
       if (pipeline != null && uniformBuffer != null) {
          try {
-            RenderTarget rt = Minecraft.getInstance().gameRenderer.mainRenderTarget();
+            RenderTarget rt = Mc.mainTarget();
             if (rt == null) {
                return;
             }

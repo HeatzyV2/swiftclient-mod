@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.ui.Px;
 import net.minecraft.world.phys.Vec3;
 import dev.swiftclient.world.WorldOverlays;
@@ -159,7 +160,7 @@ public final class RelicParticlesModule extends Module implements WorldOverlays.
          this.swarm.trim(this.particleLimit());
          this.swarm.step(dt);
          if (this.swarm.count() != 0) {
-            this.canvas.begin(mc.gameRenderer.mainCamera());
+            this.canvas.begin(Mc.camera());
             this.swarm.draw(this.canvas, 1.0F, this.halo.boolValue(), false ? null : null);
             this.canvas.submit(false);
          }
@@ -183,7 +184,7 @@ public final class RelicParticlesModule extends Module implements WorldOverlays.
                float heading = this.random.nextFloat() * ((float)Math.PI * 2F);
                float out = outward(kind) * (0.45F + this.random.nextFloat());
                float up = upward(kind) * (0.55F + 0.8F * this.random.nextFloat());
-               this.emit(kind, px, py, pz, Mth.cos((double)heading) * out, up, Mth.sin((double)heading) * out, 1.0F, 1.0F, this.colorFor(kind, -1));
+               this.emit(kind, px, py, pz, Mth.cos(heading) * out, up, Mth.sin(heading) * out, 1.0F, 1.0F, this.colorFor(kind, -1));
             }
 
          }

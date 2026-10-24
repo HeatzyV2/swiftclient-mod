@@ -26,25 +26,28 @@ public final class DisplayModeFix {
       if (!applied) {
          applied = true;
          Options opt = mc.options;
+         // The exclusive fullscreen option only exists since 26.1.
+         //? if >=26.1 {
          if (Boolean.TRUE.equals(opt.exclusiveFullscreen().get())) {
             opt.exclusiveFullscreen().set(false);
             opt.save();
             try {
                var win = mc.getWindow();
-               if (win.isFullscreen()) {
+               if (dev.swiftclient.compat.Input.isFullscreen()) {
                   // Re-enter so GLFW drops exclusive for borderless
-                  win.toggleFullScreen();
-                  win.toggleFullScreen();
+                  dev.swiftclient.compat.Input.toggleFullscreen();
+                  dev.swiftclient.compat.Input.toggleFullscreen();
                }
             } catch (Throwable t) {
                LOG.warn("Bascule plein ecran sans bordure impossible", t);
             }
          }
-         lastFs = mc.getWindow().isFullscreen();
+         //?}
+         lastFs = dev.swiftclient.compat.Input.isFullscreen();
          return;
       }
 
-      boolean fs = mc.getWindow().isFullscreen();
+      boolean fs = dev.swiftclient.compat.Input.isFullscreen();
       if (lastFs != null && lastFs && !fs) {
          ensureWindowedSize(mc);
       }
@@ -54,17 +57,15 @@ public final class DisplayModeFix {
    public static void ensureWindowedSize(Minecraft mc) {
       try {
          var win = mc.getWindow();
-         if (win.isFullscreen()) {
+         if (dev.swiftclient.compat.Input.isFullscreen()) {
             return;
          }
          int sw = Math.max(1280, win.getScreenWidth() * 4 / 5);
          int sh = Math.max(720, win.getScreenHeight() * 4 / 5);
          if (win.getWidth() < 1000 || win.getHeight() < 560) {
-            long handle = win.handle();
-            org.lwjgl.glfw.GLFW.glfwSetWindowSize(handle, sw, sh);
             int mx = Math.max(0, (win.getScreenWidth() - sw) / 2);
             int my = Math.max(0, (win.getScreenHeight() - sh) / 2);
-            org.lwjgl.glfw.GLFW.glfwSetWindowPos(handle, mx, my);
+            dev.swiftclient.compat.Input.setWindowBounds(mx, my, sw, sh);
          }
       } catch (Throwable ignored) {
       }

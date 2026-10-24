@@ -1,5 +1,6 @@
 package dev.swiftclient.visuals;
 
+import dev.swiftclient.compat.Mc;
 import dev.swiftclient.core.ui.Px;
 import net.minecraft.world.phys.Vec3;
 import dev.swiftclient.world.WorldOverlays;
@@ -190,7 +191,7 @@ public final class TotemSpiritModule extends Module implements WorldOverlays.Wor
 
          if (this.count != 0) {
             this.palette.resolve(this.colorMode.label(), Px.ACCENT, this.bodyColor.colorValue(), this.auraColor.colorValue());
-            this.canvas.begin(mc.gameRenderer.mainCamera());
+            this.canvas.begin(Mc.camera());
 
             for(int n = 0; n < this.count; ++n) {
                Spirit spirit = this.spirits[(this.head + n) % 12];
@@ -230,8 +231,8 @@ public final class TotemSpiritModule extends Module implements WorldOverlays.Wor
       this.originZ = s.z;
       this.unit = 0.05859375F * s.scale * (1.0F + 0.08F * t);
       float lean = s.crouch ? 0.45F * (1.0F - ka) : 0.0F;
-      this.leanSin = Mth.sin((double)lean);
-      this.leanCos = Mth.cos((double)lean);
+      this.leanSin = Mth.sin(lean);
+      this.leanCos = Mth.cos(lean);
       this.drop = s.crouch ? 3.0F * (1.0F - ka) : 0.0F;
       this.pose(s, ka);
       this.cachedPose = false;
@@ -272,7 +273,7 @@ public final class TotemSpiritModule extends Module implements WorldOverlays.Wor
    }
 
    private void pose(Spirit s, float ka) {
-      float swing = Mth.cos((double)(s.walk * 0.6662F)) * s.stride;
+      float swing = Mth.cos((s.walk * 0.6662F)) * s.stride;
       float settle = 1.0F - ka;
       float crouchArms = s.crouch ? 0.35F : 0.0F;
       this.pitch[0] = swing * 1.4F * settle - 0.05F * ka;
@@ -290,12 +291,12 @@ public final class TotemSpiritModule extends Module implements WorldOverlays.Wor
       float[] part = PARTS[index];
       boolean torso = index >= 2;
       int r = index * 6;
-      float cp = this.cachedPose ? this.rotations[r] : Mth.cos((double)this.pitch[index]);
-      float sp = this.cachedPose ? this.rotations[r + 1] : Mth.sin((double)this.pitch[index]);
-      float cy = this.cachedPose ? this.rotations[r + 2] : Mth.cos((double)this.yaw[index]);
-      float sy = this.cachedPose ? this.rotations[r + 3] : Mth.sin((double)this.yaw[index]);
-      float cr = this.cachedPose ? this.rotations[r + 4] : Mth.cos((double)this.roll[index]);
-      float sr = this.cachedPose ? this.rotations[r + 5] : Mth.sin((double)this.roll[index]);
+      float cp = this.cachedPose ? this.rotations[r] : Mth.cos(this.pitch[index]);
+      float sp = this.cachedPose ? this.rotations[r + 1] : Mth.sin(this.pitch[index]);
+      float cy = this.cachedPose ? this.rotations[r + 2] : Mth.cos(this.yaw[index]);
+      float sy = this.cachedPose ? this.rotations[r + 3] : Mth.sin(this.yaw[index]);
+      float cr = this.cachedPose ? this.rotations[r + 4] : Mth.cos(this.roll[index]);
+      float sr = this.cachedPose ? this.rotations[r + 5] : Mth.sin(this.roll[index]);
 
       for(int c = 0; c < 8; ++c) {
          float lx = (c & 1) == 0 ? part[3] - inflate : part[6] + inflate;
@@ -327,12 +328,12 @@ public final class TotemSpiritModule extends Module implements WorldOverlays.Wor
    private void cachePose() {
       for(int i = 0; i < PARTS.length; ++i) {
          int r = i * 6;
-         this.rotations[r] = Mth.cos((double)this.pitch[i]);
-         this.rotations[r + 1] = Mth.sin((double)this.pitch[i]);
-         this.rotations[r + 2] = Mth.cos((double)this.yaw[i]);
-         this.rotations[r + 3] = Mth.sin((double)this.yaw[i]);
-         this.rotations[r + 4] = Mth.cos((double)this.roll[i]);
-         this.rotations[r + 5] = Mth.sin((double)this.roll[i]);
+         this.rotations[r] = Mth.cos(this.pitch[i]);
+         this.rotations[r + 1] = Mth.sin(this.pitch[i]);
+         this.rotations[r + 2] = Mth.cos(this.yaw[i]);
+         this.rotations[r + 3] = Mth.sin(this.yaw[i]);
+         this.rotations[r + 4] = Mth.cos(this.roll[i]);
+         this.rotations[r + 5] = Mth.sin(this.roll[i]);
       }
 
    }
@@ -380,7 +381,7 @@ public final class TotemSpiritModule extends Module implements WorldOverlays.Wor
 
       for(int i = 0; i < 4; ++i) {
          float angle = base + (float)i * ((float)Math.PI / 2F);
-         this.canvas.flat(GlyphShapes.ANKH, s.x + (double)(Mth.cos((double)angle) * radius * 0.78F), y + 0.004, s.z + (double)(Mth.sin((double)angle) * radius * 0.78F), 0.13F * s.scale, -angle - ((float)Math.PI / 2F), GlyphTint.alpha(light, a));
+         this.canvas.flat(GlyphShapes.ANKH, s.x + (double)(Mth.cos(angle) * radius * 0.78F), y + 0.004, s.z + (double)(Mth.sin(angle) * radius * 0.78F), 0.13F * s.scale, -angle - ((float)Math.PI / 2F), GlyphTint.alpha(light, a));
       }
 
    }

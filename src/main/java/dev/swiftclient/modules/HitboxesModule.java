@@ -1,12 +1,11 @@
 package dev.swiftclient.modules;
 
+import dev.swiftclient.compat.Draw3D;
 import dev.swiftclient.core.mods.ConsumedBy;
 import dev.swiftclient.core.mods.Module;
 import dev.swiftclient.core.mods.ModuleSetting;
 import dev.swiftclient.world.WorldOverlays;
 import net.minecraft.client.Minecraft;
-import net.minecraft.gizmos.GizmoStyle;
-import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -77,10 +76,10 @@ public final class HitboxesModule extends Module implements WorldOverlays.WorldO
 
          Vec3 now = e.getPosition(partialTick);
          AABB box = e.getBoundingBox().move(now.subtract(e.position()));
-         Gizmos.cuboid(box, GizmoStyle.stroke(color, 1.5F));
+         Draw3D.box(box, color, 1.5F);
          if (this.lookLine.boolValue() && !(e instanceof ItemEntity) && !(e instanceof Projectile)) {
             Vec3 eye = now.add(0.0, e.getEyeHeight(), 0.0);
-            Gizmos.line(eye, eye.add(e.getViewVector(partialTick).scale(2.0)), 0xFF3B82F6, 1.5F);
+            Draw3D.line(eye, eye.add(e.getViewVector(partialTick).scale(2.0)), 0xFF3B82F6, 1.5F);
          }
       }
    }

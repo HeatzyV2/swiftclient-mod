@@ -56,8 +56,8 @@ final class AtmosphereSky {
    void update(float sunAngle, float moonAngle, float rain, float thunder, float flash, int nightZenith, int nightHorizon, int twilight) {
       this.sunAngle = sunAngle;
       this.moonAngle = moonAngle;
-      this.sunX = -Mth.sin((double)sunAngle);
-      this.sunY = Mth.cos((double)sunAngle);
+      this.sunX = -Mth.sin(sunAngle);
+      this.sunY = Mth.cos(sunAngle);
       int blueHourZenith = ARGB.srgbLerp(0.3F, 1319497, nightZenith);
       int[] zeniths = new int[]{nightZenith, blueHourZenith, 5210048, 3108822};
       int[] horizons = new int[]{nightHorizon, scale(twilight, 0.75F), 16032864, 11850996};
@@ -138,9 +138,9 @@ final class AtmosphereSky {
    private void corner(BufferBuilder builder, float elevationDeg, int segment, boolean end) {
       float el = elevationDeg * ((float)Math.PI / 180F);
       float az = (float)segment / 48.0F * ((float)Math.PI * 2F);
-      float x = Mth.cos((double)el) * Mth.cos((double)az);
-      float y = Mth.sin((double)el);
-      float z = Mth.cos((double)el) * Mth.sin((double)az);
+      float x = Mth.cos(el) * Mth.cos(az);
+      float y = Mth.sin(el);
+      float z = Mth.cos(el) * Mth.sin(az);
       int rgb = end ? endColourAt(y) : this.colourAt(x, y, z);
       SkyMesh.vertex(builder, x * 100.0F, y * 100.0F, z * 100.0F, -16777216 | rgb);
    }
@@ -182,8 +182,8 @@ final class AtmosphereSky {
       if (!(alpha <= 0.002F)) {
          float[] radii = new float[]{0.0F, radius * 0.16F, radius * 0.38F, radius * 0.66F, radius};
          float[] alphas = new float[]{1.0F, 0.55F, 0.22F, 0.07F, 0.0F};
-         float cosA = Mth.cos((double)angle);
-         float sinA = Mth.sin((double)angle);
+         float cosA = Mth.cos(angle);
+         float sinA = Mth.sin(angle);
 
          for(int ring = 0; ring < 4; ++ring) {
             for(int s = 0; s < 32; ++s) {
@@ -199,9 +199,9 @@ final class AtmosphereSky {
 
    private static void haloVertex(BufferBuilder builder, float r, int segment, float cosA, float sinA, int rgb, float alpha) {
       float around = (float)segment / 32.0F * ((float)Math.PI * 2F);
-      float lx = Mth.cos((double)around) * r;
+      float lx = Mth.cos(around) * r;
       float ly = 100.0F;
-      float lz = Mth.sin((double)around) * r;
+      float lz = Mth.sin(around) * r;
       float y = ly * cosA - lz * sinA;
       float z = ly * sinA + lz * cosA;
       SkyMesh.vertex(builder, -z, y, lx, Math.round(Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F) << 24 | rgb & 16777215);
@@ -222,7 +222,7 @@ final class AtmosphereSky {
       }
 
       float life = (float)(now - this.meteorStart) / (float)(this.meteorEnd - this.meteorStart);
-      float fade = Mth.sin((double)((float)Math.PI * Mth.clamp(life, 0.0F, 1.0F))) * night * rainBrightness;
+      float fade = Mth.sin(((float)Math.PI * Mth.clamp(life, 0.0F, 1.0F))) * night * rainBrightness;
       BufferBuilder builder = this.meteorMesh.begin();
       float travel = life * 0.55F;
       float tail = 0.16F;
@@ -245,11 +245,11 @@ final class AtmosphereSky {
    private void launch(long now) {
       float el = (30.0F + 40.0F * this.random.nextFloat()) * ((float)Math.PI / 180F);
       float az = this.random.nextFloat() * ((float)Math.PI * 2F);
-      this.mx = Mth.cos((double)el) * Mth.cos((double)az);
-      this.my = Mth.sin((double)el);
-      this.mz = Mth.cos((double)el) * Mth.sin((double)az);
-      float dx = -Mth.sin((double)az);
-      float dz = Mth.cos((double)az);
+      this.mx = Mth.cos(el) * Mth.cos(az);
+      this.my = Mth.sin(el);
+      this.mz = Mth.cos(el) * Mth.sin(az);
+      float dx = -Mth.sin(az);
+      float dz = Mth.cos(az);
       float dy = -0.6F - 0.4F * this.random.nextFloat();
       float dot = dx * this.mx + dy * this.my + dz * this.mz;
       this.tx = dx - dot * this.mx;

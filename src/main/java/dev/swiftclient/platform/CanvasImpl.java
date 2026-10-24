@@ -1,5 +1,6 @@
 package dev.swiftclient.platform;
 
+import dev.swiftclient.compat.GuiPose;
 import dev.swiftclient.core.account.AccountEntry;
 import dev.swiftclient.core.account.AccountManager;
 import dev.swiftclient.core.gfx.Canvas;
@@ -13,17 +14,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.FontDescription.Resource;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public final class CanvasImpl implements Canvas {
    private final GuiGraphicsExtractor ctx;
    private final Minecraft mc = Minecraft.getInstance();
-   private static final FontDescription UI_FONT = new Resource(Identifier.fromNamespaceAndPath("swiftclient", "ui"));
-   private static final Style UI_STYLE = Style.EMPTY.withFont(UI_FONT);
+   private static final Style UI_STYLE = dev.swiftclient.compat.Fonts.style(Identifier.fromNamespaceAndPath("swiftclient", "ui"));
    private static final Identifier BTN = Identifier.withDefaultNamespace("widget/button");
    private static final Identifier BTN_HOVER = Identifier.withDefaultNamespace("widget/button_highlighted");
    private static final int ICON_PX = 64;
@@ -55,7 +53,7 @@ public final class CanvasImpl implements Canvas {
    public void playerModel(int x, int y, int w, int h, int mouseX, int mouseY, float delta) {
       // The 3D skin widget works in screen coordinates and ignores the current translate / scale, so a screen
       // drawn inside the menu frame would see the model land far from its box. Convert box and mouse first.
-      var pose = this.ctx.pose();
+      var pose = GuiPose.of(this.ctx);
       float k = pose.m00();
       float ox = pose.m20();
       float oy = pose.m21();
@@ -136,25 +134,25 @@ public final class CanvasImpl implements Canvas {
 
    @Override
    public void pushTranslate(int dx, int dy) {
-      this.ctx.pose().pushMatrix();
-      this.ctx.pose().translate(dx, dy);
+      GuiPose.of(this.ctx).pushMatrix();
+      GuiPose.of(this.ctx).translate(dx, dy);
    }
 
    @Override
    public void popTranslate() {
-      this.ctx.pose().popMatrix();
+      GuiPose.of(this.ctx).popMatrix();
    }
 
    @Override
    public void pushScale(int ox, int oy, float scale) {
-      this.ctx.pose().pushMatrix();
-      this.ctx.pose().translate(ox, oy);
-      this.ctx.pose().scale(scale, scale);
+      GuiPose.of(this.ctx).pushMatrix();
+      GuiPose.of(this.ctx).translate(ox, oy);
+      GuiPose.of(this.ctx).scale(scale, scale);
    }
 
    @Override
    public void popScale() {
-      this.ctx.pose().popMatrix();
+      GuiPose.of(this.ctx).popMatrix();
    }
 
    @Override
