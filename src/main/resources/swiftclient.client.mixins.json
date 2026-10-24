@@ -64,6 +64,7 @@
     "ProgressScreenAccessor",
     "ShulkerTooltipMixin",
     "ShulkerTooltipRenderMixin",
+    "ShulkerContainerTooltipMixin",
     "TooltipPlusMixin",
     "DamageTiltMixin",
     "HotbarSwapMixin",
