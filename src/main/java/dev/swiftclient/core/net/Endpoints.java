@@ -70,12 +70,29 @@ public final class Endpoints {
       com.google.gson.JsonElement j = r.ok() ? r.json() : null;
       if (j != null && j.isJsonObject() && j.getAsJsonObject().has("port")) {
          int port = j.getAsJsonObject().get("port").getAsInt();
-         RELAY = relayHost() + ":" + port;
+         RELAY = announcedRelayHost(j.getAsJsonObject(), relayHost()) + ":" + port;
          relayDiscovered = true;
          LOG.info("Relais : {}", RELAY);
       }
       // Relay off (404) or backend unreachable: keep the default and ask again next time, so a relay
       // switched on later is found without restarting the game.
+   }
+
+   /**
+    * Host of the relay, as the backend announces it. The API host is usually behind an HTTP proxy
+    * (Cloudflare) that does not carry the raw TCP of the relay, so it is only the last resort:
+    * {@code host} when given, else {@code relay.<domain>} (the hosting wildcard), else {@code fallback}.
+    */
+   static String announcedRelayHost(com.google.gson.JsonObject info, String fallback) {
+      if (info.has("host") && info.get("host").isJsonPrimitive() && !info.get("host").getAsString().isBlank()) {
+         return info.get("host").getAsString().trim();
+      }
+
+      if (info.has("domain") && info.get("domain").isJsonPrimitive() && !info.get("domain").getAsString().isBlank()) {
+         return "relay." + info.get("domain").getAsString().trim();
+      }
+
+      return fallback;
    }
 
    private static String setting(String property, String env) {

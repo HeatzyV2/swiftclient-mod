@@ -28,6 +28,8 @@ public final class ModuleSetting {
    public final double step;
    public final String unit;
    private Supplier<String> actionLabel;
+   private java.util.function.BooleanSupplier boundGet;
+   private java.util.function.Consumer<Boolean> boundSet;
    private Runnable action;
    private String[] options;
    private String[] optionKeys;
@@ -82,6 +84,16 @@ public final class ModuleSetting {
 
    public static ModuleSetting slider(String moduleId, String id, String name, double def, double min, double max, double step, String unit) {
       return new ModuleSetting(moduleId, id, name, ModuleSetting.Type.SLIDER, false, def, 0, min, max, step, unit).loaded();
+   }
+
+   /** A toggle that stores nothing itself: it reads and writes a state kept elsewhere (a module switch). */
+   public static ModuleSetting bound(
+      String moduleId, String id, String name, java.util.function.BooleanSupplier get, java.util.function.Consumer<Boolean> set
+   ) {
+      ModuleSetting s = new ModuleSetting(moduleId, id, name, ModuleSetting.Type.TOGGLE, false, 0.0, 0, 0.0, 0.0, 0.0, "");
+      s.boundGet = get;
+      s.boundSet = set;
+      return s;
    }
 
    public static ModuleSetting color(String moduleId, String id, String name, int defArgb) {
@@ -281,7 +293,7 @@ public final class ModuleSetting {
    }
 
    public boolean boolValue() {
-      return this.bool;
+      return this.boundGet != null ? this.boundGet.getAsBoolean() : this.bool;
    }
 
    public double value() {
@@ -297,6 +309,12 @@ public final class ModuleSetting {
    }
 
    public void setBool(boolean b) {
+      if (this.boundSet != null) {
+         this.boundSet.accept(b);
+         this.revision++;
+         return;
+      }
+
       this.bool = b;
       this.save();
    }
@@ -318,7 +336,7 @@ public final class ModuleSetting {
    }
 
    public void toggle() {
-      this.setBool(!this.bool);
+      this.setBool(!this.boolValue());
    }
 
    /** Slider value, clamped to its range (no step rounding: used to restore exact defaults). */
@@ -333,7 +351,7 @@ public final class ModuleSetting {
    public String exporter() {
       return switch (this.type) {
          case ACTION -> null;
-         case TOGGLE -> this.bool ? "1" : "0";
+         case TOGGLE -> this.boolValue() ? "1" : "0";
          case COLOR -> String.format(Locale.ROOT, "#%08X", this.color);
          case CYCLE -> this.cycleKey();
          case TEXT -> this.text;

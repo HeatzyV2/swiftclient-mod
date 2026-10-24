@@ -19,10 +19,8 @@ import dev.swiftclient.core.mods.ModuleManager;
 import dev.swiftclient.core.mods.ModuleSetting;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.texture.SkinTextureDownloader;
-import net.minecraft.core.ClientAsset;
 import net.minecraft.resources.Identifier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.PlayerModelType;
 import net.minecraft.world.entity.player.PlayerSkin;
 
 /**
@@ -139,7 +137,7 @@ public final class SkinChangeModule extends Module {
             }
 
             Path cachePath = cacheDir.resolve((isSelf ? "self_" : "others_") + uuid + ".png");
-            registerSkin(id, cachePath, skin.url()).whenCompleteAsync((texture, error) -> this.finishLoad(username, isSelf, texture == null ? null : new CustomSkin(texture, skin.model())), mc);
+            registerSkin(id, cachePath, skin.url()).whenCompleteAsync((texture, error) -> this.finishLoad(username, isSelf, texture == null ? null : new CustomSkin(texture, skin.slim())), mc);
          } catch (Exception var10) {
             mc.execute(() -> this.finishLoad(username, isSelf, (CustomSkin)null));
          }
@@ -168,10 +166,14 @@ public final class SkinChangeModule extends Module {
       }
    }
 
-   private static CompletableFuture<ClientAsset.Texture> registerSkin(Identifier id, Path cachePath, String url) {
+   private static CompletableFuture<Identifier> registerSkin(Identifier id, Path cachePath, String url) {
+      //? if >=1.21.9 {
       Minecraft mc = Minecraft.getInstance();
       SkinTextureDownloader downloader = new SkinTextureDownloader(mc.getProxy(), mc.getTextureManager(), mc);
-      return downloader.downloadAndRegisterSkin(id, cachePath, url, true);
+      return downloader.downloadAndRegisterSkin(id, cachePath, url, true).thenApply(t -> t.texturePath());
+      //?} else {
+      /*return SkinTextureDownloader.downloadAndRegisterSkin(id, cachePath, url, true);
+      *///?}
    }
 
    private static String fetchUUID(String username) throws Exception {
@@ -250,7 +252,7 @@ public final class SkinChangeModule extends Module {
                JsonObject skin = textures.getAsJsonObject("SKIN");
                JsonObject metadata = skin.has("metadata") ? skin.getAsJsonObject("metadata") : null;
                String model = metadata != null && metadata.has("model") ? metadata.get("model").getAsString() : null;
-               return new SkinSource(skin.get("url").getAsString(), PlayerModelType.byLegacyServicesName(model));
+               return new SkinSource(skin.get("url").getAsString(), "slim".equals(model));
             }
          }
 
@@ -271,10 +273,10 @@ public final class SkinChangeModule extends Module {
       return custom == null ? original : (isSelf ? this.selfSwaps : this.othersSwaps).swap(original, custom);
    }
 
-   private static record CustomSkin(ClientAsset.Texture body, PlayerModelType model) {
+   private static record CustomSkin(Identifier body, boolean slim) {
    }
 
-   private static record SkinSource(String url, PlayerModelType model) {
+   private static record SkinSource(String url, boolean slim) {
    }
 
    private static final class SwapCache {
@@ -290,7 +292,7 @@ public final class SkinChangeModule extends Module {
 
          PlayerSkin skin = (PlayerSkin)this.swapped.get(original);
          if (skin == null) {
-            skin = new PlayerSkin(custom.body(), original.cape(), original.elytra(), custom.model(), original.secure());
+            skin = dev.swiftclient.compat.Skins.withBody(original, custom.body(), custom.slim(), original.secure());
             this.swapped.put(original, skin);
          }
 

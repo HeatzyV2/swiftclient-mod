@@ -77,6 +77,9 @@ public final class ModsScreen extends UiScreen {
    private final List<ModsScreen.NavHit> navHits = new ArrayList<>();
    private final Defilement grille = new Defilement();
    private Module settingsFor;
+   /** For a group: the part whose settings are shown (picked in the list on the left). */
+   private Module settingsPart;
+   private final List<ModsScreen.PartHit> partHits = new ArrayList<>();
    private String settingsGroup;
    private ModuleSetting draggingSetting;
    private ModuleSetting listeningKey;
@@ -136,6 +139,7 @@ public final class ModsScreen extends UiScreen {
       this.embedded = s;
       this.currentSection = section;
       this.settingsFor = null;
+      this.settingsPart = null;
       if (s != null) {
          s.bindHost(next -> this.setEmbedded(next, this.currentSection), this::embedBack);
          s.layout(this.embW(), this.embH());
@@ -254,7 +258,7 @@ public final class ModsScreen extends UiScreen {
       List<Module> out = new ArrayList<>();
 
       for (Module m : ModuleManager.modules()) {
-         if ((this.category == null || this.category.equals(m.category)) && (q.isEmpty() || m.displayName().toLowerCase(Locale.ROOT).contains(q))) {
+         if (m.parent() == null && (this.category == null || this.category.equals(m.category)) && (q.isEmpty() || matches(m, q))) {
             out.add(m);
          }
       }
@@ -262,11 +266,28 @@ public final class ModsScreen extends UiScreen {
       return out;
    }
 
+   /** A group is found by its own name and by the names of its parts. */
+   private static boolean matches(Module m, String q) {
+      if (m.displayName().toLowerCase(Locale.ROOT).contains(q)) {
+         return true;
+      }
+
+      if (m instanceof ModuleGroup g) {
+         for (Module part : g.children()) {
+            if (part.displayName().toLowerCase(Locale.ROOT).contains(q)) {
+               return true;
+            }
+         }
+      }
+
+      return false;
+   }
+
    private List<String> categories() {
       List<String> out = new ArrayList<>();
 
       for (Module m : ModuleManager.modules()) {
-         if (!out.contains(m.category)) {
+         if (m.parent() == null && !out.contains(m.category)) {
             out.add(m.category);
          }
       }
@@ -291,10 +312,18 @@ public final class ModsScreen extends UiScreen {
       return new ArrayList<>(seen);
    }
 
+   /** The module whose settings are listed: the selected part of a group, or the module itself. */
+   private Module shown() {
+      return this.settingsPart != null ? this.settingsPart : this.settingsFor;
+   }
+
    private List<ModuleSetting> visibleSettings() {
       List<ModuleSetting> out = new ArrayList<>();
+      if (this.settingsPart != null) {
+         out.add(ModuleGroup.partSwitch(this.settingsPart));
+      }
 
-      for (ModuleSetting s : this.settingsFor.settings()) {
+      for (ModuleSetting s : this.shown().settings()) {
          if (this.settingsGroup == null || this.settingsGroup.equals(s.group())) {
             out.add(s);
          }
@@ -475,7 +504,12 @@ public final class ModsScreen extends UiScreen {
          boolean over = in(mouseX, mouseY, b);
          dev.swiftclient.core.ui.Px.button(c, b[0], b[1], b[2], b[3], "<", over, false);
          int tx = b[0] + b[2] + 8;
-         c.text(trunc(c, this.settingsFor.displayName().toUpperCase(Locale.ROOT), Math.max(30, this.searchX() - tx - 8)), tx, this.panelY() + 13, TEXT, true);
+         String title = this.settingsFor.displayName().toUpperCase(Locale.ROOT);
+         if (this.settingsPart != null) {
+            title = title + "  >  " + this.settingsPart.displayName().toUpperCase(Locale.ROOT);
+         }
+
+         c.text(trunc(c, title, Math.max(30, this.searchX() - tx - 8)), tx, this.panelY() + 13, TEXT, true);
       }
       this.drawSearch(c, mouseX, mouseY);
    }
@@ -920,13 +954,25 @@ public final class ModsScreen extends UiScreen {
       return r.y() + (r.h() - 5 - h) / 2;
    }
 
+   private static final int PART_LIST_W = 112;
+   private static final int PART_ROW_H = 17;
+
+   /** Left edge of the setting rows: past the list of parts when a group is open. */
+   private int rowsLeft() {
+      return this.settingsPart != null ? this.gridLeft() + PART_LIST_W + 8 : this.gridLeft();
+   }
+
+   private int rowsW() {
+      return this.gridRight() - this.rowsLeft();
+   }
+
    private void buildRows(Canvas c) {
       this.setRows.clear();
       List<ModuleSetting> settings = this.visibleSettings();
       int y = this.settingsTop();
 
       for (ModuleSetting s : settings) {
-         int dispo = this.gridW() - 24 - this.ctrlW(s);
+         int dispo = this.rowsW() - 24 - this.ctrlW(s);
          List<String> desc = wrap(c, s.displayDescription(), dispo, 2);
          int h = this.rowH(desc) + 5;
          this.setRows.add(new ModsScreen.SetRow(s, y, h, desc));
@@ -944,7 +990,40 @@ public final class ModsScreen extends UiScreen {
    }
 
    private int settingsTop() {
-      return groupsOf(this.settingsFor).size() > 1 ? this.gridTop() : this.panelY() + this.topH() + 4;
+      return groupsOf(this.shown()).size() > 1 ? this.gridTop() : this.panelY() + this.topH() + 4;
+   }
+
+   private int partsTop() {
+      return this.panelY() + this.topH() + 4;
+   }
+
+   /** The parts of the open group, one row each, with a dot telling whether the part is on. */
+   private void drawParts(Canvas c, int mouseX, int mouseY) {
+      this.partHits.clear();
+      if (!(this.settingsFor instanceof ModuleGroup g)) {
+         return;
+      }
+
+      int x = this.gridLeft();
+      int y = this.partsTop();
+      int bottom = this.gridBottom();
+      int rowH = Math.max(12, Math.min(PART_ROW_H, (bottom - y) / Math.max(1, g.children().size())));
+      for (Module part : g.children()) {
+         boolean sel = part == this.settingsPart;
+         boolean over = in(mouseX, mouseY, new int[]{x, y, PART_LIST_W, rowH - 2});
+         c.card(x, y, PART_LIST_W, rowH - 2, sel ? 0xFF182033 : (over ? 0xFF141A28 : 0xFF11151F), 0, 0, 3.0F);
+         if (sel) {
+            c.fill(x, y + 2, x + 2, y + rowH - 4, ACCENT);
+         }
+
+         boolean on = part.rawEnabled();
+         int dot = 4;
+         int dy = y + (rowH - 2 - dot) / 2;
+         c.fill(x + 7, dy, x + 7 + dot, dy + dot, on ? ACCENT : 0xFF3A4253);
+         c.text(trunc(c, part.displayName(), PART_LIST_W - 20), x + 15, y + (rowH - 2 - 8) / 2 + 1, sel || over ? TEXT : (on ? 0xFFB4BDCC : DIM), false);
+         this.partHits.add(new ModsScreen.PartHit(part, y, rowH - 2));
+         y += rowH;
+      }
    }
 
    private void drawSettings(Canvas c, int mouseX, int mouseY) {
@@ -952,10 +1031,11 @@ public final class ModsScreen extends UiScreen {
          this.updateDrag(mouseX);
       }
 
-      List<String> groups = groupsOf(this.settingsFor);
+      List<String> groups = groupsOf(this.shown());
       this.tabHits.clear();
+      this.drawParts(c, mouseX, mouseY);
       if (groups.size() > 1) {
-         int x = this.gridLeft();
+         int x = this.rowsLeft();
          int y = this.chipsY();
 
          for (String g : groups) {
@@ -964,11 +1044,11 @@ public final class ModsScreen extends UiScreen {
       }
 
       this.buildRows(c);
-      int sx = this.gridLeft();
-      int sw = this.gridW();
+      int sx = this.rowsLeft();
+      int sw = this.rowsW();
       int top = this.settingsTop();
       int bottom = this.gridBottom();
-      c.pushScissor(this.contentX() + 4, top, this.contentW() - 8, bottom - top);
+      c.pushScissor(sx, top, this.contentX() + this.contentW() - 4 - sx, bottom - top);
 
       for (ModsScreen.SetRow r : this.setRows) {
          if (r.y() + r.h() >= top && r.y() <= bottom) {
@@ -1235,6 +1315,13 @@ public final class ModsScreen extends UiScreen {
                if (onSearch) {
                   return true;
                } else if (this.settingsFor != null) {
+                  for (ModsScreen.PartHit p : this.partHits) {
+                     if (mx >= this.gridLeft() && mx < this.gridLeft() + PART_LIST_W && my >= p.y() && my < p.y() + p.h()) {
+                        this.selectPart(p.part());
+                        return true;
+                     }
+                  }
+
                   if (my >= this.chipsY() && my < this.chipsY() + 15) {
                      for (ModsScreen.TabHit t : this.tabHits) {
                         if (mx >= t.x() && mx < t.x() + t.w()) {
@@ -1326,7 +1413,7 @@ public final class ModsScreen extends UiScreen {
                         int[] r = this.cardRect(i);
                         if (in((int)mx, (int)my, r)) {
                            Module m = mods.get(i);
-                           if (m.hasSettings() && in((int)mx, (int)my, gearRect(r))) {
+                           if (m.hasSettings() && in((int)mx, (int)my, gearRect(r)) || m instanceof ModuleGroup g && g.isAlwaysOn()) {
                               this.openSettings(m);
                               return true;
                            }
@@ -1355,14 +1442,29 @@ public final class ModsScreen extends UiScreen {
    private void openSettings(Module m) {
       this.contentChanged();
       this.settingsFor = m;
-      List<String> g = groupsOf(m);
+      this.settingsPart = m instanceof ModuleGroup g && !g.children().isEmpty() ? g.children().get(0) : null;
+      List<String> g = groupsOf(this.shown());
       this.settingsGroup = g.size() > 1 ? g.get(0) : null;
       this.reglages.haut();
+   }
+
+   private void selectPart(Module part) {
+      if (part != this.settingsPart) {
+         this.contentChanged();
+         this.settingsPart = part;
+         List<String> g = groupsOf(part);
+         this.settingsGroup = g.size() > 1 ? g.get(0) : null;
+         this.draggingSetting = null;
+         this.listeningKey = null;
+         this.editingText = null;
+         this.reglages.haut();
+      }
    }
 
    private void closeSettings() {
       this.contentChanged();
       this.settingsFor = null;
+      this.settingsPart = null;
       this.settingsGroup = null;
       this.draggingSetting = null;
       this.listeningKey = null;
@@ -1711,6 +1813,9 @@ public final class ModsScreen extends UiScreen {
    }
 
    private record SetRow(ModuleSetting s, int y, int h, List<String> desc) {
+   }
+
+   private record PartHit(Module part, int y, int h) {
    }
 
    private record TabHit(int x, int w, String value) {

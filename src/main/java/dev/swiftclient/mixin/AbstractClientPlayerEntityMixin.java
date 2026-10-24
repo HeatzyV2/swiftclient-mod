@@ -2,6 +2,7 @@ package dev.swiftclient.mixin;
 
 //? if skins
 import dev.swiftclient.modules.SkinChangeModule;
+import dev.swiftclient.skin.OfflineSkin;
 import dev.swiftclient.ui.SkinRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -47,8 +48,10 @@ public class AbstractClientPlayerEntityMixin {
       cancellable = true
    )
    private void swiftclient$skinChange(CallbackInfoReturnable<PlayerSkin> cir) {
+      AbstractClientPlayer self = (AbstractClientPlayer)(Object)this;
       PlayerSkin original = cir.getReturnValue();
-      PlayerSkin swapped = SkinChangeModule.swap((AbstractClientPlayer)(Object)this, original);
+      PlayerSkin base = OfflineSkin.configured() && OfflineSkin.isSelf(self.getUUID()) ? OfflineSkin.apply(original) : original;
+      PlayerSkin swapped = SkinChangeModule.swap(self, base);
       if (swapped != original) {
          cir.setReturnValue(swapped);
       }

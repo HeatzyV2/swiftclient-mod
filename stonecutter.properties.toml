@@ -11,14 +11,14 @@
 #                ids: its version numbers repeat across Minecraft versions. Pets are written for GeckoLib 5.5
 #                (26.1+); older GeckoLib builds have another API.
 
-mod.version = "2.6.7"
+mod.version = "2.7.0"
 mod.group = "dev.swiftclient"
 
 deps.fabric_loader = "0.19.5"
 deps.junit = "6.1.3"
 
 ["1.21.4"]
-mod.features = "glfw"
+mod.features = "glfw,skins"
 mod.mc_compat = "1.21.4"
 deps.fabric_api = "0.119.4+1.21.4"
 deps.geckolib = ""
@@ -29,7 +29,7 @@ deps.ferritecore = "7.1.3-fabric"
 deps.viafabricplus = "4.0.5-BACKPORT"
 
 ["1.21.5"]
-mod.features = "glfw"
+mod.features = "glfw,skins"
 mod.mc_compat = "1.21.5"
 deps.fabric_api = "0.128.2+1.21.5"
 deps.geckolib = ""
@@ -40,7 +40,7 @@ deps.ferritecore = "8.0.4-fabric"
 deps.viafabricplus = "4.1.5"
 
 ["1.21.6"]
-mod.features = "fog,glfw"
+mod.features = "fog,glfw,skins"
 mod.mc_compat = "1.21.6"
 deps.fabric_api = "0.128.2+1.21.6"
 deps.geckolib = ""
@@ -51,7 +51,7 @@ deps.ferritecore = "8.0.4-fabric"
 deps.viafabricplus = "4.2.1"
 
 ["1.21.7"]
-mod.features = "fog,glfw"
+mod.features = "fog,glfw,skins"
 mod.mc_compat = "1.21.7"
 deps.fabric_api = "0.129.0+1.21.7"
 deps.geckolib = ""
@@ -62,7 +62,7 @@ deps.ferritecore = "8.0.4-fabric"
 deps.viafabricplus = "4.2.5"
 
 ["1.21.8"]
-mod.features = "fog,glfw"
+mod.features = "fog,glfw,skins"
 mod.mc_compat = "1.21.8"
 deps.fabric_api = "0.136.1+1.21.8"
 deps.geckolib = ""

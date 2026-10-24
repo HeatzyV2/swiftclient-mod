@@ -47,6 +47,13 @@ public class SkinRenderer {
          return cachedTexture;
       } else if (fetchTriggered && cachedTexture == null) {
          return null;
+      } else if (dev.swiftclient.skin.OfflineSkin.configured() && dev.swiftclient.skin.OfflineSkin.texture() != null) {
+         // Offline account with a skin chosen in the launcher: the menus show it too
+         Minecraft mc = Minecraft.getInstance();
+         cachedSkinTexturesObj = dev.swiftclient.skin.OfflineSkin.apply(net.minecraft.client.resources.DefaultPlayerSkin.get(mc.getGameProfile()));
+         cachedTexture = dev.swiftclient.skin.OfflineSkin.texture();
+         cachedAt = now;
+         return cachedTexture;
       } else {
          try {
             Minecraft mc = Minecraft.getInstance();
