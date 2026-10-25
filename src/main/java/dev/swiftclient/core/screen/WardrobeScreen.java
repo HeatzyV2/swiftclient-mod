@@ -170,7 +170,8 @@ public class WardrobeScreen extends UiScreen {
             if (el.isJsonObject()) {
                JsonObject o = el.getAsJsonObject();
                String id = o.has("id") ? o.get("id").getAsString() : null;
-               if (id != null && ownedSet.contains(id) && !"pet".equals(o.has("type") ? o.get("type").getAsString() : "")) {
+               boolean free = !o.has("price") || o.get("price").getAsInt() <= 0;
+               if (id != null && (free || ownedSet.contains(id)) && !"pet".equals(o.has("type") ? o.get("type").getAsString() : "")) {
                   customs.add(new Item(id, o.has("name") ? o.get("name").getAsString() : id, Tr.of("swift.wardrobe.section.swift"), null));
                }
             }
