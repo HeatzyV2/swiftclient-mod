@@ -11,7 +11,7 @@
 #                ids: its version numbers repeat across Minecraft versions. Pets are written for GeckoLib 5.5
 #                (26.1+); older GeckoLib builds have another API.
 
-mod.version = "2.7.1"
+mod.version = "2.7.2"
 mod.group = "dev.swiftclient"
 
 deps.fabric_loader = "0.19.5"
