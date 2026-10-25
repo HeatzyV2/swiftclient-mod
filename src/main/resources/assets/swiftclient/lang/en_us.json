@@ -1634,5 +1634,14 @@
   "swift.module.notifications_group.name": "Notifications",
   "swift.module.notifications_group.desc": "Swift toasts: friends online, screenshots, weather changes and updates.",
   "swift.module.client_settings.name": "Client",
-  "swift.module.client_settings.desc": "Settings of the client itself: menu key, main menu, fullscreen, reconnect, session stats."
+  "swift.module.client_settings.desc": "Settings of the client itself: menu key, main menu, fullscreen, reconnect, session stats.",
+  "swift.module.blockoverlay.setting.info.name": "Block info",
+  "swift.module.blockoverlay.setting.info.desc": "A panel with the name of the block you are looking at and the mod it comes from.",
+  "swift.module.blockoverlay.setting.info_position.name": "Position",
+  "swift.module.blockoverlay.setting.info_position.desc": "Where the panel sits on the screen.",
+  "swift.module.blockoverlay.setting.info_position.top": "Top",
+  "swift.module.blockoverlay.setting.info_position.under_crosshair": "Under crosshair",
+  "swift.module.blockoverlay.setting.info_tool.name": "Show tool",
+  "swift.module.blockoverlay.setting.info_tool.desc": "The tool that mines the block, ticked green when the item in your hand breaks it properly.",
+  "swift.group.block_info": "Block info"
 }

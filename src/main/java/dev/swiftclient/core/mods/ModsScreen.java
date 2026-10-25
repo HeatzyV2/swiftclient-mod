@@ -102,8 +102,8 @@ public final class ModsScreen extends UiScreen {
    private static final float RATIO = 2.0F;
    private static final int HEADER_H = 34;
    private static final int CHIPS_H = 26;
-   private static final int CARD_MIN_W = 96;
-   private static final int TILE_H = 60;
+   private static final int CARD_MIN_W = 128;
+   private static final int TILE_H = 38;
    private static final int BAR_H = 14;
    private static final int TILE_GAP = 6;
    private static final int GAP = 10;
@@ -246,7 +246,7 @@ public final class ModsScreen extends UiScreen {
 
    /** Settings button, in the tile's top right corner. */
    private static int[] gearRect(int[] card) {
-      return new int[]{card[0] + card[2] - 5 - BAR_H, card[1] + 4, BAR_H, BAR_H};
+      return new int[]{card[0] + card[2] - 19, card[1] + 5, 13, 13};
    }
 
    private int[] closeRect() {
@@ -839,55 +839,40 @@ public final class ModsScreen extends UiScreen {
       return false;
    }
 
-   /**
-    * A module tile, cut like the Swift S: two corners chamfered on the diagonal, the name in capitals on top,
-    * the icon large and cropped as a watermark, a slanted ON / OFF tag. A lit module gets an accent frame,
-    * a tinted body and speed lines.
-    */
+   /** A module tile: click toggles the module, the gear (on hover) opens its settings. */
    private void drawModCard(Canvas c, Module m, int[] r, int mouseX, int mouseY) {
       boolean on = m.isEnabled();
       boolean inGrid = mouseY >= this.gridTop() && mouseY <= this.gridBottom();
       boolean hover = inGrid && in(mouseX, mouseY, r);
-      int x = r[0];
-      int y = r[1];
-      int w = r[2];
-      int h = r[3];
-      int cut = 7;
       float lit = this.ease("tile:" + m.id, on ? 1.0F : 0.0F, 14.0F);
-      int frame = on ? ACCENT : (hover ? 0xFF3A4560 : 0xFF222838);
-      int body = on ? 0xFF0F1830 : (hover ? 0xFF161B26 : 0xFF11141B);
-      dev.swiftclient.core.ui.Px.slot(c, x, y, w, h, cut, body, frame);
+      this.tileSplit(c, m, r, on, hover, lit);
 
-      c.pushScissor(x + 1, y + 1, w - 2, h - 2);
-      int mark = 40;
-      c.icon(m.icon == null ? "mods" : m.icon, x + w - mark + 6, y + h - mark + 8, mark, on ? withAlpha(ACCENT, 0.30F) : (hover ? 0x14FFFFFF : 0x0CFFFFFF));
-      c.popScissor();
-
-      String name = m.displayName().toUpperCase(Locale.ROOT);
-      c.text(trunc(c, name, w - 30), x + 9, y + 9, on || hover ? TEXT : 0xFFB4BDCC, false);
-
-      int tagW = 30;
-      int tagH = 11;
-      int tx = x + 9;
-      int ty = y + h - tagH - 8;
-      dev.swiftclient.core.ui.Px.chamfer(c, tx, ty, tagW, tagH, 3, on ? ACCENT : 0xFF232A3A);
-      String state = on ? "ON" : "OFF";
-      c.text(state, tx + (tagW - c.textWidth(state)) / 2, ty + 2, on ? TEXT : 0xFF7D8799, false);
-      if (lit > 0.01F) {
-         int sx = tx + tagW + 4;
-         int sy = ty + tagH / 2;
-         int[] lens = {14, 6, 2};
-         for (int i = 0; i < lens.length; i++) {
-            c.fill(sx, sy - 1, sx + Math.round(lens[i] * lit), sy + 1, withAlpha(ACCENT, (0.9F - i * 0.3F) * lit));
-            sx += lens[i] + 3;
-         }
-      }
-
-      if (m.hasSettings()) {
+      if (hover && m.hasSettings()) {
          int[] g = gearRect(r);
-         boolean gOver = inGrid && in(mouseX, mouseY, g);
-         c.icon("gear", g[0] + 2, g[1] + 2, BAR_H - 4, gOver ? TEXT : (hover || on ? 0xFF98A3B8 : FAINT));
+         boolean gOver = in(mouseX, mouseY, g);
+         c.icon("gear", g[0] + 2, g[1] + 2, 9, gOver ? TEXT : 0xFF98A3B8);
       }
+   }
+
+   private static String shortDesc(Module m) {
+      String desc = m.displayDescription();
+      int dot = desc.indexOf(". ");
+      return dot > 0 ? desc.substring(0, dot + 1) : desc;
+   }
+
+   /**
+    * A module tile: a square icon zone on the left, solid Swift blue when the module runs, the name and what the
+    * module does beside it. The settings gear shows on hover.
+    */
+   private void tileSplit(Canvas c, Module m, int[] r, boolean on, boolean hover, float lit) {
+      int x = r[0], y = r[1], w = r[2], h = r[3];
+      c.card(x, y, w, h, hover ? 0xFF151B27 : 0xFF10141C, hover ? 0x22FFFFFF : 0x10FFFFFF, 1, 7.0F);
+      int z = h - 8;
+      c.roundRect(x + 4, y + 4, z, z, 6.0F, lerpArgb(0xFF1A2030, ACCENT, lit));
+      c.icon(m.icon == null ? "mods" : m.icon, x + 4 + (z - 14) / 2, y + 4 + (z - 14) / 2, 14, on ? TEXT : 0xFF7D879B);
+      int tx = x + z + 12;
+      c.text(trunc(c, m.displayName(), x + w - 10 - tx - (hover && m.hasSettings() ? 12 : 0)), tx, y + h / 2 - 9, on || hover ? TEXT : 0xFFC0C8D6, false);
+      c.text(trunc(c, shortDesc(m), x + w - 10 - tx), tx, y + h / 2 + 2, 0xFF5F687A, false);
    }
 
    private static final int LETTER_SPACING = 1;

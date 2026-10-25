@@ -1634,5 +1634,14 @@
   "swift.module.notifications_group.name": "Notifications",
   "swift.module.notifications_group.desc": "Notifications Swift : amis en ligne, captures, changements de météo et mises à jour.",
   "swift.module.client_settings.name": "Client",
-  "swift.module.client_settings.desc": "Réglages du client : touche du menu, menu principal, plein écran, reconnexion, stats de session."
+  "swift.module.client_settings.desc": "Réglages du client : touche du menu, menu principal, plein écran, reconnexion, stats de session.",
+  "swift.module.blockoverlay.setting.info.name": "Infos du bloc",
+  "swift.module.blockoverlay.setting.info.desc": "Un panneau avec le nom du bloc que tu regardes et le mod dont il vient.",
+  "swift.module.blockoverlay.setting.info_position.name": "Position",
+  "swift.module.blockoverlay.setting.info_position.desc": "Où le panneau s’affiche à l’écran.",
+  "swift.module.blockoverlay.setting.info_position.top": "En haut",
+  "swift.module.blockoverlay.setting.info_position.under_crosshair": "Sous le viseur",
+  "swift.module.blockoverlay.setting.info_tool.name": "Afficher l’outil",
+  "swift.module.blockoverlay.setting.info_tool.desc": "L’outil qui casse le bloc, coché en vert quand l’objet en main le casse correctement.",
+  "swift.group.block_info": "Infos du bloc"
 }

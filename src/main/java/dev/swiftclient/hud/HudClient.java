@@ -121,6 +121,7 @@ public final class HudClient {
       if (!Mc.hudHidden()) {
          LowHealthWarningModule.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
          dev.swiftclient.visuals.ExtraHud.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+         BlockInfoHud.render(new CanvasImpl(graphics), mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
       }
 
       Screen ecran = Mc.screen();
